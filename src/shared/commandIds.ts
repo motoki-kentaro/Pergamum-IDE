@@ -122,6 +122,7 @@ export const editorCommandIds = {
   insertCodeBlock: defineCommandId("editor.markdown.insertCodeBlock"),
   insertTable: defineCommandId("editor.markdown.insertTable"),
   insertCallout: defineCommandId("editor.markdown.insertCallout"),
+  insertPageBreak: defineCommandId("editor.markdown.insertPageBreak"),
   insertRuby: defineCommandId("editor.markdown.insertRuby"),
   insertEmphasisMark: defineCommandId("editor.markdown.insertEmphasisMark"),
   indent: defineCommandId("editor.indent"),

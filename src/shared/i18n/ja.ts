@@ -82,6 +82,9 @@ export const jaTranslations = {
   "command.editor.markdown.insertCallout": "コールアウトを挿入",
   "command.editor.markdown.insertCallout.description":
     "カーソル位置にコールアウトブロックを挿入します。",
+  "command.editor.markdown.insertPageBreak": "改ページを挿入",
+  "command.editor.markdown.insertPageBreak.description":
+    "カーソル位置に改ページ（<!-- pagebreak -->）を独立行として挿入します。PDF エクスポートで、その位置から次のページになります。",
   "command.editor.markdown.insertRuby": "ルビを挿入...",
   "command.editor.markdown.insertRuby.description":
     "選択したテキストにルビ（振り仮名）を挿入します。",
@@ -2397,6 +2400,7 @@ export const jaTranslations = {
   "toolbar.insertTable": "表を挿入",
   "toolbar.callout": "コールアウト",
   "toolbar.callout.tooltip": "文中に色とアイコン付きの引用ブロックを挿入します",
+  "toolbar.insertPageBreak": "改ページを挿入",
   "toolbar.italic": "斜体",
   "toolbar.openProject": "プロジェクトを開く",
   "toolbar.orderedList": "オーダーリスト",

@@ -60,6 +60,8 @@ const titles = {
   insertTableDescription: "Insert Table...",
   insertCallout: "Insert Callout",
   insertCalloutDescription: "Insert Callout",
+  insertPageBreak: "Insert Page Break",
+  insertPageBreakDescription: "Insert Page Break",
   insertRuby: "Insert Ruby...",
   insertRubyDescription: "Insert Ruby...",
   insertEmphasisMark: "Insert Emphasis Mark...",
@@ -151,6 +153,8 @@ function registerEditorCommandSet(
       canInsertTable: () => true,
       insertCallout: () => undefined,
       canInsertCallout: () => true,
+      insertPageBreak: () => undefined,
+      canInsertPageBreak: () => true,
       insertRuby: () => undefined,
       canInsertRuby: () => true,
       insertEmphasisMark: () => undefined,
@@ -204,6 +208,7 @@ describe("editor commands", () => {
       "editor.markdown.insertCodeBlock",
       "editor.markdown.insertTable",
       "editor.markdown.insertCallout",
+      "editor.markdown.insertPageBreak",
       "editor.markdown.insertRuby",
       "editor.markdown.insertEmphasisMark",
       "editor.indent",
@@ -578,6 +583,9 @@ describe("editor commands", () => {
       insertCallout: "translated:command.editor.markdown.insertCallout",
       insertCalloutDescription:
         "translated:command.editor.markdown.insertCallout.description",
+      insertPageBreak: "translated:command.editor.markdown.insertPageBreak",
+      insertPageBreakDescription:
+        "translated:command.editor.markdown.insertPageBreak.description",
       insertRuby: "translated:command.editor.markdown.insertRuby",
       insertRubyDescription:
         "translated:command.editor.markdown.insertRuby.description",

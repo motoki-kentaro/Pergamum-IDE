@@ -6,6 +6,9 @@ import {
   markdownCalloutExportCss,
   type MarkdownCalloutLabels
 } from "../preview/markdownCallout";
+import {
+  markdownPageBreakExportCss
+} from "../preview/markdownComment";
 import { markdownTableExportCss } from "../preview/markdownTableCss";
 import {
   renderMermaidDiagramsToStaticHtml,
@@ -86,7 +89,8 @@ export async function renderMarkdownStaticExport(
     previewRenderer: "markdown",
     // Links were already rewritten to the export asset folder above.
     projectLocalImageResolution: { kind: "none" },
-    calloutLabels: options.calloutLabels
+    calloutLabels: options.calloutLabels,
+    pageBreakOutput: "element"
   });
 
   if (html.includes(MERMAID_BLOCK_CLASS)) {
@@ -106,6 +110,7 @@ export async function renderMarkdownStaticExport(
   const katexCss = usesMath ? await loadKatexExportCss() : null;
 
   const exportCss = [
+    markdownPageBreakExportCss,
     markdownTableExportCss,
     markdownCalloutExportCss,
     codeHighlightExportCss,
