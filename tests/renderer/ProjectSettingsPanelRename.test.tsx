@@ -53,7 +53,7 @@ describe("ProjectSettingsPanel project name editing (#422)", () => {
     }
   });
 
-  it("shows categories in expected order with 'プロジェクト全般' (JA) and 'General' (EN) immediately after 'すべて' / 'All'", () => {
+  it("shows categories in expected order with 'プロジェクト全般' (JA) and 'General' (EN)", () => {
     act(() => {
       root!.render(
         <ProjectSettingsPanel
@@ -71,7 +71,6 @@ describe("ProjectSettingsPanel project name editing (#422)", () => {
       container!.querySelectorAll(".settingsCategoryButton")
     ).map((btn) => btn.textContent);
     expect(categories).toEqual([
-      "すべて",
       "外観",
       "プロジェクト全般",
       "エディタ",
@@ -101,7 +100,6 @@ describe("ProjectSettingsPanel project name editing (#422)", () => {
       container!.querySelectorAll(".settingsCategoryButton")
     ).map((btn) => btn.textContent);
     expect(categoriesEn).toEqual([
-      "All",
       "Appearance",
       "General",
       "Editor",
@@ -136,14 +134,14 @@ describe("ProjectSettingsPanel project name editing (#422)", () => {
     expect(keyElement!.textContent).toBe("project.name");
   });
 
-  it("orders project category immediately after all in getEligibleProjectSettingCategories when includeProjectCategory is true", () => {
+  it("includes project category in getEligibleProjectSettingCategories when includeProjectCategory is true", () => {
     const categories = getEligibleProjectSettingCategories(
       [],
       translateJa,
       undefined,
       { includeProjectCategory: true }
     );
-    expect(categories.map((c) => c.id)).toEqual(["all", "project"]);
+    expect(categories.map((c) => c.id)).toEqual(["project"]);
   });
 
   it("displays current project name in Project Name input", () => {

@@ -72,13 +72,15 @@ export function CaretNumberControl({
         value={invalid ? value : Number(text)} disabled={disabled}
         aria-label={translate(`settings.textCursor.${field}.label`)}
         onChange={(event) => change(event.target.value)} data-testid={`${prefix}Slider`} />}
-      <input id={numberId ?? `${prefix}Number`} className="settingsNumberInput caretSettingNumberInput"
-        type="number" min={range.min} max={range.max} step={range.step}
-        value={text} disabled={disabled} aria-invalid={invalid}
-        aria-describedby={invalid ? errorId : undefined}
-        aria-label={translate(`settings.textCursor.${field}.label`)}
-        onChange={(event) => change(event.target.value)} data-testid={`${prefix}NumberInput`} />
-      <span className="caretSettingUnit">{translate(field === "width" ? "settings.unit.px" : "settings.unit.ms")}</span>
+      <div className="settingsNumberInputGroup">
+        <input id={numberId ?? `${prefix}Number`} className="settingsNumberInput"
+          type="number" min={range.min} max={range.max} step={range.step}
+          value={text} disabled={disabled} aria-invalid={invalid}
+          aria-describedby={invalid ? errorId : undefined}
+          aria-label={translate(`settings.textCursor.${field}.label`)}
+          onChange={(event) => change(event.target.value)} data-testid={`${prefix}NumberInput`} />
+        <span className="settingsUnit">{translate(field === "width" ? "settings.unit.px" : "settings.unit.ms")}</span>
+      </div>
     </div>
     {invalid && <p id={errorId} className="settingsError" role="alert">
       {translate(`settings.textCursor.${field}.invalid`)}

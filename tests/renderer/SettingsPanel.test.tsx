@@ -2090,7 +2090,7 @@ describe("Settings number control right-alignment (common style)", () => {
     // carries the alignment. Anchored on that width so it can't be confused
     // with the shared `.settingsSelect, .settingsTextInput, .settingsNumberInput`
     // box rule or the responsive override.
-    const anchor = ".settingsNumberInput {\n  width: min(100%, 160px);";
+    const anchor = ".settingsNumberInput {\n  width: 140px;";
     const start = css.indexOf(anchor);
     expect(start).toBeGreaterThan(-1);
     const numberRule = css.slice(start, css.indexOf("}", start));

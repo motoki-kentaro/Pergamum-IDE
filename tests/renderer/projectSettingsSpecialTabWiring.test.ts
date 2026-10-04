@@ -174,11 +174,9 @@ describe("Project Settings panel (#396 Slice 3)", () => {
       })
     );
 
-    expect(rendered).toContain(jaTranslations["settings.project.title"]);
-    expect(rendered).toContain(jaTranslations["settings.project.description"]);
     expect(rendered).toContain('class="settingsPanel projectSettingsPanel"');
     expect(rendered).toContain(
-      jaTranslations["settings.editor.fontFamilyList.label"]
+      jaTranslations["settings.workbench.uiFontFamilyList.label"]
     );
     expect(rendered).toContain("fontFamilyListControlGroup");
     expect(rendered).toContain("fontCacheControlRow");

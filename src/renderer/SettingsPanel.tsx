@@ -133,17 +133,6 @@ const textFilesDependentKeys = new Set<SettingKey>([
   "textFiles.lineEnding"
 ]);
 
-// Presentational only (unit suffix for a number control) — not part of the
-// UI catalog schema, which has no `unit` field on SettingControl.
-const numberUnitKeyByKey: Partial<Record<SettingKey, TranslationKey>> = {
-  "commandPalette.footerDetail.marquee.delay": "settings.unit.ms",
-  "commandPalette.footerDetail.marquee.speed": "settings.unit.pxPerSecond",
-  "commandPalette.launchAnimation.durationMs": "settings.unit.ms",
-  "preview.updateDelayMs": "settings.unit.ms",
-  "workbench.notification.durationMs": "settings.unit.ms",
-  "textCursor.width": "settings.unit.px",
-  "textCursor.blink": "settings.unit.ms"
-};
 
 function fontFamilyValue(value: string): string | undefined {
   const trimmed = value.trim();
@@ -1038,7 +1027,7 @@ function SettingControlInput({
           value={Number(value)} disabled={disabled} translate={translate}
           onChange={onChange} showSlider={false} numberId={controlId} />;
       }
-      const unitKey = numberUnitKeyByKey[item.key];
+      const unitKey = control.unitKey;
 
       return (
         <div className="settingsNumberInputGroup">
@@ -1054,7 +1043,11 @@ function SettingControlInput({
             aria-labelledby={labelId}
             onChange={(event) => onChange(event.target.valueAsNumber)}
           />
-          {unitKey ? <span className="settingsUnit">{translate(unitKey)}</span> : null}
+          {unitKey ? (
+            <span className="settingsUnit">
+              {translateI18nKey(translate, unitKey)}
+            </span>
+          ) : null}
         </div>
       );
     }

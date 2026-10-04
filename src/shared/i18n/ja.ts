@@ -1956,6 +1956,8 @@ export const jaTranslations = {
   "settings.unit.ms": "ms",
   "settings.unit.px": "px",
   "settings.unit.pxPerSecond": "px/sec",
+  "settings.unit.characters": "文字",
+  "settings.unit.paragraphs": "段落",
   "settings.workbench.fontFamily.description": "サイドバー、タブ、パレットなどのUIに使うフォントファミリーです。引用符なしのCSS font-familyリストを入力できます。",
   "settings.workbench.fontFamily.label": "UIフォント",
   "settings.workbench.uiFontFamilyList.description": "アプリ UI で使用するフォントファミリーの優先度順リストです。",

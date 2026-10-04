@@ -21,7 +21,7 @@ describe("#719 caret setting contract", () => {
       expect(entry.defaultValue).toBe(range.default);
       expect(entry.numericRange).toMatchObject({ min: range.min, max: range.max });
       expect(settingCatalogItems.find((item) => item.key === key)?.control)
-        .toEqual({ kind: "number", min: range.min, max: range.max, step: range.step });
+        .toMatchObject({ kind: "number", min: range.min, max: range.max, step: range.step });
     }
     expect(defaultApplicationSettings.textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink: 1200 });
     expect(resolveEffectiveSettings(defaultApplicationSettings, null).textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink: 1200 });

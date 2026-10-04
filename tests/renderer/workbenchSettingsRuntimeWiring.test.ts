@@ -144,6 +144,10 @@ describe("Application Settings core controls runtime wiring (#195)", () => {
   });
 
   it("SettingsPanel keeps Command Palette controls directly editable, with unit suffixes for number controls, and no advanced gate (#232: catalog-driven)", () => {
+    const catalogSource = readFileSync(
+      "src/shared/settingsUiCatalog.ts",
+      "utf8"
+    );
     const settingsPanelSource = readFileSync(
       "src/renderer/SettingsPanel.tsx",
       "utf8"
@@ -163,8 +167,8 @@ describe("Application Settings core controls runtime wiring (#195)", () => {
     );
     expect(settingsPanelSource).not.toContain("advancedGatedKeys");
     expect(settingsPanelSource).toContain("footerDetailMarqueeKeys");
-    expect(settingsPanelSource).toContain("settings.unit.ms");
-    expect(settingsPanelSource).toContain("settings.unit.pxPerSecond");
+    expect(catalogSource).toContain("settings.unit.ms");
+    expect(catalogSource).toContain("settings.unit.pxPerSecond");
   });
 
   it("SettingsPanel exposes the #200 sound feedback controls and disables child controls through the parent sound guard (#230: catalog-driven)", () => {

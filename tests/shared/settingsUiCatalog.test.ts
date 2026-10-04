@@ -263,6 +263,16 @@ describe("Settings UI Catalog Schema (#226)", () => {
       expect(getSettingCatalogItem("preview.fontFamilyList")).toBeDefined();
     });
 
+    it("every number control with a unitKey resolves in ja and en", () => {
+      for (const item of settingCatalogItems) {
+        if (item.control.kind === "number" && item.control.unitKey) {
+          for (const language of languages) {
+            expect(t(language, item.control.unitKey as never).length).toBeGreaterThan(0);
+          }
+        }
+      }
+    });
+
     it("no longer registers workbench.advancedSettings.enabled (#232: legacy Advanced Settings gate removed)", () => {
       expect(getSettingCatalogItem("workbench.advancedSettings.enabled")).toBeUndefined();
     });
@@ -440,7 +450,8 @@ describe("Settings UI Catalog Schema (#226)", () => {
         kind: "number",
         min: range.min,
         max: range.max,
-        step: 1000
+        step: 1000,
+        unitKey: "settings.unit.ms"
       });
       expect(item.defaultValue).toBe(10000);
     });

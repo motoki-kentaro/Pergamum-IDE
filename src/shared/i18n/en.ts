@@ -1955,6 +1955,8 @@ export const enTranslations = {
   "settings.unit.ms": "ms",
   "settings.unit.px": "px",
   "settings.unit.pxPerSecond": "px/sec",
+  "settings.unit.characters": "chars",
+  "settings.unit.paragraphs": "paragraphs",
   "settings.workbench.fontFamily.description": "Font family used for UI chrome such as the sidebar, tabs, and palettes. Enter an unquoted CSS font-family list.",
   "settings.workbench.fontFamily.label": "UI font",
   "settings.workbench.uiFontFamilyList.description": "Ordered list of font families used for the application UI.",

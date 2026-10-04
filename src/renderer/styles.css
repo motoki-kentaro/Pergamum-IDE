@@ -3729,14 +3729,14 @@ label.settingsItemHeader {
 }
 
 .settingsNumberInput {
-  width: min(100%, 160px);
+  width: 140px;
   /* Right-align numeric entry across every Settings number control (not
      text/select), so digits line up and are easier to scan/compare. */
   text-align: end;
 }
 
 .settingsNumberInputGroup {
-  display: flex;
+  display: inline-flex;
   max-width: 100%;
   align-items: center;
   gap: 8px;
@@ -3748,6 +3748,8 @@ label.settingsItemHeader {
   line-height: 1.5;
   white-space: nowrap;
   flex-shrink: 0;
+  min-width: 80px;
+  text-align: start;
 }
 
 .settingsSelect {
@@ -4212,28 +4214,7 @@ label.settingsItemHeader {
   cursor: pointer;
 }
 
-.caretSettingNumberInput {
-  inline-size: 72px;
-  block-size: 28px;
-  padding: 0 8px;
-  border: 1px solid var(--pg-color-input-border);
-  border-radius: 4px;
-  background: var(--pg-color-input-background);
-  color: var(--pg-color-input-foreground);
-  font: inherit;
-  font-size: 0.85rem;
-  text-align: end;
-}
 
-.caretSettingNumberInput:focus {
-  outline: 2px solid var(--pg-color-focus-ring);
-  outline-offset: -1px;
-}
-
-.caretSettingUnit {
-  font-size: 0.85rem;
-  color: var(--pg-color-surface-muted);
-}
 
 .recentProjectsPanel {
   display: flex;
@@ -5530,9 +5511,6 @@ label.settingsItemHeader {
   font-size: 13px;
 }
 
-.japaneseLintRuleOption .settingsNumberInput {
-  width: 96px;
-}
 
 .cm-pergamum-japaneseLintGutter .cm-gutterElement {
   display: flex;
