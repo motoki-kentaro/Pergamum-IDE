@@ -1904,6 +1904,8 @@ export const jaTranslations = {
   "settings.editor.whitespace.renderOtherUnicodeSpace.description": "U+0020半角スペースとU+3000全角スペースを除くUnicode Space_Separatorを記号で表示します。本文の内容は変更しません。",
   "settings.editor.whitespace.renderOtherUnicodeSpace.label": "その他のUnicode空白を表示",
   "settings.editor.characterCount.visible.description": "現在の文書の文字数（概算）をエディタヘッダー右端に表示します。",
+  "settings.editor.group.nonPrintingCharacters.label": "非文字表示設定",
+  "settings.editor.group.characterCountExclusions.label": "文字数カウント除外設定",
   "settings.editor.characterCount.visible.label": "文字数表示",
   "settings.editor.characterCount.exclude.headings.description": "Markdown見出し全体を文字数カウントから除外します。",
   "settings.editor.characterCount.exclude.headings.label": "見出しを除外",

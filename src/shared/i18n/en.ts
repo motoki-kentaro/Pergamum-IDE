@@ -1903,6 +1903,8 @@ export const enTranslations = {
   "settings.editor.whitespace.renderOtherUnicodeSpace.description": "Show Unicode Space_Separator characters other than U+0020 and U+3000 as markers. Document text is not changed.",
   "settings.editor.whitespace.renderOtherUnicodeSpace.label": "Show other Unicode spaces",
   "settings.editor.characterCount.visible.description": "Show the approximate character count of the current document on the right side of the editor header.",
+  "settings.editor.group.nonPrintingCharacters.label": "Non-printing character display",
+  "settings.editor.group.characterCountExclusions.label": "Character count exclusions",
   "settings.editor.characterCount.visible.label": "Character count",
   "settings.editor.characterCount.exclude.headings.description": "Exclude entire Markdown headings from the character count.",
   "settings.editor.characterCount.exclude.headings.label": "Exclude headings",

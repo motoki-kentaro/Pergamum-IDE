@@ -45,6 +45,11 @@ import type { FontFamilySetting, FontSlot } from "../shared/fontSettings";
 import { normalizeCommandPaletteLaunchAnimationDurationMs } from "../shared/commandPaletteLaunchAnimationSettings";
 import { resolveCatalogValue, validateCatalogValue } from "../shared/settingsCatalog";
 import { CaretSettingsSection, CaretNumberControl } from "./components/CaretSettingsSection";
+import { SettingsCollapsibleGroup } from "./components/SettingsCollapsibleGroup";
+import {
+  buildSettingsItemEntries,
+  type SettingsItemEntry
+} from "./settingsItemGroups";
 
 import type {
   AppConfirmDialogOptions,
@@ -1227,6 +1232,30 @@ export function SettingsPanelView({
     translate
   );
 
+  // #721: only the plain Editor category folds related items into groups.
+  // Search results stay a flat list so a matching item is never hidden inside
+  // a collapsed group.
+  const settingItemEntries: readonly SettingsItemEntry[] =
+    !isSearching && selectedCategoryId === "editor"
+      ? buildSettingsItemEntries(visibleItems)
+      : visibleItems.map((item) => ({ kind: "item", item }));
+
+  const renderSettingItemRow = (item: SettingCatalogItem): JSX.Element => (
+    <SettingItemRow
+      key={item.key}
+      item={item}
+      settings={settings}
+      isLoading={isLoading}
+      translate={translate}
+      displayLanguage={displayLanguage}
+      onChange={handleChange}
+      onFieldFocus={onSettingFieldFocus}
+      onFieldBlur={onSettingFieldBlur}
+      onOpenSaveDestinationDialog={onOpenSaveDestinationDialog}
+      onOpenFontPickerDialog={onOpenFontPickerDialog}
+    />
+  );
+
   async function handleChange(
     item: SettingCatalogItem,
     rawValue: unknown
@@ -1382,21 +1411,19 @@ export function SettingsPanelView({
           ) : (
             <div className="settingsItemList">
               {visibleItems.some(item => item.category === "textCursor") && <CaretContrastWarning settings={settings} translate={translate} />}
-              {visibleItems.map((item) => (
-                <SettingItemRow
-                  key={item.key}
-                  item={item}
-                  settings={settings}
-                  isLoading={isLoading}
-                  translate={translate}
-                  displayLanguage={displayLanguage}
-                  onChange={handleChange}
-                  onFieldFocus={onSettingFieldFocus}
-                  onFieldBlur={onSettingFieldBlur}
-                  onOpenSaveDestinationDialog={onOpenSaveDestinationDialog}
-                  onOpenFontPickerDialog={onOpenFontPickerDialog}
-                />
-              ))}
+              {settingItemEntries.map((entry) =>
+                entry.kind === "group" ? (
+                  <SettingsCollapsibleGroup
+                    key={`group-${entry.group.id}`}
+                    groupId={entry.group.id}
+                    title={translate(entry.group.titleKey)}
+                  >
+                    {entry.items.map(renderSettingItemRow)}
+                  </SettingsCollapsibleGroup>
+                ) : (
+                  renderSettingItemRow(entry.item)
+                )
+              )}
             </div>
           )}
 
