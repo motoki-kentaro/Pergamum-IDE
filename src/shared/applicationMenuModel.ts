@@ -415,6 +415,7 @@ const helpMenu: ApplicationMenuTopLevelItem = submenu(
   [
     command(workspaceCommandIds.showResumeHub, "menu.showResumeHub"),
     command(applicationCommandIds.openUsageTour, "menu.usageTour"),
+    command(applicationCommandIds.openManual, "menu.manual"),
     command(
       applicationCommandIds.openMarkdownCheatSheet,
       "menu.markdownCheatSheet"
