@@ -16,7 +16,7 @@
 
 登録済みの語彙は本文中の表示や Hover Card で確認できます。語彙の使用箇所を調べれば、その人物がどの章に登場するかを辿れます。本文中で Ctrl+Space を押すと語彙補完を呼び出せます。候補を確認して選んでください。
 
-> 画像 TODO: 「港町」の表記・説明・タグ・別称と本文の Hover Card を示す静止画を assets/images/glossary-entry.png に配置する。
+![語彙ホバー](assets/images/glossary-entry.png)
 
 <a id="preview"></a>
 ## プレビュー：見出しや画像の表示を確認する
@@ -29,7 +29,7 @@ Markdown 原稿を開き、コマンドパレットで **プレビュー表示�
 
 これは作品内の画像参照の例です。画像は自分の作品の assets/images/town-map.png に用意してください。画像が出ないときは、ファイルの場所と名前を確認します。
 
-> 画像 TODO: 同じ原稿のエディタとプレビューを並べ、見出しの対応が分かる静止画を assets/images/editor-preview.png に配置する。
+![画像対応](assets/images/editor-preview.png)
 
 <a id="document-map"></a>
 ## 文書マップ：長い章の中を移動する
@@ -38,8 +38,6 @@ Markdown 原稿を開き、コマンドパレットで **プレビュー表示�
 
 見出しの名前を覚えている場合は、パレットの「#」に続けて見出しを入力する方法も使えます。
 
-> GIF TODO: 文書マップの全体像から離れた位置へ移動する操作を assets/gifs/document-map-navigation.gif に配置する。
-
 <a id="document-metrics"></a>
 ## 文書統計：原稿の分量を確かめる
 
@@ -47,7 +45,7 @@ Markdown 原稿を開き、コマンドパレットで **プレビュー表示�
 
 原稿用紙換算や地の文・会話文の比率は概算です。投稿先などに文字数の規定がある場合は、その数え方も確認してください。
 
-> 画像 TODO: 文字数・原稿用紙換算・語彙別出現回数の見方が分かる静止画を assets/images/document-metrics.png に配置する。
+![文書統計](assets/images/document-metrics.png)
 
 <a id="export"></a>
 ## エクスポート：章をまとめて出力する
@@ -64,7 +62,7 @@ TXT はテキストとして渡したいとき、HTML はブラウザで読み�
 
 出力結果は原稿から作る成果物です。修正の正本は、プロジェクト内の原稿として保管します。
 
-> 画像 TODO: 採用チェック・並び順・形式・保存先が分かるエクスポート確認画面を assets/images/export-selection.png に配置する。
+![エクスポート](assets/images/export-selection.png)
 
 <a id="plain-text"></a>
 ## Plain Text：.txt ファイルで書く
@@ -84,7 +82,7 @@ Markdown の記法を使わずに書きたい場合は、平文テキスト（.t
 
 Recovery は保存やバックアップの代わりにはなりません。日常の保存に加え、作品フォルダ全体のバックアップも取ってください。
 
-> 画像 TODO: 復旧候補の対象名・本文冒頭と復元操作が分かる静止画を assets/images/recovery-candidates.png に配置する。撮影には練習用の原稿を使う。
+![復旧候補](assets/images/recovery-candidates.png)
 
 <a id="settings"></a>
 ## 設定は目的から探す
@@ -98,7 +96,7 @@ Recovery は保存やバックアップの代わりにはなりません。日�
 
 物語を書くのは、あなたです。Pergamum は、その机の上を少し整える道具でありたいと思っています。このアプリケーションが、快適な執筆環境づくりのお手伝いをできれば、なによりです。
 
-不具合のお知らせや、「こんな機能があったら」というご要望がありましたら、[GitHub Issues](https://github.com/motoki-kentaro/Pergamum-IDE/issues) から作者へお寄せください。執筆の合間にいただく声も、この道具を育てる手がかりになります。
+不具合のお知らせや、「こんな機能があったら」というご要望がありましたら、[GitHub Issues](https://github.com/Pergamum-IDE/Pergamum-IDE/issues) から作者へお寄せください。執筆の合間にいただく声も、この道具を育てる手がかりになります。
 
 それでは、よい執筆を。次の一行が、あなたの物語につながりますように。
 

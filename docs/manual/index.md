@@ -8,7 +8,7 @@ Pergamum（ペルガモン）は、小説を書く人のための統合執筆環
 
 このマニュアルは、初めて原稿を書くところから代表的な機能を試すところまでを案内します。すべての機能・設定を説明するものではありません。画面名は日本語表示を基準にしています。
 
-> 画像 TODO: 執筆画面の全体像。File Explorer、本文、プレビューの位置が分かる静止画を assets/images/workspace-overview.png に配置する。
+![Pergamum](assets/images/workspace-overview.png)
 
 ## このマニュアルの読み方
 
