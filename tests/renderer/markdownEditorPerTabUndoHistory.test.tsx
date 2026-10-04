@@ -91,7 +91,7 @@ function mount(
           expectedLineEnding: props.expectedLineEnding,
           markerGlyph: props.markerGlyph,
           documentStates,
-          textCursorSettings: { style: props.style ?? "line", width: 1, blink: props.blink ?? 1200 },
+          textCursorSettings: { colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: props.style ?? "line", width: 1, blink: props.blink ?? 1200 },
           isMarkdownDocument: props.isMarkdownDocument,
           onChange: () => undefined
         })

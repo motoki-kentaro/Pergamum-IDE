@@ -1,3 +1,5 @@
+import { effectiveCaretColors, type CaretThemeColors } from "../shared/caretColors";
+import { defaultTextCursorSettings } from "../shared/settings";
 /**
  * #719: Text cursor (caret) CodeMirror extensions and configuration helpers.
  *
@@ -29,7 +31,8 @@ export const caretBlinkCompartment = new Compartment();
  * to document.documentElement for dynamic restyling of all active CodeMirror editors without re-dispatch.
  */
 export function applyTextCursorSettingsToDom(
-  textCursorSettings: ApplicationTextCursorSettings | undefined
+  textCursorSettings: ApplicationTextCursorSettings | undefined,
+  theme?: CaretThemeColors
 ): void {
   if (typeof document === "undefined" || !document.documentElement) {
     return;
@@ -37,6 +40,10 @@ export function applyTextCursorSettingsToDom(
   const root = document.documentElement;
   const width = textCursorSettings?.width ?? DEFAULT_CARET_WIDTH;
   root.style.setProperty("--pergamum-text-cursor-width", `${width}px`);
+  const settings = { ...defaultTextCursorSettings, ...textCursorSettings };
+  const colors = effectiveCaretColors(settings, theme ?? readCaretThemeColors());
+  root.style.setProperty("--pergamum-effective-caret", settings.colorMode === "custom" ? colors.caret : "var(--pg-color-editor-caret)");
+  root.style.setProperty("--pergamum-block-foreground", colors.foreground);
 }
 
 /**
@@ -71,4 +78,14 @@ export function createPreviewUnfocusedCaretExtension(blinkRateMs: number): Exten
           animationDuration: `${blinkRateMs}ms !important`
         }
   });
+}
+
+/** Resolve semantic tokens after the theme has been applied to the root. */
+export function readCaretThemeColors(): CaretThemeColors {
+  const css = getComputedStyle(document.documentElement);
+  return {
+    caret: css.getPropertyValue("--pg-color-editor-caret").trim() || "#2563a8",
+    background: css.getPropertyValue("--pg-color-editor-background").trim() || "#ffffff",
+    foreground: css.getPropertyValue("--pg-color-editor-foreground").trim() || "#1f2933"
+  };
 }

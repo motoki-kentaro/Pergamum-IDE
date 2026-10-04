@@ -1034,7 +1034,8 @@ describe("Settings Catalog Foundation (#150)", () => {
         "preview.syncScrollEditorToPreview",
         "preview.syncScrollPreviewToEditor",
         "preview.doubleClickJumpToEditor",
-        "notification.output.enabled"
+        "notification.output.enabled",
+        "textCursor.autoCursorTextColor"
       ]);
     });
   });
@@ -1382,6 +1383,10 @@ describe("Settings Catalog Foundation (#150)", () => {
           "search.nearby.unit",
           "search.nearby.characterDistance",
           "search.nearby.paragraphDistance",
+          "textCursor.colorMode",
+          "textCursor.color",
+          "textCursor.autoCursorTextColor",
+          "textCursor.cursorTextColor",
           "textCursor.style",
           "textCursor.width",
           "textCursor.blink",

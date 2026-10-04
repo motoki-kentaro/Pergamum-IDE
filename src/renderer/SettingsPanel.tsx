@@ -1,3 +1,5 @@
+import { CaretContrastWarning } from "./CaretContrastWarning";
+import { SettingsColorInput } from "./SettingsColorInput";
 import { useState } from "react";
 import type {
   ApplicationSettings,
@@ -41,7 +43,7 @@ import { FontFamilyListSettingControl } from "./FontFamilyListSettingControl";
 import { FontPickerDialog } from "./dialog/FontPickerDialog";
 import type { FontFamilySetting, FontSlot } from "../shared/fontSettings";
 import { normalizeCommandPaletteLaunchAnimationDurationMs } from "../shared/commandPaletteLaunchAnimationSettings";
-import { validateCatalogValue } from "../shared/settingsCatalog";
+import { resolveCatalogValue, validateCatalogValue } from "../shared/settingsCatalog";
 import { CaretSettingsSection, CaretNumberControl } from "./components/CaretSettingsSection";
 
 import type {
@@ -765,6 +767,15 @@ function buildNextSettings(
           fontFamilyList: rawValue as any
         }
       });
+    case "textCursor.colorMode":
+    case "textCursor.color":
+    case "textCursor.autoCursorTextColor":
+    case "textCursor.cursorTextColor": {
+      const field = key.slice("textCursor.".length);
+      const resolution = resolveCatalogValue(key, rawValue);
+      if (!resolution.ok) return null;
+      return saveRequest(settings, { textCursor: { ...settings.textCursor, [field]: resolution.value } });
+    }
     case "textCursor.style":
       if (rawValue !== "line" && rawValue !== "block") return null;
       return saveRequest(settings, { textCursor: { ...settings.textCursor, style: rawValue } });
@@ -816,6 +827,9 @@ function isSettingDisabled(
     return true;
   }
 
+  if (item.key === "textCursor.color" && settings.textCursor.colorMode === "theme") return true;
+  if (item.key === "textCursor.autoCursorTextColor" && settings.textCursor.style === "line") return true;
+  if (item.key === "textCursor.cursorTextColor" && (settings.textCursor.style === "line" || settings.textCursor.autoCursorTextColor)) return true;
   if (item.key === "textCursor.width" && settings.textCursor.style === "block") return true;
 
   if (unwiredKeys.has(item.key)) {
@@ -948,6 +962,10 @@ function SettingControlInput({
   const control = item.control;
   const controlId = `settingControl-${item.key}`;
 
+  if (item.key === "textCursor.color" || item.key === "textCursor.cursorTextColor") {
+    return <SettingsColorInput id={controlId} value={String(value)} disabled={disabled}
+      label={translateI18nKey(translate, item.labelKey)} translate={translate} onChange={onChange} />;
+  }
   switch (control.kind) {
     case "switch":
       return (
@@ -1356,6 +1374,7 @@ export function SettingsPanelView({
             ) : null
           ) : (
             <div className="settingsItemList">
+              {visibleItems.some(item => item.category === "textCursor") && <CaretContrastWarning settings={settings} translate={translate} />}
               {visibleItems.map((item) => (
                 <SettingItemRow
                   key={item.key}

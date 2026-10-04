@@ -112,7 +112,7 @@ describe("Text cursor settings (#719)", () => {
     });
 
     it("applies CSS variables to documentElement via applyTextCursorSettingsToDom", () => {
-      applyTextCursorSettingsToDom({ style: "line", width: 3, blink: 600 });
+      applyTextCursorSettingsToDom({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 3, blink: 600 });
       expect(document.documentElement.style.getPropertyValue("--pergamum-text-cursor-width")).toBe("3px");
       expect(document.documentElement.style.getPropertyValue("--pergamum-text-cursor-color")).toBe("");
 
@@ -278,7 +278,7 @@ describe("Text cursor settings (#719)", () => {
     it("keeps theme colors and drop cursor independent of width", () => {
       const source = readFileSync("src/renderer/editorThemeExtension.ts", "utf8");
       expect(source).not.toContain("--pergamum-text-cursor-color");
-      expect(source).toContain('caretColor: "var(--pg-color-editor-caret)"');
+      expect(source).toContain('caretColor: "var(--pergamum-effective-caret, var(--pg-color-editor-caret))"');
       const dropRule = source.split('".cm-dropCursor": {')[1]?.split("}")[0];
       expect(dropRule).toContain("--pg-color-editor-drop-cursor");
       expect(dropRule).not.toContain("width");
@@ -312,13 +312,13 @@ describe("Text cursor settings (#719)", () => {
       act(() => changeInputValue(blink, "600"));
       expect(onChange.mock.calls.at(-1)?.[0].textCursor.blink).toBe(600);
       expect(blink.getAttribute("aria-invalid")).toBe("false");
-      expect(container.querySelector("[type='color']")).toBeNull();
+      expect(container.querySelector("[type='color']")).not.toBeNull();
     });
 
     it("live updates preview speed and zero without replacing its state", async () => {
       function render(blink: number): void {
         act(() => root?.render(<CaretSettingsSection
-          settings={{ ...defaultApplicationSettings, textCursor: { style: "line", width: 1, blink } }}
+          settings={{ ...defaultApplicationSettings, textCursor: { colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink } }}
           isLoading={false} displayLanguage="ja" translate={(key) => jaTranslations[key]}
           onChangeSettings={() => undefined} />));
       }
@@ -347,12 +347,12 @@ describe("Text cursor settings (#719)", () => {
         isLoading={false} displayLanguage="ja" translate={key => jaTranslations[key]}
         onChangeSettings={() => undefined} />));
       const rows = [...container.querySelectorAll(".caretSettingRow")];
-      expect(rows).toHaveLength(3);
+      expect(rows).toHaveLength(7);
       expect(rows.map(row => row.querySelector("code.settingsItemKey")?.textContent))
-        .toEqual(["textCursor.style", "textCursor.width", "textCursor.blink"]);
+        .toEqual(["textCursor.style", "textCursor.width", "textCursor.blink", "textCursor.colorMode", "textCursor.autoCursorTextColor", "textCursor.color", "textCursor.cursorTextColor"]);
       for (const row of rows) {
         expect(row.lastElementChild?.className).toBe("settingsItemKey");
-        expect(row.querySelector("select, .caretSettingInputGroup")).not.toBeNull();
+        expect(row.querySelector("select, input, .caretSettingInputGroup")).not.toBeNull();
       }
       expect(container.querySelectorAll(".caretSettingSlider")).toHaveLength(2);
       expect(container.querySelector(".caretPreviewEditorHost .cm-editor")).not.toBeNull();
@@ -404,7 +404,7 @@ describe("Text cursor settings (#719)", () => {
       const onChange = vi.fn();
       function render(style: "line" | "block", blink: number): void {
         act(() => root?.render(<CaretSettingsSection settings={{ ...defaultApplicationSettings,
-          textCursor: { style, width: 9, blink } }} isLoading={false} displayLanguage="en"
+          textCursor: { ...defaultApplicationSettings.textCursor, style, width: 9, blink } }} isLoading={false} displayLanguage="en"
           translate={key => enTranslations[key]} onChangeSettings={onChange} />));
       }
       render("line", 1200);
@@ -427,12 +427,12 @@ describe("Text cursor settings (#719)", () => {
       expect(width.disabled).toBe(false); expect(width.value).toBe("9");
       const select = container.querySelector<HTMLSelectElement>("#caretStyleSelect")!;
       act(() => { select.value = "block"; select.dispatchEvent(new Event("change", { bubbles: true })); });
-      expect(onChange.mock.calls.at(-1)?.[0].textCursor).toEqual({ style: "block", width: 9, blink: 400 });
+      expect(onChange.mock.calls.at(-1)?.[0].textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "block", width: 9, blink: 400 });
     });
 
     it("disables width in searched settings while retaining its value", () => {
       act(() => root?.render(<SettingsPanelView settings={{ ...defaultApplicationSettings,
-        textCursor: { style: "block", width: 9, blink: 1200 } }} isLoading={false} error={null}
+        textCursor: { colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "block", width: 9, blink: 1200 } }} isLoading={false} error={null}
         translate={key => enTranslations[key]} onChangeSettings={() => undefined}
         selectedCategoryId="textCursor" onSelectCategory={() => undefined}
         searchQuery="textCursor" onSearchQueryChange={() => undefined} />));

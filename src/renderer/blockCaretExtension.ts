@@ -208,19 +208,19 @@ export function createCaretStyleExtension(style: CaretStyle, preview = false): E
       },
       [`&.cm-focused .${layerClass}, &[data-pergamum-caret-preview] .${layerClass}`]: { display: "block" },
       ".pg-block-caret-text": {
-        backgroundColor: "var(--pg-color-editor-caret)", color: "var(--pg-color-editor-background)",
+        backgroundColor: "var(--pergamum-effective-caret, var(--pg-color-editor-caret))", color: "var(--pergamum-block-foreground, var(--pg-color-editor-background))",
         animationTimingFunction: "steps(1)", animationIterationCount: "infinite"
       },
       "@keyframes pergamum-blockTextBlink": {
-        "0%, 100%": { backgroundColor: "var(--pg-color-editor-caret)", color: "var(--pg-color-editor-background)" },
+        "0%, 100%": { backgroundColor: "var(--pergamum-effective-caret, var(--pg-color-editor-caret))", color: "var(--pergamum-block-foreground, var(--pg-color-editor-background))" },
         "50%": { backgroundColor: "transparent", color: "inherit" }
       },
       "@keyframes pergamum-blockTextBlink2": {
-        "0%, 100%": { backgroundColor: "var(--pg-color-editor-caret)", color: "var(--pg-color-editor-background)" },
+        "0%, 100%": { backgroundColor: "var(--pergamum-effective-caret, var(--pg-color-editor-caret))", color: "var(--pergamum-block-foreground, var(--pg-color-editor-background))" },
         "50%": { backgroundColor: "transparent", color: "inherit" }
       },
       ".pergamum-blockCaret": {
-        backgroundColor: "var(--pg-color-editor-caret)"
+        backgroundColor: "var(--pergamum-effective-caret, var(--pg-color-editor-caret))"
       },
       [`&[data-pergamum-caret-composing] .${layerClass}`]: { display: "none" },
       [`.cm-cursor[${coveredAttribute}]`]: { visibility: "hidden" },

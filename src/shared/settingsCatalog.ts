@@ -185,6 +185,7 @@ export type SettingCatalogEntry =
 import { CARET_WIDTH, CARET_BLINK, caretStyles } from "./caretSettings";
 
 import {
+  normalizeDocumentMapColor,
   defaultDocumentMapDialogueDelimiterPairs,
   parseDocumentMapDialogueDelimiterPair,
   type DocumentMapDialogueDelimiterPair
@@ -277,6 +278,11 @@ function validateStringValue(
 ): SettingValidationResult {
   if (typeof value !== "string") {
     return { ok: false, failure: "typeMismatch" };
+  }
+
+  if (entry.key === "textCursor.color" || entry.key === "textCursor.cursorTextColor") {
+    const normalized = normalizeDocumentMapColor(value);
+    return normalized === null ? { ok: false, failure: "disallowedCharacters" } : { ok: true, value: normalized };
   }
 
   if (value.trim().length === 0 && entry.allowEmptyString !== true) {
@@ -1238,6 +1244,47 @@ export const settingsCatalog = defineSettingsCatalog({
     defaultValue: "aozora",
     labelKey: "settings.editor.ruby.rule.label",
     descriptionKey: "settings.editor.ruby.rule.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  "textCursor.colorMode": defineEnumSetting({
+    key: "textCursor.colorMode",
+    scope: "applicationOnly",
+    defaultValue: "theme",
+    enumValues: ["theme", "custom"],
+    labelKey: "settings.textCursor.colorMode.label",
+    descriptionKey: "settings.textCursor.colorMode.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  "textCursor.color": defineStringSetting({
+    key: "textCursor.color",
+    scope: "applicationOnly",
+    defaultValue: "#2563a8",
+    maxLength: 7,
+    allowedCharacters: "none",
+    labelKey: "settings.textCursor.color.label",
+    descriptionKey: "settings.textCursor.color.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  "textCursor.autoCursorTextColor": defineBooleanSetting({
+    key: "textCursor.autoCursorTextColor",
+    scope: "applicationOnly",
+    defaultValue: true,
+    labelKey: "settings.textCursor.autoCursorTextColor.label",
+    descriptionKey: "settings.textCursor.autoCursorTextColor.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  "textCursor.cursorTextColor": defineStringSetting({
+    key: "textCursor.cursorTextColor",
+    scope: "applicationOnly",
+    defaultValue: "#ffffff",
+    maxLength: 7,
+    allowedCharacters: "none",
+    labelKey: "settings.textCursor.cursorTextColor.label",
+    descriptionKey: "settings.textCursor.cursorTextColor.description",
     deprecatedAliases: [],
     migrationNotes: []
   }),

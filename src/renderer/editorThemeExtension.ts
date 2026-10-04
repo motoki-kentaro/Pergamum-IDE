@@ -23,13 +23,13 @@ export function createEditorThemeExtension(): Extension {
       color: "var(--pg-color-editor-foreground)"
     },
     ".cm-content": {
-      caretColor: "var(--pg-color-editor-caret)"
+      caretColor: "var(--pergamum-effective-caret, var(--pg-color-editor-caret))"
     },
     ".cm-dropCursor": {
       borderLeftColor: "var(--pg-color-editor-drop-cursor)"
     },
     ".cm-cursor": {
-      borderLeftColor: "var(--pg-color-editor-caret)",
+      borderLeftColor: "var(--pergamum-effective-caret, var(--pg-color-editor-caret))",
       borderLeftWidth: "var(--pergamum-text-cursor-width, 1px)",
       marginLeft: "0px"
     },

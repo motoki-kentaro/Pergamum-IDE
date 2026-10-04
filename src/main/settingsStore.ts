@@ -725,6 +725,10 @@ function readTextCursorSettings(
 ): ApplicationSettings["textCursor"] {
   if (!isObject(value)) {
     return {
+      colorMode: resolveCatalogValue("textCursor.colorMode", undefined).value,
+      color: resolveCatalogValue("textCursor.color", undefined).value,
+      autoCursorTextColor: resolveCatalogValue("textCursor.autoCursorTextColor", undefined).value,
+      cursorTextColor: resolveCatalogValue("textCursor.cursorTextColor", undefined).value,
       style: resolveCatalogValue("textCursor.style", undefined).value,
       width: resolveCatalogValue("textCursor.width", undefined).value,
       blink: resolveCatalogValue("textCursor.blink", undefined).value
@@ -735,6 +739,10 @@ function readTextCursorSettings(
   const blinkResolution = resolveCatalogValue("textCursor.blink", value.blink);
 
   const textCursor: ApplicationSettings["textCursor"] = {
+    colorMode: resolveCatalogValue("textCursor.colorMode", value.colorMode).value,
+    color: resolveCatalogValue("textCursor.color", value.color).value,
+    autoCursorTextColor: resolveCatalogValue("textCursor.autoCursorTextColor", value.autoCursorTextColor).value,
+    cursorTextColor: resolveCatalogValue("textCursor.cursorTextColor", value.cursorTextColor).value,
     style: resolveCatalogValue("textCursor.style", value.style).value,
     width: widthResolution.value,
     blink: blinkResolution.value
@@ -836,10 +844,10 @@ function parseTextCursorSettingsForWrite(
   }
 
   const keys = Object.keys(value);
-  const expectedKeyCount = keys.includes("style") ? 3 : 2;
+  const allowedKeys = ["style", "width", "blink", "colorMode", "color", "autoCursorTextColor", "cursorTextColor"];
 
   if (
-    keys.length !== expectedKeyCount ||
+    keys.some(key => !allowedKeys.includes(key)) ||
     !keys.includes("width") ||
     !keys.includes("blink")
   ) {
@@ -850,11 +858,23 @@ function parseTextCursorSettingsForWrite(
   const blinkResolution = resolveCatalogValue("textCursor.blink", value.blink);
 
   const styleResolution = resolveCatalogValue("textCursor.style", value.style);
-  if (!widthResolution.ok || !blinkResolution.ok || !styleResolution.ok) {
+  const colorModeResolution = resolveCatalogValue("textCursor.colorMode", value.colorMode);
+  const colorResolution = resolveCatalogValue("textCursor.color", value.color);
+  const autoCursorTextColorResolution = resolveCatalogValue("textCursor.autoCursorTextColor", value.autoCursorTextColor);
+  const cursorTextColorResolution = resolveCatalogValue("textCursor.cursorTextColor", value.cursorTextColor);
+  if (
+    !widthResolution.ok || !blinkResolution.ok || !styleResolution.ok ||
+    !colorModeResolution.ok || !colorResolution.ok ||
+    !autoCursorTextColorResolution.ok || !cursorTextColorResolution.ok
+  ) {
     throw new Error("Invalid application settings.");
   }
 
   const textCursor: ApplicationSettings["textCursor"] = {
+    colorMode: colorModeResolution.value,
+    color: colorResolution.value,
+    autoCursorTextColor: autoCursorTextColorResolution.value,
+    cursorTextColor: cursorTextColorResolution.value,
     style: styleResolution.value,
     width: widthResolution.value,
     blink: blinkResolution.value
