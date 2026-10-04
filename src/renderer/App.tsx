@@ -88,6 +88,7 @@ import type {
 } from "../shared/textImport";
 import {
   t,
+  formatLocalizedNumber,
   type Translate,
   type TranslationKey,
   type TranslationValues
@@ -141,7 +142,8 @@ import {
 import { subscribeApplicationMenuCommands } from "./applicationMenuBridge";
 import {
   CHARACTER_COUNT_UPDATE_DEBOUNCE_MS,
-  countMarkdownDocumentCharacters
+  countDocumentCharacters,
+  type CharacterCountDocumentFormat
 } from "./characterCount";
 import {
   applyEditorFontFamily,
@@ -3135,18 +3137,25 @@ export function App(): JSX.Element {
   // with the #259 algorithm + `editor.characterCount.exclude` settings and
   // the same 250ms debounce; it runs whenever EITHER surface needs it. Each
   // surface still applies its own visibility gate when rendering.
-  // #262: with no active Markdown editor this is false, so the debounced
-  // count never runs and the Status Bar shows nothing.
+  // #721: the count covers every body-text document editor — Markdown AND
+  // Plain Text (.txt), both `kind: "markdown"` editors. With no such editor
+  // (special tabs, glossary/built-in/image editors) this is false, so the
+  // debounced count never runs and nothing is shown.
   const markdownCharacterCountEditorIsActive =
     !isEditorAreaSpecialTabActive && currentEditor?.kind === "markdown";
-  const statusBarWantsCharacterCount =
-    effectiveSettings.workbench.statusBar.visible &&
-    effectiveSettings.workbench.statusBar.characterCount.visible &&
+  // Plain Text keeps only the format-neutral excludes (whitespace/line breaks).
+  const characterCountDocumentFormat: CharacterCountDocumentFormat =
+    currentEditor?.kind === "markdown" &&
+    !isMarkdownCurrentDocument(currentEditor.document)
+      ? "plainText"
+      : "markdown";
+  const editorHeaderWantsCharacterCount =
+    effectiveSettings.editor.characterCount.visible &&
     markdownCharacterCountEditorIsActive;
   const documentMetricsWantsCharacterCount =
     isDocumentMetricsPaneVisible && markdownCharacterCountEditorIsActive;
   const shouldComputeMarkdownCharacterCount =
-    statusBarWantsCharacterCount || documentMetricsWantsCharacterCount;
+    editorHeaderWantsCharacterCount || documentMetricsWantsCharacterCount;
   const markdownCharacterCountDocumentKey =
     shouldComputeMarkdownCharacterCount && activeDocument
       ? serializeEditorId(activeDocument.id)
@@ -3167,9 +3176,11 @@ export function App(): JSX.Element {
     const timeoutId = window.setTimeout(() => {
       setMarkdownCharacterCount({
         documentKey: markdownCharacterCountDocumentKey,
-        count: countMarkdownDocumentCharacters(markdownCharacterCountContent, {
-          exclude: effectiveSettings.editor.characterCount.exclude
-        })
+        count: countDocumentCharacters(
+          markdownCharacterCountContent,
+          characterCountDocumentFormat,
+          { exclude: effectiveSettings.editor.characterCount.exclude }
+        )
       });
     }, CHARACTER_COUNT_UPDATE_DEBOUNCE_MS);
 
@@ -3178,6 +3189,7 @@ export function App(): JSX.Element {
     shouldComputeMarkdownCharacterCount,
     markdownCharacterCountDocumentKey,
     markdownCharacterCountContent,
+    characterCountDocumentFormat,
     effectiveSettings.editor.characterCount.exclude.whitespace,
     effectiveSettings.editor.characterCount.exclude.lineBreaks,
     effectiveSettings.editor.characterCount.exclude.headings,
@@ -4162,14 +4174,13 @@ export function App(): JSX.Element {
       ]
     );
 
-  const statusBarNumberFormatter = useMemo(
-    () => new Intl.NumberFormat(displayLanguage),
-    [displayLanguage]
-  );
-  const statusBarCharacterCountText =
-    statusBarWantsCharacterCount && activeMarkdownCharacterCount !== null
-      ? translate("status.characterCount", {
-          count: statusBarNumberFormatter.format(activeMarkdownCharacterCount)
+  const editorHeaderCharacterCountText =
+    editorHeaderWantsCharacterCount && activeMarkdownCharacterCount !== null
+      ? translate("editor.characterCount.display", {
+          count: formatLocalizedNumber(
+            activeMarkdownCharacterCount,
+            displayLanguage
+          )
         })
       : null;
   const commandRegistry = useMemo(() => {
@@ -13986,6 +13997,9 @@ export function App(): JSX.Element {
                     {activeDocument ? (
                       <EditorSurface
                         editor={activeDocument.editor}
+                        editorHeaderCharacterCountText={
+                          editorHeaderCharacterCountText
+                        }
                         builtinMarkdownText={
                           activeDocument.editor.kind === "builtinMarkdown"
                             ? builtinMarkdownSource(
@@ -14209,11 +14223,6 @@ export function App(): JSX.Element {
           <span className="statusBarMessage">
             {translate(status.key, status.values)}
           </span>
-          {statusBarCharacterCountText ? (
-            <span className="statusBarCharacterCount">
-              {statusBarCharacterCountText}
-            </span>
-          ) : null}
           <StatusBarZoomControls
             zoomFactor={zoomFactor}
             zoomControlScale={zoomFactor > 0 ? 1 / zoomFactor : 1}

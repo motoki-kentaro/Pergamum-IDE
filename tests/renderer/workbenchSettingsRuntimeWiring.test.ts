@@ -252,36 +252,53 @@ describe("Application Settings core controls runtime wiring (#195)", () => {
   });
 });
 
-describe("status bar character count runtime wiring (#259)", () => {
-  it("App.tsx shows the status-bar character count only behind the status bar and character-count visibility settings", () => {
+describe("editor header character count runtime wiring (#721)", () => {
+  it("App.tsx shows the editor header character count behind character-count visibility setting", () => {
     const appSource = readFileSync("src/renderer/App.tsx", "utf8");
 
-    expect(appSource).toContain("countMarkdownDocumentCharacters");
+    expect(appSource).toContain("countDocumentCharacters");
     expect(appSource).toContain("CHARACTER_COUNT_UPDATE_DEBOUNCE_MS");
-    // The Status Bar's own visibility gate (#259) — still required for the
-    // Status Bar to render the count.
-    expect(appSource).toContain("statusBarWantsCharacterCount");
+    // Markdown AND Plain Text (.txt) are counted; the header text is a single
+    // i18n template around the localized number.
+    expect(appSource).toContain("characterCountDocumentFormat");
+    expect(appSource).toContain('translate("editor.characterCount.display"');
+    expect(appSource).toContain("formatLocalizedNumber(");
+    expect(appSource).not.toContain("status.characterCount");
+    expect(appSource).toContain("editorHeaderWantsCharacterCount");
     expect(appSource).toContain(
-      "effectiveSettings.workbench.statusBar.visible"
-    );
-    expect(appSource).toContain(
-      "effectiveSettings.workbench.statusBar.characterCount.visible"
+      "effectiveSettings.editor.characterCount.visible"
     );
     expect(appSource).toContain("currentEditor?.kind === \"markdown\"");
     expect(appSource).toContain("!isEditorAreaSpecialTabActive");
   });
 
-  it("App.tsx computes ONE Markdown character count shared by the Status Bar and Document Metrics (#360)", () => {
+  it("editor header character count is independent of the Status Bar and hidden outside body-text editors (#721)", () => {
+    const appSource = readFileSync("src/renderer/App.tsx", "utf8");
+    const start = appSource.indexOf("const editorHeaderWantsCharacterCount");
+    const block = appSource.slice(start, start + 200);
+
+    expect(start).toBeGreaterThan(-1);
+    expect(block).not.toContain("statusBar");
+    expect(block).toContain("markdownCharacterCountEditorIsActive");
+    expect(appSource).toContain(
+      '!isEditorAreaSpecialTabActive && currentEditor?.kind === "markdown"'
+    );
+    expect(appSource).toContain(
+      "!isMarkdownCurrentDocument(currentEditor.document)"
+    );
+  });
+
+  it("App.tsx computes ONE Markdown character count shared by the Editor Header and Document Metrics (#360)", () => {
     const appSource = readFileSync("src/renderer/App.tsx", "utf8");
 
     // A single debounced computation, fired when either surface needs it.
     expect(appSource).toContain("shouldComputeMarkdownCharacterCount");
     expect(appSource).toContain(
-      "statusBarWantsCharacterCount || documentMetricsWantsCharacterCount"
+      "editorHeaderWantsCharacterCount || documentMetricsWantsCharacterCount"
     );
     // Exactly one call site for the count helper.
     expect(
-      appSource.match(/countMarkdownDocumentCharacters\(/g) ?? []
+      appSource.match(/countDocumentCharacters\(/g) ?? []
     ).toHaveLength(1);
     // The Document Metrics pane is handed that same resolved value.
     expect(appSource).toContain(

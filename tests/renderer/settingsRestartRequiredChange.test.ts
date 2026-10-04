@@ -33,12 +33,7 @@ function baseApplicationSettings(
     workbench: {
       language: getCatalogDefaultValue("workbench.language"),
       statusBar: {
-        visible: getCatalogDefaultValue("workbench.statusBar.visible"),
-        characterCount: {
-          visible: getCatalogDefaultValue(
-            "workbench.statusBar.characterCount.visible"
-          )
-        }
+        visible: getCatalogDefaultValue("workbench.statusBar.visible")
       },
       sound: {
         enabled: getCatalogDefaultValue("workbench.sound.enabled"),
@@ -88,6 +83,7 @@ function baseApplicationSettings(
         )
       },
       characterCount: {
+        visible: getCatalogDefaultValue("editor.characterCount.visible"),
         exclude: {
           whitespace: getCatalogDefaultValue(
             "editor.characterCount.exclude.whitespace"

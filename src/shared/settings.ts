@@ -102,11 +102,6 @@ export interface ApplicationPreviewSettings {
 
 export interface WorkbenchStatusBarSettings {
   visible: boolean;
-  characterCount: WorkbenchStatusBarCharacterCountSettings;
-}
-
-export interface WorkbenchStatusBarCharacterCountSettings {
-  visible: boolean;
 }
 
 export interface WorkbenchSoundToggleSettings {
@@ -257,6 +252,7 @@ export interface ApplicationEditorCharacterCountExcludeSettings {
 }
 
 export interface ApplicationEditorCharacterCountSettings {
+  visible: boolean;
   exclude: ApplicationEditorCharacterCountExcludeSettings;
 }
 
@@ -705,12 +701,7 @@ export const builtInDefaultSettings: EffectiveSettings = {
   workbench: {
     language: getCatalogDefaultValue("workbench.language"),
     statusBar: {
-      visible: getCatalogDefaultValue("workbench.statusBar.visible"),
-      characterCount: {
-        visible: getCatalogDefaultValue(
-          "workbench.statusBar.characterCount.visible"
-        )
-      }
+      visible: getCatalogDefaultValue("workbench.statusBar.visible")
     },
     sound: {
       enabled: getCatalogDefaultValue("workbench.sound.enabled"),
@@ -782,6 +773,7 @@ export const builtInDefaultSettings: EffectiveSettings = {
       )
     },
     characterCount: {
+      visible: getCatalogDefaultValue("editor.characterCount.visible"),
       exclude: {
         whitespace: getCatalogDefaultValue(
           "editor.characterCount.exclude.whitespace"
@@ -867,11 +859,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   workbench: {
     language: builtInDefaultSettings.workbench.language,
     statusBar: {
-      visible: builtInDefaultSettings.workbench.statusBar.visible,
-      characterCount: {
-        visible:
-          builtInDefaultSettings.workbench.statusBar.characterCount.visible
-      }
+      visible: builtInDefaultSettings.workbench.statusBar.visible
     },
     sound: {
       enabled: builtInDefaultSettings.workbench.sound.enabled,
@@ -920,6 +908,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
         builtInDefaultSettings.editor.paragraphIndent.excludeLeadingCharacters
     },
     characterCount: {
+      visible: builtInDefaultSettings.editor.characterCount.visible,
       exclude: {
         whitespace:
           builtInDefaultSettings.editor.characterCount.exclude.whitespace,
@@ -991,11 +980,7 @@ export function createDefaultApplicationSettings(): ApplicationSettings {
     workbench: {
       language: defaultApplicationSettings.workbench.language,
       statusBar: {
-        visible: defaultApplicationSettings.workbench.statusBar.visible,
-        characterCount: {
-          visible:
-            defaultApplicationSettings.workbench.statusBar.characterCount.visible
-        }
+        visible: defaultApplicationSettings.workbench.statusBar.visible
       },
       sound: {
         enabled: defaultApplicationSettings.workbench.sound.enabled,
@@ -1045,6 +1030,7 @@ export function createDefaultApplicationSettings(): ApplicationSettings {
             .excludeLeadingCharacters
       },
       characterCount: {
+        visible: defaultApplicationSettings.editor.characterCount.visible,
         exclude: {
           whitespace:
             defaultApplicationSettings.editor.characterCount.exclude.whitespace,
@@ -1156,11 +1142,7 @@ export function resolveEffectiveSettings(
     workbench: {
       language: applicationSettings.workbench.language,
       statusBar: {
-        visible: applicationSettings.workbench.statusBar.visible,
-        characterCount: {
-          visible:
-            applicationSettings.workbench.statusBar.characterCount.visible
-        }
+        visible: applicationSettings.workbench.statusBar.visible
       },
       sound: {
         enabled: applicationSettings.workbench.sound.enabled,
@@ -1243,6 +1225,7 @@ export function resolveEffectiveSettings(
           builtInDefaultSettings.editor.paragraphIndent.excludeLeadingCharacters
       },
       characterCount: {
+        visible: applicationSettings.editor.characterCount.visible,
         exclude: {
           whitespace:
             projectSettings?.editor?.characterCount?.exclude?.whitespace ??

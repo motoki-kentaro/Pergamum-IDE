@@ -436,6 +436,7 @@ describe("Application Settings core defaults and effective settings (#195)", () 
 
   it("editor.characterCount defaults derive from the catalog and pass through effective settings (#259)", () => {
     const expected = {
+      visible: getCatalogDefaultValue("editor.characterCount.visible"),
       exclude: {
         whitespace: getCatalogDefaultValue(
           "editor.characterCount.exclude.whitespace"
@@ -521,8 +522,8 @@ describe("workbench.language / workbench.statusBar.visible wiring (#174)", () =>
       getCatalogDefaultValue("workbench.statusBar.visible")
     );
     expect(
-      builtInDefaultSettings.workbench.statusBar.characterCount.visible
-    ).toBe(getCatalogDefaultValue("workbench.statusBar.characterCount.visible"));
+      builtInDefaultSettings.editor.characterCount.visible
+    ).toBe(getCatalogDefaultValue("editor.characterCount.visible"));
   });
 
   it("defaultApplicationSettings / createDefaultApplicationSettings carry a concrete workbench.language and workbench.statusBar.visible (not sparse, unlike fontFamily)", () => {
@@ -531,7 +532,7 @@ describe("workbench.language / workbench.statusBar.visible wiring (#174)", () =>
       "workbench.statusBar.visible"
     );
     const characterCountVisibleDefault = getCatalogDefaultValue(
-      "workbench.statusBar.characterCount.visible"
+      "editor.characterCount.visible"
     );
 
     expect(defaultApplicationSettings.workbench.language).toBe(languageDefault);
@@ -539,7 +540,7 @@ describe("workbench.language / workbench.statusBar.visible wiring (#174)", () =>
       statusBarVisibleDefault
     );
     expect(
-      defaultApplicationSettings.workbench.statusBar.characterCount.visible
+      defaultApplicationSettings.editor.characterCount.visible
     ).toBe(characterCountVisibleDefault);
     expect(createDefaultApplicationSettings().workbench.language).toBe(
       languageDefault
@@ -548,8 +549,7 @@ describe("workbench.language / workbench.statusBar.visible wiring (#174)", () =>
       createDefaultApplicationSettings().workbench.statusBar.visible
     ).toBe(statusBarVisibleDefault);
     expect(
-      createDefaultApplicationSettings().workbench.statusBar.characterCount
-        .visible
+      createDefaultApplicationSettings().editor.characterCount.visible
     ).toBe(characterCountVisibleDefault);
   });
 
@@ -971,6 +971,7 @@ describe("Project Settings Slice 7 PO-approved overrides resolution (#396)", () 
           excludeLeadingCharacters: "「『（【"
         },
         characterCount: {
+          visible: true,
           exclude: {
             whitespace: true,
             lineBreaks: true,
@@ -1017,6 +1018,7 @@ describe("Project Settings Slice 7 PO-approved overrides resolution (#396)", () 
         ...defaultApplicationSettings.editor,
         paragraphIndent: { excludeLeadingCharacters: " " },
         characterCount: {
+          visible: true,
           exclude: {
             whitespace: false,
             lineBreaks: false,

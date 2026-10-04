@@ -329,7 +329,7 @@ describe("SettingsPanelView catalog-driven rendering (#230)", () => {
       "settings.workbench.language.label",
       "settings.workbench.language.description",
       "settings.workbench.statusBar.visible.label",
-      "settings.workbench.statusBar.characterCount.visible.label",
+      "settings.editor.characterCount.visible.label",
       "settings.workbench.sound.enabled.label",
       "settings.editor.characterCount.exclude.markdownSyntax.label",
       "settings.editor.whitespace.renderIdeographicSpace.label",
@@ -494,7 +494,7 @@ describe("SettingsPanelView category behavior (#230)", () => {
       "editor.whitespace.renderAsciiSpace",
       "editor.whitespace.renderTab",
       "editor.whitespace.renderOtherUnicodeSpace",
-      "workbench.statusBar.characterCount.visible",
+      "editor.characterCount.visible",
       "editor.characterCount.exclude.whitespace",
       "editor.characterCount.exclude.lineBreaks",
       "editor.characterCount.exclude.headings",
@@ -591,8 +591,7 @@ describe("getVisibleSettingCatalogItems search behavior (#230)", () => {
     );
 
     expect(items.map((item) => item.key)).toEqual([
-      "workbench.statusBar.visible",
-      "workbench.statusBar.characterCount.visible"
+      "workbench.statusBar.visible"
     ]);
   });
 
@@ -931,15 +930,15 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
     });
   });
 
-  it("saves immediately when the status-bar character count visibility switch changes (#259)", () => {
+  it("saves immediately when the character count visibility switch changes", () => {
     const onChangeSettings = vi.fn();
     const element = settingsPanelViewElement("en", {
-      searchQuery: isolate("workbench.statusBar.characterCount.visible"),
+      searchQuery: isolate("editor.characterCount.visible"),
       onChangeSettings
     });
     const input = controlElement(
       element,
-      "workbench.statusBar.characterCount.visible"
+      "editor.characterCount.visible"
     );
     const onChange = input.props.onChange as (event: {
       target: { checked: boolean };
@@ -953,15 +952,15 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: defaultApplicationSettings.preview,
-      workbench: {
-        ...defaultApplicationSettings.workbench,
-        statusBar: {
-          ...defaultApplicationSettings.workbench.statusBar,
-          characterCount: { visible: false }
+      workbench: defaultApplicationSettings.workbench,
+      commandPalette: defaultApplicationSettings.commandPalette,
+      editor: {
+        ...defaultApplicationSettings.editor,
+        characterCount: {
+          ...defaultApplicationSettings.editor.characterCount,
+          visible: false
         }
       },
-      commandPalette: defaultApplicationSettings.commandPalette,
-      editor: defaultApplicationSettings.editor,
       markdownFiles: defaultApplicationSettings.markdownFiles,
       textFiles: defaultApplicationSettings.textFiles
     });
@@ -1723,19 +1722,13 @@ describe("SettingsPanelView: legacy Advanced Settings gate removed (#232)", () =
     ).toBe(true);
   });
 
-  it("disables character-count exclude controls when the status-bar character count toggle is off, preserving their stored values (#259)", () => {
+  it("disables character-count exclude controls when the character count toggle is off, preserving their stored values", () => {
     const settings: ApplicationSettings = {
       ...defaultApplicationSettings,
-      workbench: {
-        ...defaultApplicationSettings.workbench,
-        statusBar: {
-          ...defaultApplicationSettings.workbench.statusBar,
-          characterCount: { visible: false }
-        }
-      },
       editor: {
         ...defaultApplicationSettings.editor,
         characterCount: {
+          visible: false,
           exclude: {
             ...defaultApplicationSettings.editor.characterCount.exclude,
             whitespace: false,

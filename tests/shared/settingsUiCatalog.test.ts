@@ -179,7 +179,7 @@ describe("Settings UI Catalog Schema (#226)", () => {
           "workbench.uiFontFamilyList",
           "workbench.language",
           "workbench.statusBar.visible",
-          "workbench.statusBar.characterCount.visible",
+          "editor.characterCount.visible",
           "workbench.normalizeUnicodeToNfc",
           "workbench.sound.enabled",
           "workbench.sound.dialog.enabled",
@@ -532,7 +532,7 @@ describe("Settings UI Catalog Schema (#226)", () => {
 
     it("places all character count settings together in the editor category, with visibility before exclusions (#259 taxonomy)", () => {
       const keys = [
-        "workbench.statusBar.characterCount.visible",
+        "editor.characterCount.visible",
         "editor.characterCount.exclude.whitespace",
         "editor.characterCount.exclude.lineBreaks",
         "editor.characterCount.exclude.headings",
@@ -796,7 +796,7 @@ describe("Settings UI Catalog Schema (#226)", () => {
       const newlyCoveredKeys = [
         "workbench.language",
         "workbench.statusBar.visible",
-        "workbench.statusBar.characterCount.visible",
+        "editor.characterCount.visible",
         "workbench.sound.enabled",
         "workbench.sound.dialog.enabled",
         "workbench.sound.newline.enabled",

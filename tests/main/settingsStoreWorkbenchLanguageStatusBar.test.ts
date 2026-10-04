@@ -59,6 +59,7 @@ const defaultParagraphIndentSettings = {
   )
 };
 const defaultCharacterCountSettings = {
+  visible: getCatalogDefaultValue("editor.characterCount.visible"),
   exclude: {
     whitespace: getCatalogDefaultValue(
       "editor.characterCount.exclude.whitespace"
@@ -89,16 +90,8 @@ const defaultFindGutterMarkers = getCatalogDefaultValue(
 const defaultCaptureTabInEditor = getCatalogDefaultValue(
   "editor.captureTabInEditor"
 );
-function statusBarSettings(
-  visible: boolean,
-  characterCountVisible = getCatalogDefaultValue(
-    "workbench.statusBar.characterCount.visible"
-  )
-) {
-  return {
-    visible,
-    characterCount: { visible: characterCountVisible }
-  };
+function statusBarSettings(visible: boolean) {
+  return { visible };
 }
 const defaultSoundSettings = {
   enabled: true,
@@ -153,7 +146,10 @@ function saveRequest(
       lineEnding: defaultLineEndingSettings,
       whitespace: defaultWhitespaceSettings,
       paragraphIndent: defaultParagraphIndentSettings,
-      characterCount: defaultCharacterCountSettings,
+      characterCount: {
+        ...defaultCharacterCountSettings,
+        exclude: { ...defaultCharacterCountSettings.exclude }
+      },
       undoHistoryMinDepth: defaultUndoHistoryMinDepth,
       selectionHighlightMode: defaultSelectionHighlightMode,
       findGutterMarkers: defaultFindGutterMarkers,
@@ -203,87 +199,14 @@ describe("settingsStore workbench.language / workbench.statusBar.visible read pa
     expect(settings.workbench.statusBar.visible).toBe(false);
   });
 
-  it("reads a valid nested workbench.statusBar.characterCount.visible from settings.json (#259)", async () => {
+  it("migrates legacy workbench.statusBar.characterCount.visible to editor.characterCount.visible when editor.characterCount.visible is missing on disk", async () => {
     fsMock.readFile.mockResolvedValue(
       onDiskSettings({
         workbench: {
           language: "ja",
-          statusBar: statusBarSettings(true, false)
-        }
-      })
-    );
-
-    const settings = await loadSettings();
-
-    expect(settings.workbench.statusBar.characterCount.visible).toBe(false);
-  });
-
-  it("ignores a legacy top-level language key — reads the catalog default instead", async () => {
-    fsMock.readFile.mockResolvedValue(
-      onDiskSettings({ language: "en" })
-    );
-
-    const settings = await loadSettings();
-
-    expect(settings.workbench.language).toBe(languageDefault);
-  });
-
-  it("ignores a legacy top-level showStatusBar key — reads the catalog default instead", async () => {
-    fsMock.readFile.mockResolvedValue(
-      onDiskSettings({ showStatusBar: false })
-    );
-
-    const settings = await loadSettings();
-
-    expect(settings.workbench.statusBar.visible).toBe(statusBarVisibleDefault);
-  });
-
-  it("falls back to the catalog default when workbench.language is missing", async () => {
-    fsMock.readFile.mockResolvedValue(onDiskSettings({ workbench: {} }));
-
-    const settings = await loadSettings();
-
-    expect(settings.workbench.language).toBe(languageDefault);
-  });
-
-  it("falls back to the catalog default when workbench.statusBar.visible is missing", async () => {
-    fsMock.readFile.mockResolvedValue(onDiskSettings({ workbench: {} }));
-
-    const settings = await loadSettings();
-
-    expect(settings.workbench.statusBar.visible).toBe(statusBarVisibleDefault);
-    expect(settings.workbench.statusBar.characterCount.visible).toBe(
-      getCatalogDefaultValue("workbench.statusBar.characterCount.visible")
-    );
-  });
-
-  it("falls back to the catalog default (without failing startup) when workbench.language is invalid", async () => {
-    fsMock.readFile.mockResolvedValue(
-      onDiskSettings({ workbench: { language: "fr" } })
-    );
-
-    const settings = await loadSettings();
-
-    expect(settings.workbench.language).toBe(languageDefault);
-  });
-
-  it("falls back to the catalog default (without failing startup) when workbench.statusBar.visible is invalid", async () => {
-    fsMock.readFile.mockResolvedValue(
-      onDiskSettings({ workbench: { statusBar: { visible: "yes" } } })
-    );
-
-    const settings = await loadSettings();
-
-    expect(settings.workbench.statusBar.visible).toBe(statusBarVisibleDefault);
-  });
-
-  it("falls back to the catalog default when workbench.statusBar.characterCount.visible is invalid (#259)", async () => {
-    fsMock.readFile.mockResolvedValue(
-      onDiskSettings({
-        workbench: {
           statusBar: {
             visible: true,
-            characterCount: { visible: "yes" }
+            characterCount: { visible: false }
           }
         }
       })
@@ -291,9 +214,31 @@ describe("settingsStore workbench.language / workbench.statusBar.visible read pa
 
     const settings = await loadSettings();
 
-    expect(settings.workbench.statusBar.characterCount.visible).toBe(
-      getCatalogDefaultValue("workbench.statusBar.characterCount.visible")
+    expect(settings.editor.characterCount.visible).toBe(false);
+  });
+
+  it("prioritizes editor.characterCount.visible over legacy workbench.statusBar.characterCount.visible when both are present", async () => {
+    fsMock.readFile.mockResolvedValue(
+      onDiskSettings({
+        workbench: {
+          language: "ja",
+          statusBar: {
+            visible: true,
+            characterCount: { visible: false }
+          }
+        },
+        editor: {
+          characterCount: {
+            visible: true,
+            exclude: defaultCharacterCountSettings.exclude
+          }
+        }
+      })
     );
+
+    const settings = await loadSettings();
+
+    expect(settings.editor.characterCount.visible).toBe(true);
   });
 });
 
@@ -344,19 +289,20 @@ describe("settingsStore workbench.language / workbench.statusBar.visible write p
     expect(written.showStatusBar).toBeUndefined();
   });
 
-  it("writes a nested workbench.statusBar.characterCount.visible on save (#259)", async () => {
+  it("writes editor.characterCount.visible on save and omits workbench.statusBar.characterCount", async () => {
     fsMock.readFile.mockResolvedValue(
       onDiskSettings({
         workbench: { language: "ja", statusBar: statusBarSettings(true) }
       })
     );
 
-    await saveApplicationSettings(
-      saveRequest({
-        language: "ja",
-        statusBar: statusBarSettings(true, false)
-      })
-    );
+    const req = saveRequest({
+      language: "ja",
+      statusBar: statusBarSettings(true)
+    });
+    req.editor.characterCount.visible = false;
+
+    await saveApplicationSettings(req);
 
     const [, writtenContent] = fsMock.writeFile.mock.calls[0] as [
       string,
@@ -364,7 +310,8 @@ describe("settingsStore workbench.language / workbench.statusBar.visible write p
     ];
     const written = JSON.parse(writtenContent);
 
-    expect(written.workbench.statusBar).toEqual(statusBarSettings(true, false));
+    expect(written.editor.characterCount.visible).toBe(false);
+    expect(written.workbench.statusBar.characterCount).toBeUndefined();
   });
 
   it("does not write a legacy top-level language key", async () => {
@@ -427,14 +374,12 @@ describe("settingsStore workbench.language / workbench.statusBar.visible write p
     expect(fsMock.writeFile).not.toHaveBeenCalled();
   });
 
-  it("rejects a save request with an invalid workbench.statusBar.characterCount.visible and never writes settings.json (#259)", () => {
+  it("rejects a save request with an invalid editor.characterCount.visible and never writes settings.json", () => {
     const invalidSaveRequest = saveRequest({
       language: "ja",
-      statusBar: {
-        visible: true,
-        characterCount: { visible: "yes" }
-      }
+      statusBar: statusBarSettings(true)
     });
+    (invalidSaveRequest.editor.characterCount as unknown as Record<string, unknown>).visible = "yes";
 
     expect(() =>
       parseSaveApplicationSettingsRequest(invalidSaveRequest)

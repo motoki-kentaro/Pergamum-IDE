@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   codePointCharacterCount,
+  countDocumentCharacters,
   countMarkdownDocumentCharacters
 } from "../../src/renderer/characterCount";
 import type { ApplicationEditorCharacterCountExcludeSettings } from "../../src/shared/settings";
@@ -237,5 +238,48 @@ describe("status bar character count setting combinations (#259)", () => {
     ]
   ])("counts the combined document with %s", (_label, partial, expected) => {
     expect(count(combinedDocument, partial)).toBe(expected);
+  });
+});
+
+describe("plain text character count (#721)", () => {
+  const markdownLike = "# 見出し\n**太字** <!-- memo -->";
+
+  it("ignores Markdown-only excludes and keeps whitespace/line-break excludes", () => {
+    expect(
+      countDocumentCharacters(markdownLike, "plainText", {
+        exclude: defaultStatusBarExclusions
+      })
+    ).toBe(
+      countDocumentCharacters(markdownLike, "plainText", {
+        exclude: {
+          ...defaultStatusBarExclusions,
+          headings: true,
+          markdownSyntax: false,
+          markdownComments: false
+        }
+      })
+    );
+    expect(
+      countDocumentCharacters("A B　C\nD", "plainText", {
+        exclude: { ...includeEverything, whitespace: true, lineBreaks: true }
+      })
+    ).toBe(4);
+    expect(
+      countDocumentCharacters("A B　C\nD", "plainText", {
+        exclude: includeEverything
+      })
+    ).toBe(7);
+  });
+
+  it("matches the Markdown count only for Markdown format", () => {
+    const options = { exclude: defaultStatusBarExclusions };
+    expect(countDocumentCharacters(markdownLike, "markdown", options)).toBe(
+      countMarkdownDocumentCharacters(markdownLike, options)
+    );
+    expect(
+      countDocumentCharacters(markdownLike, "plainText", options)
+    ).toBeGreaterThan(
+      countDocumentCharacters(markdownLike, "markdown", options)
+    );
   });
 });

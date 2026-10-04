@@ -201,22 +201,6 @@ function readWorkbenchStatusBarSettings(
     visible: resolveCatalogValue(
       "workbench.statusBar.visible",
       statusBarValue?.visible
-    ).value,
-    characterCount: readWorkbenchStatusBarCharacterCountSettings(
-      statusBarValue?.characterCount
-    )
-  };
-}
-
-function readWorkbenchStatusBarCharacterCountSettings(
-  value: unknown
-): ApplicationSettings["workbench"]["statusBar"]["characterCount"] {
-  const characterCountValue = isObject(value) ? value : undefined;
-
-  return {
-    visible: resolveCatalogValue(
-      "workbench.statusBar.characterCount.visible",
-      characterCountValue?.visible
     ).value
   };
 }
@@ -520,16 +504,28 @@ function readCharacterCountExcludeSettings(
 }
 
 function readCharacterCountSettings(
-  value: unknown
+  value: unknown,
+  legacyStatusBarCharacterCountVisible?: unknown
 ): ApplicationSettings["editor"]["characterCount"] {
   const characterCountValue = isObject(value) ? value : undefined;
+  const visibleOnDisk =
+    characterCountValue?.visible !== undefined
+      ? characterCountValue.visible
+      : legacyStatusBarCharacterCountVisible;
 
   return {
+    visible: resolveCatalogValue(
+      "editor.characterCount.visible",
+      visibleOnDisk
+    ).value,
     exclude: readCharacterCountExcludeSettings(characterCountValue?.exclude)
   };
 }
 
-function readEditorSettings(value: unknown): ApplicationSettings["editor"] {
+function readEditorSettings(
+  value: unknown,
+  legacyStatusBarCharacterCountVisible?: unknown
+): ApplicationSettings["editor"] {
   const editorValue = isObject(value) ? value : undefined;
   const lineEnding = readLineEndingSettings(editorValue?.lineEnding);
   const whitespace = readWhitespaceSettings(editorValue?.whitespace);
@@ -537,7 +533,8 @@ function readEditorSettings(value: unknown): ApplicationSettings["editor"] {
     editorValue?.paragraphIndent
   );
   const characterCount = readCharacterCountSettings(
-    editorValue?.characterCount
+    editorValue?.characterCount,
+    legacyStatusBarCharacterCountVisible
   );
   // #394 Step 1: applicationOnly, always concrete (like lineEnding/
   // whitespace above) — an invalid or missing on-disk value falls back to
@@ -764,13 +761,21 @@ function readSettingsValue(value: unknown): ApplicationSettings {
       ? undefined
       : resolveJapaneseLintSettings(value.japaneseLint);
 
+  const workbenchObj = isObject(value.workbench) ? value.workbench : undefined;
+  const statusBarObj = isObject(workbenchObj?.statusBar) ? workbenchObj.statusBar : undefined;
+  const legacyCharacterCountObj = isObject(statusBarObj?.characterCount) ? statusBarObj.characterCount : undefined;
+  const legacyStatusBarCharacterCountVisible = legacyCharacterCountObj?.visible;
+
   return {
     preview: readPreviewSettings(value.preview),
     ...(notification ? { notification } : {}),
     ...(japaneseLint ? { japaneseLint } : {}),
     workbench: readWorkbenchSettings(value.workbench),
     commandPalette: readCommandPaletteSettings(value.commandPalette),
-    editor: readEditorSettings(value.editor),
+    editor: readEditorSettings(
+      value.editor,
+      legacyStatusBarCharacterCountVisible
+    ),
     search: readSearchSettings(value.search),
     markdownFiles: readMarkdownFilesSettings(value.markdownFiles),
     textFiles: readTextFilesSettings(value.textFiles),
@@ -1180,11 +1185,7 @@ function parseWorkbenchStatusBarSettingsForWrite(
 
   const keys = Object.keys(value);
 
-  if (
-    keys.length !== 2 ||
-    !keys.includes("visible") ||
-    !keys.includes("characterCount")
-  ) {
+  if (keys.length !== 1 || !keys.includes("visible")) {
     throw new Error("Invalid application settings.");
   }
 
@@ -1198,36 +1199,8 @@ function parseWorkbenchStatusBarSettingsForWrite(
   }
 
   return {
-    visible: resolution.value,
-    characterCount: parseWorkbenchStatusBarCharacterCountSettingsForWrite(
-      value.characterCount
-    )
+    visible: resolution.value
   };
-}
-
-function parseWorkbenchStatusBarCharacterCountSettingsForWrite(
-  value: unknown
-): ApplicationSettings["workbench"]["statusBar"]["characterCount"] {
-  if (!isObject(value)) {
-    throw new Error("Invalid application settings.");
-  }
-
-  const keys = Object.keys(value);
-
-  if (keys.length !== 1 || !keys.includes("visible")) {
-    throw new Error("Invalid application settings.");
-  }
-
-  const resolution = resolveCatalogValue(
-    "workbench.statusBar.characterCount.visible",
-    value.visible
-  );
-
-  if (!resolution.ok) {
-    throw new Error("Invalid application settings.");
-  }
-
-  return { visible: resolution.value };
 }
 
 function parseWorkbenchSoundToggleSettingsForWrite(
@@ -1739,11 +1712,25 @@ function parseCharacterCountSettingsForWrite(
 
   const keys = Object.keys(value);
 
-  if (keys.length !== 1 || !keys.includes("exclude")) {
+  if (
+    keys.length !== 2 ||
+    !keys.includes("visible") ||
+    !keys.includes("exclude")
+  ) {
+    throw new Error("Invalid application settings.");
+  }
+
+  const visibleResolution = resolveCatalogValue(
+    "editor.characterCount.visible",
+    value.visible
+  );
+
+  if (!visibleResolution.ok) {
     throw new Error("Invalid application settings.");
   }
 
   return {
+    visible: visibleResolution.value,
     exclude: parseCharacterCountExcludeSettingsForWrite(value.exclude)
   };
 }

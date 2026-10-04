@@ -105,6 +105,7 @@ describe("Project Settings consumers integration (#396 Slice 7)", () => {
         editor: {
           ...defaultApplicationSettings.editor,
           characterCount: {
+            visible: true,
             exclude: {
               whitespace: true, // App excludes whitespace
               lineBreaks: true,
@@ -149,6 +150,7 @@ describe("Project Settings consumers integration (#396 Slice 7)", () => {
         editor: {
           ...defaultApplicationSettings.editor,
           characterCount: {
+            visible: true,
             exclude: {
               whitespace: true,
               lineBreaks: true,

@@ -2190,6 +2190,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2238,6 +2239,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2287,6 +2289,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2348,6 +2351,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2396,6 +2400,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,

@@ -7797,7 +7797,11 @@ label.settingsItemHeader {
 }
 
 .paneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   min-height: 34px;
+  box-sizing: border-box;
   padding: 8px 12px;
   border-bottom: 1px solid var(--pg-color-panel-divider);
   color: var(--pg-color-surface-muted);
@@ -7805,6 +7809,12 @@ label.settingsItemHeader {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.editorPaneHeaderCharacterCount {
+  font-weight: 400;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
 }
 
 .editorHost {

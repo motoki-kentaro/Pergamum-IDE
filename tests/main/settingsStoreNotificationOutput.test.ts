@@ -33,12 +33,7 @@ const defaultSoundSettings = {
   keypress: { enabled: false }
 };
 const defaultStatusBarSettings = {
-  visible: getCatalogDefaultValue("workbench.statusBar.visible"),
-  characterCount: {
-    visible: getCatalogDefaultValue(
-      "workbench.statusBar.characterCount.visible"
-    )
-  }
+  visible: getCatalogDefaultValue("workbench.statusBar.visible")
 };
 const defaultLineEndingSettings = {
   expected: getCatalogDefaultValue("editor.lineEnding.expected"),
@@ -62,6 +57,7 @@ const defaultParagraphIndentSettings = {
   )
 };
 const defaultCharacterCountSettings = {
+  visible: getCatalogDefaultValue("editor.characterCount.visible"),
   exclude: {
     whitespace: getCatalogDefaultValue(
       "editor.characterCount.exclude.whitespace"

@@ -260,13 +260,13 @@ function buildNextSettings(
           }
         }
       });
-    case "workbench.statusBar.characterCount.visible":
+    case "editor.characterCount.visible":
       return saveRequest(settings, {
-        workbench: {
-          ...settings.workbench,
-          statusBar: {
-            ...settings.workbench.statusBar,
-            characterCount: { visible: Boolean(rawValue) }
+        editor: {
+          ...settings.editor,
+          characterCount: {
+            ...settings.editor.characterCount,
+            visible: Boolean(rawValue)
           }
         }
       });
@@ -852,7 +852,7 @@ function isSettingDisabled(
 
   if (
     characterCountExcludeKeys.has(item.key) &&
-    !settings.workbench.statusBar.characterCount.visible
+    !settings.editor.characterCount.visible
   ) {
     return true;
   }
