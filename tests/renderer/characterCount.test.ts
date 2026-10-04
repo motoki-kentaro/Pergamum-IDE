@@ -283,3 +283,56 @@ describe("plain text character count (#721)", () => {
     );
   });
 });
+
+describe("Markdown comments and pagebreak in the character count (#733)", () => {
+  const markdownOnlyExclusions = {
+    ...includeEverything,
+    markdownComments: true
+  };
+  const count = (text: string, exclude = defaultStatusBarExclusions) =>
+    countMarkdownDocumentCharacters(text, { exclude });
+
+  it("does not count a standalone comment or a pagebreak directive", () => {
+    expect(count("あい\n\n<!-- memo -->\n\nうえ")).toBe(4);
+    expect(count("あい\n\n<!-- pagebreak -->\n\nうえ")).toBe(4);
+    expect(
+      countMarkdownDocumentCharacters("あい\n\n<!-- memo -->\n\nうえ", {
+        exclude: markdownOnlyExclusions
+      })
+    ).toBe(countMarkdownDocumentCharacters("あい\n\n\n\nうえ", {
+      exclude: markdownOnlyExclusions
+    }));
+  });
+
+  it("never counts the pagebreak directive, even when no exclusion needs the parser", () => {
+    const whitespaceOnly = { ...includeEverything, whitespace: true };
+    expect(count("あい\n\n<!-- pagebreak -->\n\nうえ", whitespaceOnly)).toBe(
+      count("あい\n\n\n\nうえ", whitespaceOnly)
+    );
+    // ...and with the comment exclusion off, a normal comment still follows
+    // the existing policy (counted), while the directive is not.
+    const withMemo = count("<!-- memo -->", includeEverything);
+    expect(withMemo).toBe("<!-- memo -->".length);
+    expect(count("<!-- pagebreak -->", includeEverything)).toBe(0);
+  });
+
+  it("keeps code contexts as code text (existing policy)", () => {
+    const fence = "```text\n<!-- pagebreak -->\n```";
+    expect(count(fence, includeEverything)).toBe(codePointCharacterCount(fence));
+    expect(count("`<!-- pagebreak -->`", includeEverything)).toBe(
+      codePointCharacterCount("`<!-- pagebreak -->`")
+    );
+    expect(count("    <!-- pagebreak -->", includeEverything)).toBeGreaterThan(0);
+    expect(count("本文<!-- pagebreak -->続き", includeEverything)).toBeGreaterThan(
+      count("本文続き", includeEverything)
+    );
+  });
+
+  it("Plain Text documents are unaffected (no Markdown semantics)", () => {
+    expect(
+      countDocumentCharacters("<!-- pagebreak -->", "plainText", {
+        exclude: includeEverything
+      })
+    ).toBe("<!-- pagebreak -->".length);
+  });
+});

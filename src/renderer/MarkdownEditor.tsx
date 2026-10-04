@@ -68,6 +68,7 @@ import { applyHeadingToLine } from "../shared/markdownHeadingMarkup";
 import { buildMarkdownLink } from "../shared/markdownLinkMarkup";
 import { buildFencedCodeBlock } from "../shared/markdownCodeBlockMarkup";
 import { buildHorizontalRuleInsertion } from "../shared/markdownHorizontalRuleMarkup";
+import { buildPageBreakInsertion } from "../shared/markdownPageBreakMarkup";
 import { applyBlockquoteToLine } from "../shared/markdownBlockquoteMarkup";
 import {
   buildMarkdownCalloutBlock,
@@ -601,6 +602,11 @@ export interface MarkdownEditorParagraphIndentController {
    */
   insertHorizontalRule(): boolean;
   /**
+   * #733: inserts `<!-- pagebreak -->` as its own block (see
+   * `markdownPageBreakInsertionTransactionSpec`) as one undoable transaction.
+   */
+  insertPageBreak(): boolean;
+  /**
    * #601: applies blockquote syntax (> ) to every line touched by the
    * selection (or the current line when there is no selection). Already
    * quoted lines are left unchanged.
@@ -742,6 +748,44 @@ function computeBlockInsertionPadding(
   }
 
   return { leadingLines, trailingLines };
+}
+
+/**
+ * #733: the single transaction for the page-break command.
+ *
+ * Inserts after the END of the selection (a selection is never replaced or
+ * wrapped: the directive is not a transformation of the selected text), padded
+ * by the same blank-line rule as the other block insertions so
+ * `<!-- pagebreak -->` is always a standalone line and no blank lines pile up.
+ * The cursor lands on the fresh line after the directive.
+ */
+export function markdownPageBreakInsertionTransactionSpec(
+  state: EditorState
+): TransactionSpec {
+  const doc = state.doc;
+  const at = state.selection.main.to;
+  const { leadingLines } = computeBlockInsertionPadding(doc, at, at);
+  // A blank line already after the insertion point is reused, not stacked.
+  let existingNewlinesAfter = 0;
+  while (
+    existingNewlinesAfter < 2 &&
+    doc.sliceString(at + existingNewlinesAfter, at + existingNewlinesAfter + 1) ===
+      "\n"
+  ) {
+    existingNewlinesAfter += 1;
+  }
+  const { text, selectionOffsetFromInsertStart } = buildPageBreakInsertion(
+    existingNewlinesAfter
+  );
+
+  return {
+    changes: { from: at, to: at, insert: leadingLines + text },
+    selection: {
+      anchor: at + leadingLines.length + selectionOffsetFromInsertStart
+    },
+    scrollIntoView: true,
+    userEvent: "input.replace"
+  };
 }
 
 /**
@@ -2024,6 +2068,16 @@ export function MarkdownEditor({
           scrollIntoView: true,
           userEvent: "input.replace"
         });
+
+        return true;
+      },
+      insertPageBreak: (): boolean => {
+        const view = viewRef.current;
+        if (!view || readOnlyRef.current) {
+          return false;
+        }
+
+        view.dispatch(markdownPageBreakInsertionTransactionSpec(view.state));
 
         return true;
       },

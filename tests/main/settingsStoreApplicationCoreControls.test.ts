@@ -119,7 +119,7 @@ const recentProject = {
 
 function onDiskSettings(overrides: Record<string, unknown>): string {
   return JSON.stringify({
-    preview: { renderer: "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true },
+    preview: { renderer: "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 },
     workbench: {
       language: "ja",
       statusBar: { visible: true },
@@ -160,7 +160,9 @@ function validSaveRequest(
       updateDelayMs: 10000,
       syncScrollEditorToPreview: true,
       syncScrollPreviewToEditor: true,
-      doubleClickJumpToEditor: true
+      doubleClickJumpToEditor: true,
+      glossaryAnnotations: false,
+      glossaryHighlightOpacity: 0.35
     },
     workbench: {
       language: "ja",
@@ -277,6 +279,10 @@ describe("settingsStore Application Settings core controls read path (#195)", ()
       ),
       doubleClickJumpToEditor: getCatalogDefaultValue(
         "preview.doubleClickJumpToEditor"
+      ),
+      glossaryAnnotations: getCatalogDefaultValue("preview.glossaryAnnotations"),
+      glossaryHighlightOpacity: getCatalogDefaultValue(
+        "preview.glossaryHighlightOpacity"
       )
     });
     // #375 Task Q/R: Document Map defaults — dark-grey narration, red fallback,
@@ -711,7 +717,9 @@ describe("settingsStore Application Settings core controls write path (#195)", (
       updateDelayMs: 10000,
       syncScrollEditorToPreview: true,
       syncScrollPreviewToEditor: true,
-      doubleClickJumpToEditor: true
+      doubleClickJumpToEditor: true,
+      glossaryAnnotations: false,
+      glossaryHighlightOpacity: 0.35
     });
     expect(written.recentProjects).toEqual([recentProject]);
     expect(written.commandPalette).toEqual({
@@ -782,12 +790,12 @@ describe("settingsStore Application Settings core controls write path (#195)", (
 
   it("writes a changed preview.updateDelayMs to settings.json (#250 follow-up: the user setting is genuinely persisted, not silently dropped)", async () => {
     fsMock.readFile.mockResolvedValue(
-      onDiskSettings({ preview: { renderer: "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true } })
+      onDiskSettings({ preview: { renderer: "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 } })
     );
 
     await saveApplicationSettings(
       validSaveRequest({
-        preview: { renderer: "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true }
+        preview: { renderer: "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 }
       })
     );
 
@@ -802,7 +810,9 @@ describe("settingsStore Application Settings core controls write path (#195)", (
       updateDelayMs: 10000,
       syncScrollEditorToPreview: true,
       syncScrollPreviewToEditor: true,
-      doubleClickJumpToEditor: true
+      doubleClickJumpToEditor: true,
+      glossaryAnnotations: false,
+      glossaryHighlightOpacity: 0.35
     });
   });
 
@@ -991,12 +1001,12 @@ describe("settingsStore Application Settings core controls write path (#195)", (
 
   it("writes preview.updateDelayMs of 0 (explicit 'don't wait') to settings.json", async () => {
     fsMock.readFile.mockResolvedValue(
-      onDiskSettings({ preview: { renderer: "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true } })
+      onDiskSettings({ preview: { renderer: "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 } })
     );
 
     await saveApplicationSettings(
       validSaveRequest({
-        preview: { renderer: "markdown", updateDelayMs: 0, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true }
+        preview: { renderer: "markdown", updateDelayMs: 0, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 }
       })
     );
 
@@ -1011,7 +1021,9 @@ describe("settingsStore Application Settings core controls write path (#195)", (
       updateDelayMs: 0,
       syncScrollEditorToPreview: true,
       syncScrollPreviewToEditor: true,
-      doubleClickJumpToEditor: true
+      doubleClickJumpToEditor: true,
+      glossaryAnnotations: false,
+      glossaryHighlightOpacity: 0.35
     });
   });
 
@@ -1307,16 +1319,16 @@ describe("settingsStore Application Settings core controls write path (#195)", (
         }
       }),
       validSaveRequest({
-        preview: { renderer: "markdown", updateDelayMs: -1, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true }
+        preview: { renderer: "markdown", updateDelayMs: -1, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 }
       }),
       validSaveRequest({
-        preview: { renderer: "markdown", updateDelayMs: 600001, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true }
+        preview: { renderer: "markdown", updateDelayMs: 600001, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 }
       }),
       validSaveRequest({
-        preview: { renderer: "markdown", updateDelayMs: 150.5, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true }
+        preview: { renderer: "markdown", updateDelayMs: 150.5, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 }
       }),
       validSaveRequest({
-        preview: { renderer: "html" as "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true }
+        preview: { renderer: "html" as "markdown", updateDelayMs: 10000, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 }
       }),
       validSaveRequest({
         editor: {
@@ -1444,6 +1456,118 @@ describe("#725 caret color persistence", () => {
     expect(parseSaveApplicationSettingsRequest({ ...validSaveRequest(), textCursor: { width: 1, blink: 1200 } }).textCursor).toEqual(defaultTextCursorSettings);
     for (const [field, value] of [["colorMode", "bad"], ["color", "red"], ["cursorTextColor", "#gggggg"], ["autoCursorTextColor", 1]]) {
       expect(() => parseSaveApplicationSettingsRequest({ ...validSaveRequest(), textCursor: { ...defaultTextCursorSettings, [field]: value } })).toThrow();
+    }
+  });
+});
+
+describe("settingsStore preview.glossaryAnnotations (#731)", () => {
+  beforeEach(() => {
+    fsMock.readFile.mockReset();
+    fsMock.writeFile.mockReset();
+    fsMock.mkdir.mockReset();
+  });
+
+  const previewWith = (glossaryAnnotations?: unknown) => ({
+    renderer: "markdown",
+    updateDelayMs: 10000,
+    syncScrollEditorToPreview: true,
+    syncScrollPreviewToEditor: true,
+    doubleClickJumpToEditor: true,
+    glossaryHighlightOpacity: 0.35,
+    ...(glossaryAnnotations === undefined ? {} : { glossaryAnnotations })
+  });
+
+  it("defaults to OFF when settings.json is missing or predates the key", async () => {
+    fsMock.readFile.mockRejectedValue(
+      Object.assign(new Error("not found"), { code: "ENOENT" })
+    );
+    expect((await loadSettings()).preview.glossaryAnnotations).toBe(false);
+
+    fsMock.readFile.mockResolvedValue(onDiskSettings({ preview: previewWith() }));
+    expect((await loadSettings()).preview.glossaryAnnotations).toBe(false);
+  });
+
+  it("loads an explicit value and falls back to OFF for an invalid one", async () => {
+    fsMock.readFile.mockResolvedValue(
+      onDiskSettings({ preview: previewWith(true) })
+    );
+    expect((await loadSettings()).preview.glossaryAnnotations).toBe(true);
+
+    fsMock.readFile.mockResolvedValue(
+      onDiskSettings({ preview: previewWith("yes") })
+    );
+    expect((await loadSettings()).preview.glossaryAnnotations).toBe(false);
+  });
+
+  it("writes the value under preview and rejects a non-boolean save request", async () => {
+    fsMock.readFile.mockResolvedValue(onDiskSettings({ preview: previewWith(false) }));
+
+    await saveApplicationSettings(
+      validSaveRequest({
+        preview: { ...previewWith(true), glossaryAnnotations: true } as never
+      })
+    );
+    const [, writtenContent] = fsMock.writeFile.mock.calls[0] as [string, string];
+    expect(JSON.parse(writtenContent).preview.glossaryAnnotations).toBe(true);
+
+    expect(() =>
+      parseSaveApplicationSettingsRequest({
+        ...validSaveRequest(),
+        preview: { ...previewWith(true), glossaryAnnotations: "yes" } as never
+      })
+    ).toThrow();
+  });
+});
+
+describe("settingsStore preview.glossaryHighlightOpacity (#731)", () => {
+  beforeEach(() => {
+    fsMock.readFile.mockReset();
+    fsMock.writeFile.mockReset();
+    fsMock.mkdir.mockReset();
+  });
+
+  const preview = (opacity?: unknown) => ({
+    renderer: "markdown",
+    updateDelayMs: 10000,
+    syncScrollEditorToPreview: true,
+    syncScrollPreviewToEditor: true,
+    doubleClickJumpToEditor: true,
+    glossaryAnnotations: true,
+    ...(opacity === undefined ? {} : { glossaryHighlightOpacity: opacity })
+  });
+
+  it("defaults to 0.35 when missing and loads a valid 0.05 multiple", async () => {
+    fsMock.readFile.mockResolvedValue(onDiskSettings({ preview: preview() }));
+    expect((await loadSettings()).preview.glossaryHighlightOpacity).toBe(0.35);
+
+    for (const value of [0, 0.05, 0.6, 1]) {
+      fsMock.readFile.mockResolvedValue(onDiskSettings({ preview: preview(value) }));
+      expect((await loadSettings()).preview.glossaryHighlightOpacity).toBe(value);
+    }
+  });
+
+  it("falls back to 0.35 for an off-grid, out-of-range or non-numeric value", async () => {
+    for (const value of [0.33, -0.05, 1.05, "0.5"]) {
+      fsMock.readFile.mockResolvedValue(onDiskSettings({ preview: preview(value) }));
+      expect((await loadSettings()).preview.glossaryHighlightOpacity).toBe(0.35);
+    }
+  });
+
+  it("writes a valid value and rejects an invalid save request", async () => {
+    fsMock.readFile.mockResolvedValue(onDiskSettings({ preview: preview(0.35) }));
+    await saveApplicationSettings(
+      validSaveRequest({ preview: preview(0.45) as never })
+    );
+    const [, written] = fsMock.writeFile.mock.calls[0] as [string, string];
+    expect(JSON.parse(written).preview.glossaryHighlightOpacity).toBe(0.45);
+
+    for (const bad of [0.33, 1.5, "0.5"]) {
+      expect(() =>
+        parseSaveApplicationSettingsRequest({
+          ...validSaveRequest(),
+          preview: preview(bad) as never
+        })
+      ).toThrow();
     }
   });
 });

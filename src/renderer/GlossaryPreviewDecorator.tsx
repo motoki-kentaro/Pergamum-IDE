@@ -1,9 +1,18 @@
-import { useLayoutEffect, useRef } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties
+} from "react";
+import type { GlossaryEntry, GlossaryEntryId } from "../shared/glossary";
 import {
   isNarouPreviewRenderer,
   type PreviewRendererId
 } from "../shared/settings";
 import type { Translate } from "../shared/i18n";
+import { getCatalogDefaultValue } from "../shared/settingsCatalog";
 import {
   isAmbiguousGlossarySurfaceTextMatch,
   type GlossarySurfaceIndex
@@ -11,15 +20,33 @@ import {
 import { durationSincePerformanceMark } from "./debugLog";
 import {
   buildGlossarySurfaceDecorationSegments,
+  GLOSSARY_HIGHLIGHT_OPACITY_VAR,
+  glossaryDecorationRgbChannels,
+  glossaryDecorationColorsForEntry,
+  glossaryFallbackDecorationColors,
+  glossaryHighlightOpacityValue,
   shouldSkipGlossarySurfaceDecorationTextNode
 } from "./glossarySurfaceDecoration";
+import { GlossaryHoverCard } from "./GlossaryHoverCard";
+import { buildGlossaryHoverCardContents } from "./glossaryHoverCardContent";
 import { renderMermaidDiagramsInContainer } from "./preview/markdownMermaidRendering";
 
 export interface GlossaryPreviewDecoratorProps {
   previewHtml: string;
+  /**
+   * #731: the index used for decoration. The `preview.glossaryAnnotations`
+   * setting is applied by the caller handing in `emptyGlossarySurfaceIndex`
+   * when it is OFF, so nothing is matched or wrapped at all.
+   */
   surfaceIndex: GlossarySurfaceIndex;
   previewRenderer?: PreviewRendererId;
   narouMarkText?: string;
+  /** #731: entries the hover card reads (atoms + tags) for decorated matches. */
+  glossaryEntries?: readonly GlossaryEntry[];
+  /** #731: `documentMap.glossaryFallbackColor` — paints untagged entries. */
+  glossaryFallbackColor?: string;
+  /** #731: `preview.glossaryHighlightOpacity` — background alpha of every decoration. */
+  glossaryHighlightOpacity?: number;
   /**
    * #564: required only to localize the Mermaid empty/error inline
    * messages. Mermaid diagrams are scanned and rendered from this same
@@ -68,14 +95,13 @@ interface PreviewDecorationStats {
   matchCount: number;
 }
 
-// #375 PoC: body-text glossary matches are still visually decorated so
-// readers can see which surfaces resolve to an entry, but the reader-
-// assistance hover card / tooltip is intentionally gone — the sidebar
-// atom list and occurrence navigation are the only glossary affordances
-// on the reading surface now.
+// Body-text glossary matches are wrapped in a decoration span (when
+// `preview.glossaryAnnotations` is ON, #731) carrying the candidate entry ids,
+// which the hover card (below) resolves against the current entries.
 function replaceTextNodeWithDecorationSegments(
   textNode: Text,
-  segments: ReturnType<typeof buildGlossarySurfaceDecorationSegments>
+  segments: ReturnType<typeof buildGlossarySurfaceDecorationSegments>,
+  entriesById: ReadonlyMap<GlossaryEntryId, GlossaryEntry>
 ): number {
   const parentNode = textNode.parentNode;
   const matchSegmentCount = segments.filter(
@@ -102,6 +128,24 @@ function replaceTextNodeWithDecorationSegments(
     span.dataset.glossarySurface = segment.match.matchedText;
     span.dataset.glossaryAmbiguous =
       isAmbiguousGlossarySurfaceTextMatch(segment.match) ? "true" : "false";
+    span.dataset.glossaryEntryIds = [
+      ...new Set(segment.match.candidates.map((candidate) => candidate.entryId))
+    ].join(" ");
+    // Colour: the first candidate entry's primary-tag pair, verbatim. An entry
+    // without tags is marked instead and painted from the container's
+    // fallback CSS variables (so the Document Map fallback colour applies live).
+    const colors = glossaryDecorationColorsForEntry(
+      entriesById.get(segment.match.candidates[0]?.entryId ?? "")
+    );
+    if (colors) {
+      span.style.setProperty(
+        "--glossary-decoration-rgb",
+        glossaryDecorationRgbChannels(colors.backgroundRgb)
+      );
+      span.style.color = colors.foregroundRgb;
+    } else {
+      span.dataset.glossaryTagless = "true";
+    }
     fragment.appendChild(span);
   }
 
@@ -112,7 +156,8 @@ function replaceTextNodeWithDecorationSegments(
 
 function decoratePreviewContainer(
   container: HTMLElement,
-  surfaceIndex: GlossarySurfaceIndex
+  surfaceIndex: GlossarySurfaceIndex,
+  entries: readonly GlossaryEntry[]
 ): PreviewDecorationStats {
   if (surfaceIndex.entries.length === 0) {
     return { visitedTextNodeCount: 0, decoratedNodeCount: 0, matchCount: 0 };
@@ -138,6 +183,7 @@ function decoratePreviewContainer(
     currentNode = treeWalker.nextNode();
   }
 
+  const entriesById = new Map(entries.map((entry) => [entry.id, entry]));
   let decoratedNodeCount = 0;
   let matchCount = 0;
 
@@ -147,7 +193,8 @@ function decoratePreviewContainer(
       buildGlossarySurfaceDecorationSegments(
         textNode.textContent ?? "",
         surfaceIndex
-      )
+      ),
+      entriesById
     );
 
     if (matchSegmentCount > 0) {
@@ -159,11 +206,45 @@ function decoratePreviewContainer(
   return { visitedTextNodeCount: textNodes.length, decoratedNodeCount, matchCount };
 }
 
+const noGlossaryEntries: readonly GlossaryEntry[] = [];
+const decorationSelector = ".glossarySurfaceDecoration";
+const hoverCardMargin = 8;
+const hoverCardWidth = 320;
+const hoverCardOffset = 6;
+
+interface GlossaryHoverState {
+  readonly entryIds: readonly GlossaryEntryId[];
+  readonly anchorRect: DOMRect;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return max < min ? min : Math.min(Math.max(value, min), max);
+}
+
+// Fixed-position (out of flow), so showing the card never reflows the Preview.
+// It opens below the term, or above it when the term is in the lower half.
+function hoverCardLayerStyle(anchorRect: DOMRect): CSSProperties {
+  const left = clamp(
+    anchorRect.left,
+    hoverCardMargin,
+    window.innerWidth - hoverCardWidth - hoverCardMargin
+  );
+
+  return anchorRect.bottom > window.innerHeight / 2
+    ? { left, bottom: window.innerHeight - anchorRect.top + hoverCardOffset }
+    : { left, top: anchorRect.bottom + hoverCardOffset };
+}
+
 export function GlossaryPreviewDecorator({
   previewHtml,
   surfaceIndex,
   previewRenderer = "markdown",
   narouMarkText,
+  glossaryEntries = noGlossaryEntries,
+  glossaryFallbackColor,
+  glossaryHighlightOpacity = getCatalogDefaultValue(
+    "preview.glossaryHighlightOpacity"
+  ),
   translate,
   documentOpenId,
   previewRenderStartedAt,
@@ -174,6 +255,7 @@ export function GlossaryPreviewDecorator({
   onPreviewContentCommitted
 }: GlossaryPreviewDecoratorProps): JSX.Element {
   const previewRef = useRef<HTMLElement | null>(null);
+  const [hoverState, setHoverState] = useState<GlossaryHoverState | null>(null);
   const onPreviewContainerMountRef = useRef(onPreviewContainerMount);
   const onPreviewContentCommittedRef = useRef(onPreviewContentCommitted);
   // #564: incremented once per live preview DOM commit (below), so an
@@ -266,7 +348,8 @@ export function GlossaryPreviewDecorator({
     const decorationStartedAt = performance.now();
     const decorationStats = decoratePreviewContainer(
       previewElement,
-      surfaceIndex
+      surfaceIndex,
+      glossaryEntries
     );
 
     if (
@@ -341,6 +424,99 @@ export function GlossaryPreviewDecorator({
     // changes and re-triggers this effect.
   }, [previewHtml, surfaceIndex]);
 
+  // #731: hover card via event delegation on the preview container, so it
+  // works for spans created by the decoration pass without per-span listeners.
+  useEffect(() => {
+    const container = previewRef.current;
+    if (!container) {
+      return;
+    }
+
+    const decorationAt = (target: EventTarget | null): HTMLElement | null => {
+      const element = target instanceof Element ? target.closest(decorationSelector) : null;
+      return element instanceof HTMLElement && container.contains(element)
+        ? element
+        : null;
+    };
+    const handleMouseOver = (event: MouseEvent) => {
+      const decoration = decorationAt(event.target);
+      const entryIds = decoration?.dataset.glossaryEntryIds?.split(" ").filter(Boolean);
+      if (!decoration || !entryIds || entryIds.length === 0) {
+        return;
+      }
+      setHoverState({ entryIds, anchorRect: decoration.getBoundingClientRect() });
+    };
+    const handleMouseOut = (event: MouseEvent) => {
+      const decoration = decorationAt(event.target);
+      if (!decoration) {
+        return;
+      }
+      // Moving within the same term (or onto a child of it) is not a leave.
+      if (event.relatedTarget instanceof Node && decoration.contains(event.relatedTarget)) {
+        return;
+      }
+      setHoverState(null);
+    };
+
+    container.addEventListener("mouseover", handleMouseOver);
+    container.addEventListener("mouseout", handleMouseOut);
+    return () => {
+      container.removeEventListener("mouseover", handleMouseOver);
+      container.removeEventListener("mouseout", handleMouseOut);
+    };
+  }, []);
+
+  // Untagged decorations read the fallback pair from CSS variables on the
+  // container, so changing `documentMap.glossaryFallbackColor` repaints them
+  // without re-decorating.
+  useEffect(() => {
+    const container = previewRef.current;
+    if (!container) {
+      return;
+    }
+    const colors = glossaryFallbackDecorationColors(glossaryFallbackColor);
+    container.style.setProperty(
+      "--glossary-decoration-fallback-rgb",
+      glossaryDecorationRgbChannels(colors.backgroundRgb)
+    );
+    container.style.setProperty(
+      "--glossary-decoration-fallback-foreground",
+      colors.foregroundRgb
+    );
+  }, [glossaryFallbackColor]);
+
+  useEffect(() => {
+    previewRef.current?.style.setProperty(
+      GLOSSARY_HIGHLIGHT_OPACITY_VAR,
+      glossaryHighlightOpacityValue(glossaryHighlightOpacity)
+    );
+  }, [glossaryHighlightOpacity]);
+
+  // The decorated spans are rebuilt on every preview commit; a card anchored to
+  // a removed span must not linger.
+  useEffect(() => {
+    setHoverState(null);
+  }, [previewHtml, surfaceIndex]);
+
+  // The card is fixed-position, so any scroll would leave it detached from its term.
+  const isHoverCardOpen = hoverState !== null;
+  useEffect(() => {
+    if (!isHoverCardOpen) {
+      return;
+    }
+    const hide = () => setHoverState(null);
+    window.addEventListener("scroll", hide, true);
+    return () => window.removeEventListener("scroll", hide, true);
+  }, [isHoverCardOpen]);
+
+  const hoverCardContents = useMemo(
+    () =>
+      hoverState
+        ? buildGlossaryHoverCardContents(hoverState.entryIds, glossaryEntries)
+        : [],
+    [hoverState, glossaryEntries]
+  );
+
   const isNarou = isNarouPreviewRenderer(previewRenderer);
   const className =
     previewRenderer === "aozoraHorizontal"
@@ -362,5 +538,17 @@ export function GlossaryPreviewDecorator({
     ? ({ "--narou-emphasis-mark-symbol": JSON.stringify(markSymbol) } as React.CSSProperties)
     : undefined;
 
-  return <article className={className} style={style} ref={previewRef} />;
+  return (
+    <>
+      <article className={className} style={style} ref={previewRef} />
+      {hoverState && hoverCardContents.length > 0 ? (
+        <div
+          className="glossaryHoverCardLayer"
+          style={hoverCardLayerStyle(hoverState.anchorRect)}
+        >
+          <GlossaryHoverCard contents={hoverCardContents} translate={translate} />
+        </div>
+      ) : null}
+    </>
+  );
 }

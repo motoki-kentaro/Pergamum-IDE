@@ -143,6 +143,8 @@ describe("editor.markdown.insertBlockquote command registry & guards", () => {
       canInsertTable: () => true,
       insertCallout: vi.fn(),
       canInsertCallout: () => true,
+      insertPageBreak: () => undefined,
+      canInsertPageBreak: () => true,
       insertRuby: vi.fn(),
       canInsertRuby: () => true,
       insertEmphasisMark: vi.fn(),

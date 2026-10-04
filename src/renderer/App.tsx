@@ -140,6 +140,7 @@ import {
   registerApplicationCommands
 } from "./applicationCommands";
 import { subscribeApplicationMenuCommands } from "./applicationMenuBridge";
+import { canInsertPageBreakInEditor } from "./pageBreakApplicability";
 import {
   currentCharacterCount,
   resolveCharacterCountSource
@@ -1847,6 +1848,8 @@ export function App(): JSX.Element {
   const canInsertLinkCommandRef = useRef<() => boolean>(() => false);
   const insertHorizontalRuleCommandRef = useRef<() => void>(() => undefined);
   const canInsertHorizontalRuleCommandRef = useRef<() => boolean>(() => false);
+  const insertPageBreakCommandRef = useRef<() => void>(() => undefined);
+  const canInsertPageBreakCommandRef = useRef<() => boolean>(() => false);
   const insertCodeBlockCommandRef = useRef<() => void>(() => undefined);
   const canInsertCodeBlockCommandRef = useRef<() => boolean>(() => false);
   const insertTableCommandRef = useRef<() => void>(() => undefined);
@@ -3330,6 +3333,15 @@ export function App(): JSX.Element {
     activeEditorIsMarkdown || isGlossaryDescriptionEditorActive;
   const canUseMarkdownToolbarCommands =
     activeEditorIsMarkdownEditingTarget && !isReadOnlyProjectOwnedEditor;
+  /** #733: page break is PDF body-text layout, so — unlike the other Markdown
+   *  toolbar commands — it excludes a glossary Description (which is a
+   *  Markdown editing target, but not a document body): a Markdown document
+   *  only (never .txt or a special tab), not read-only. Toolbar and Command
+   *  Registry both read this one value. */
+  const canInsertPageBreak = canInsertPageBreakInEditor(currentEditor, {
+    isEditorAreaSpecialTabActive,
+    isReadOnly: isReadOnlyProjectOwnedEditor
+  });
   /** #606 / #690: Markdown syntax checker enable gate - the active Markdown editing target (a Markdown document or a glossary Description), excluding .txt and every special tab. Same gate as the Markdown toolbar commands, minus their read-only condition (the checker only diagnoses). */
   const canUseMarkdownSyntaxChecker = activeEditorIsMarkdownEditingTarget;
   // #625: the Japanese linter supports the body editor of Markdown (.md /
@@ -3944,6 +3956,9 @@ export function App(): JSX.Element {
   const handleInsertHorizontalRule = useCallback(() => {
     paragraphIndentControllerRef.current?.insertHorizontalRule();
   }, []);
+  const handleInsertPageBreak = useCallback(() => {
+    paragraphIndentControllerRef.current?.insertPageBreak();
+  }, []);
   const handleInsertCodeBlock = useCallback(() => {
     paragraphIndentControllerRef.current?.insertCodeBlock();
   }, []);
@@ -4274,6 +4289,8 @@ export function App(): JSX.Element {
         insertHorizontalRule: () => insertHorizontalRuleCommandRef.current(),
         canInsertHorizontalRule: () =>
           canInsertHorizontalRuleCommandRef.current(),
+        insertPageBreak: () => insertPageBreakCommandRef.current(),
+        canInsertPageBreak: () => canInsertPageBreakCommandRef.current(),
         insertCodeBlock: () => insertCodeBlockCommandRef.current(),
         canInsertCodeBlock: () => canInsertCodeBlockCommandRef.current(),
         insertTable: () => insertTableCommandRef.current(),
@@ -10579,6 +10596,10 @@ export function App(): JSX.Element {
   insertHorizontalRuleCommandRef.current = () => {
     handleInsertHorizontalRule();
   };
+  canInsertPageBreakCommandRef.current = () => canInsertPageBreak;
+  insertPageBreakCommandRef.current = () => {
+    handleInsertPageBreak();
+  };
   canInsertCodeBlockCommandRef.current = () => canUseMarkdownToolbarCommands;
   insertCodeBlockCommandRef.current = () => {
     handleInsertCodeBlock();
@@ -13644,6 +13665,8 @@ export function App(): JSX.Element {
         onIndent={handleIndent}
         onOpenLinkDialog={handleOpenLinkInsertDialog}
         onInsertHorizontalRule={handleInsertHorizontalRule}
+        canInsertPageBreak={canInsertPageBreak}
+        onInsertPageBreak={handleInsertPageBreak}
         onInsertCodeBlock={handleInsertCodeBlock}
         onInsertBlockquote={handleInsertBlockquote}
         canInsertImage={Boolean(canInsertImage)}
@@ -14052,6 +14075,15 @@ export function App(): JSX.Element {
                         }
                         isDoubleClickJumpToEditorEnabled={
                           effectiveSettings.preview.doubleClickJumpToEditor
+                        }
+                        isGlossaryAnnotationsEnabled={
+                          effectiveSettings.preview.glossaryAnnotations
+                        }
+                        glossaryFallbackColor={
+                          effectiveSettings.documentMap.glossaryFallbackColor
+                        }
+                        glossaryHighlightOpacity={
+                          effectiveSettings.preview.glossaryHighlightOpacity
                         }
                         activeDocumentKey={serializeEditorId(
                           activeDocument.id

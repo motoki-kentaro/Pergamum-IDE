@@ -70,6 +70,9 @@ export interface EditorCommandController {
   canInsertTable(): boolean;
   insertCallout(): void | Promise<void>;
   canInsertCallout(): boolean;
+  /** #733: `<!-- pagebreak -->` on its own line. Markdown documents only. */
+  insertPageBreak(): void | Promise<void>;
+  canInsertPageBreak(): boolean;
   insertRuby(): void | Promise<void>;
   canInsertRuby(): boolean;
   insertEmphasisMark(): void | Promise<void>;
@@ -127,6 +130,8 @@ export interface EditorCommandTitles {
   insertTableDescription: string;
   insertCallout: string;
   insertCalloutDescription: string;
+  insertPageBreak: string;
+  insertPageBreakDescription: string;
   insertRuby: string;
   insertRubyDescription: string;
   insertEmphasisMark: string;
@@ -222,6 +227,10 @@ export function createEditorCommandTitles(
     insertCallout: translate("command.editor.markdown.insertCallout"),
     insertCalloutDescription: translate(
       "command.editor.markdown.insertCallout.description"
+    ),
+    insertPageBreak: translate("command.editor.markdown.insertPageBreak"),
+    insertPageBreakDescription: translate(
+      "command.editor.markdown.insertPageBreak.description"
     ),
     insertRuby: translate("command.editor.markdown.insertRuby"),
     insertRubyDescription: translate(
@@ -571,6 +580,21 @@ export function createEditorCommands(
         return controller.insertCallout();
       },
       isEnabled: () => controller.canInsertCallout()
+    },
+    {
+      id: editorCommandIds.insertPageBreak,
+      title: titles.insertPageBreak,
+      description: titles.insertPageBreakDescription,
+      category: "formatting",
+      paletteOrder: 95,
+      execute: () => {
+        if (!controller.canInsertPageBreak()) {
+          return;
+        }
+
+        return controller.insertPageBreak();
+      },
+      isEnabled: () => controller.canInsertPageBreak()
     },
     {
       id: editorCommandIds.insertRuby,

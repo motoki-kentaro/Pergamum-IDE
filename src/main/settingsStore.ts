@@ -114,6 +114,14 @@ function readPreviewSettings(value: unknown): ApplicationSettings["preview"] {
       doubleClickJumpToEditor: resolveCatalogValue(
         "preview.doubleClickJumpToEditor",
         undefined
+      ).value,
+      glossaryAnnotations: resolveCatalogValue(
+        "preview.glossaryAnnotations",
+        undefined
+      ).value,
+      glossaryHighlightOpacity: resolveCatalogValue(
+        "preview.glossaryHighlightOpacity",
+        undefined
       ).value
     };
   }
@@ -135,6 +143,14 @@ function readPreviewSettings(value: unknown): ApplicationSettings["preview"] {
     doubleClickJumpToEditor: resolveCatalogValue(
       "preview.doubleClickJumpToEditor",
       value.doubleClickJumpToEditor
+    ).value,
+    glossaryAnnotations: resolveCatalogValue(
+      "preview.glossaryAnnotations",
+      value.glossaryAnnotations
+    ).value,
+    glossaryHighlightOpacity: resolveCatalogValue(
+      "preview.glossaryHighlightOpacity",
+      value.glossaryHighlightOpacity
     ).value
   };
 
@@ -1103,7 +1119,7 @@ function parsePreviewSettingsForWrite(
 
   const keys = Object.keys(value);
   const hasFontFamilyList = keys.includes("fontFamilyList");
-  const expectedKeyCount = 5 + (hasFontFamilyList ? 1 : 0);
+  const expectedKeyCount = 7 + (hasFontFamilyList ? 1 : 0);
 
   if (
     keys.length !== expectedKeyCount ||
@@ -1112,11 +1128,15 @@ function parsePreviewSettingsForWrite(
     !keys.includes("syncScrollEditorToPreview") ||
     !keys.includes("syncScrollPreviewToEditor") ||
     !keys.includes("doubleClickJumpToEditor") ||
+    !keys.includes("glossaryAnnotations") ||
+    !keys.includes("glossaryHighlightOpacity") ||
     value.renderer === undefined ||
     value.updateDelayMs === undefined ||
     value.syncScrollEditorToPreview === undefined ||
     value.syncScrollPreviewToEditor === undefined ||
-    value.doubleClickJumpToEditor === undefined
+    value.doubleClickJumpToEditor === undefined ||
+    value.glossaryAnnotations === undefined ||
+    value.glossaryHighlightOpacity === undefined
   ) {
     throw new Error("Invalid application settings.");
   }
@@ -1138,13 +1158,23 @@ function parsePreviewSettingsForWrite(
     "preview.doubleClickJumpToEditor",
     value.doubleClickJumpToEditor
   );
+  const glossaryAnnotationsResolution = resolveCatalogValue(
+    "preview.glossaryAnnotations",
+    value.glossaryAnnotations
+  );
+  const glossaryHighlightOpacityResolution = resolveCatalogValue(
+    "preview.glossaryHighlightOpacity",
+    value.glossaryHighlightOpacity
+  );
 
   if (
     !rendererResolution.ok ||
     !updateDelayMsResolution.ok ||
     !syncScrollEditorToPreviewResolution.ok ||
     !syncScrollPreviewToEditorResolution.ok ||
-    !doubleClickJumpToEditorResolution.ok
+    !doubleClickJumpToEditorResolution.ok ||
+    !glossaryAnnotationsResolution.ok ||
+    !glossaryHighlightOpacityResolution.ok
   ) {
     throw new Error("Invalid application settings.");
   }
@@ -1154,7 +1184,9 @@ function parsePreviewSettingsForWrite(
     updateDelayMs: updateDelayMsResolution.value,
     syncScrollEditorToPreview: syncScrollEditorToPreviewResolution.value,
     syncScrollPreviewToEditor: syncScrollPreviewToEditorResolution.value,
-    doubleClickJumpToEditor: doubleClickJumpToEditorResolution.value
+    doubleClickJumpToEditor: doubleClickJumpToEditorResolution.value,
+    glossaryAnnotations: glossaryAnnotationsResolution.value,
+    glossaryHighlightOpacity: glossaryHighlightOpacityResolution.value
   };
 
   if (hasFontFamilyList) {

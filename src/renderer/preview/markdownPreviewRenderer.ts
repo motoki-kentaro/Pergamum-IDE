@@ -16,6 +16,7 @@ import {
   renderMermaidPlaceholder
 } from "./mermaidPreviewPlaceholder";
 import { markdownItCallout } from "./markdownCallout";
+import { markdownItPergamumComments } from "./markdownComment";
 import { renderDendenRubyHtml } from "../../shared/rubyMarkupGenerator";
 
 const markdown = new MarkdownIt({
@@ -33,6 +34,19 @@ markdown.core.ruler.push("source_line_anchors", (state) => {
       token.attrSet("data-source-line", String(token.map[0] + 1));
     }
   }
+});
+
+/**
+ * #733: standalone-line `<!-- ... -->` comments and `<!-- pagebreak -->`. A
+ * BLOCK rule (so code contexts win; `html: false` is untouched). Both render to
+ * nothing in Preview; static export asks for the page-break element through
+ * `env.pageBreakOutput === "element"`. Shared by every target that uses this
+ * markdown-it instance (Markdown / Narou / Kakuyomu previews and static export).
+ */
+markdown.use(markdownItPergamumComments, {
+  emitsPageBreakElement: (env: unknown) =>
+    (env as { pageBreakOutput?: string } | undefined)?.pageBreakOutput ===
+    "element"
 });
 
 /**
@@ -575,7 +589,8 @@ export const markdownPreviewRenderer: PreviewRenderer = {
       projectLocalImageResolution:
         options?.projectLocalImageResolution ?? NO_IMAGE_RESOLUTION,
       previewRenderer,
-      markdownCalloutLabels: options?.calloutLabels
+      markdownCalloutLabels: options?.calloutLabels,
+      pageBreakOutput: options?.pageBreakOutput
     });
   }
 };

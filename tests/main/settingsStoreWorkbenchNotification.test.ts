@@ -110,7 +110,9 @@ function saveRequest(
       updateDelayMs: 10000,
       syncScrollEditorToPreview: true,
       syncScrollPreviewToEditor: true,
-      doubleClickJumpToEditor: true
+      doubleClickJumpToEditor: true,
+      glossaryAnnotations: false,
+      glossaryHighlightOpacity: 0.35
     },
     workbench: {
       language: "ja",

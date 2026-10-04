@@ -406,6 +406,9 @@ export function matchGlossarySurfacesInText(
   return matches;
 }
 
+/** A stable, entry-less index: matching against it never yields a match. */
+export const emptyGlossarySurfaceIndex: GlossarySurfaceIndex = { entries: [] };
+
 export function isAmbiguousGlossarySurfaceTextMatch(
   match: GlossarySurfaceTextMatch
 ): boolean {

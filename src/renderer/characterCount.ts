@@ -1,5 +1,9 @@
 import MarkdownIt, { type Token } from "markdown-it";
 import type { ApplicationEditorCharacterCountExcludeSettings } from "../shared/settings";
+import {
+  PAGE_BREAK_DIRECTIVE_NAME,
+  isPageBreakDirectiveSource
+} from "./preview/markdownComment";
 
 export const CHARACTER_COUNT_UPDATE_DEBOUNCE_MS = 250;
 
@@ -239,6 +243,20 @@ function collectMarkdownExcludedRanges(
       }
     }
 
+    // #733: `<!-- pagebreak -->` is a layout directive, never body text,
+    // whatever the `markdownComments` exclusion says.
+    if (
+      token.type === "html_block" &&
+      isPageBreakDirectiveSource(token.content)
+    ) {
+      const range = rangeForLineMap(content, offsets, token.map);
+
+      if (range) {
+        ranges.push(range);
+      }
+      continue;
+    }
+
     if (!exclude.markdownComments) {
       continue;
     }
@@ -400,6 +418,13 @@ function countMarkdownVisibleText(
       continue;
     }
 
+    if (
+      token.type === "html_block" &&
+      isPageBreakDirectiveSource(token.content)
+    ) {
+      continue;
+    }
+
     if (token.type === "html_block") {
       count += countCodePointsOutsideRanges(
         token.content,
@@ -458,7 +483,12 @@ export function countMarkdownDocumentCharacters(
 ): number {
   const { exclude } = options;
 
-  if (!requiresMarkdownParsing(exclude)) {
+  // A pagebreak directive needs the parser even when no exclusion does; the
+  // substring check keeps the cheap path for every other document.
+  if (
+    !requiresMarkdownParsing(exclude) &&
+    !content.includes(PAGE_BREAK_DIRECTIVE_NAME)
+  ) {
     return countTextCodePoints(content, exclude);
   }
 

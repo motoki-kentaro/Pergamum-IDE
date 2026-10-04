@@ -1,3 +1,4 @@
+import { standaloneCommentContent } from "./markdownComment";
 import type { PreviewRenderer, PreviewRenderOptions } from "./previewRenderer";
 import { replaceAozoraGaijiInText } from "./aozoraGaijiResolver";
 import {
@@ -154,6 +155,14 @@ export const aozoraPreviewRenderer: PreviewRenderer = {
     for (let i = 0; i < lines.length; i++) {
       const lineNo = i + 1;
       const rawLine = lines[i];
+
+      // #733: a standalone `<!-- ... -->` line (a comment or `<!-- pagebreak -->`)
+      // is never rendered — same recognition as the markdown-it pipeline. It
+      // emits no block, so no empty paragraph appears, and every other block
+      // keeps its own source line number.
+      if (standaloneCommentContent(rawLine) !== null) {
+        continue;
+      }
 
       // Page break check: ［＃改ページ］
       if (rawLine.includes("［＃改ページ］")) {

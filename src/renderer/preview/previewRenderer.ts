@@ -25,6 +25,12 @@ export interface PreviewRenderOptions {
    * render (Markdown horizontal preview); Japanese labels when omitted.
    */
   readonly calloutLabels?: MarkdownCalloutLabels;
+  /**
+   * #733: what `<!-- pagebreak -->` renders to. `"none"` (default, Preview)
+   * renders nothing; `"element"` (static export) renders the page-break
+   * element. Normal `<!-- ... -->` comments never render in either mode.
+   */
+  readonly pageBreakOutput?: "none" | "element";
 }
 
 export interface PreviewRenderer {

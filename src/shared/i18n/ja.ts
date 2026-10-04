@@ -82,6 +82,9 @@ export const jaTranslations = {
   "command.editor.markdown.insertCallout": "コールアウトを挿入",
   "command.editor.markdown.insertCallout.description":
     "カーソル位置にコールアウトブロックを挿入します。",
+  "command.editor.markdown.insertPageBreak": "改ページを挿入",
+  "command.editor.markdown.insertPageBreak.description":
+    "カーソル位置に改ページ（<!-- pagebreak -->）を独立行として挿入します。PDF エクスポートで、その位置から次のページになります。",
   "command.editor.markdown.insertRuby": "ルビを挿入...",
   "command.editor.markdown.insertRuby.description":
     "選択したテキストにルビ（振り仮名）を挿入します。",
@@ -1853,6 +1856,7 @@ export const jaTranslations = {
   "settings.documentMap.viewportLensOpacity.invalid":
     "0.1〜0.9 の範囲で入力してください。",
   "settings.documentMap.narrationColor.label": "地の文の色",
+  "settings.documentMap.glossaryFallbackColor.description": "文書マップと、プレビューの語彙ホバーカード装飾で、タグなし語彙に使用する色です。",
   "settings.documentMap.glossaryFallbackColor.label": "タグなし語彙の色",
   "settings.documentMap.adjustTagColorsForVisibility.label":
     "タグ色を文書マップ向けに自動補正する",
@@ -2071,6 +2075,12 @@ export const jaTranslations = {
   "settings.preview.syncScrollPreviewToEditor.label": "プレビュー→エディタの連動スクロール",
   "settings.preview.doubleClickJumpToEditor.description": "プレビューをダブルクリックしたとき、エディタの該当行へジャンプします。",
   "settings.preview.doubleClickJumpToEditor.label": "ダブルクリックでエディタへジャンプ",
+  "settings.preview.glossaryAnnotations.description": "ONにすると、プレビュー上の登録語彙を装飾し、ホバーで語彙情報（語彙・タグ）を表示します。",
+  "settings.preview.glossaryAnnotations.label": "語彙ホバーカードを有効にする",
+  "settings.preview.glossaryHighlightOpacity.description": "語彙ホバーカードの装飾（ハイライト）の背景色に適用する不透明度です。0で完全に透明、1で完全に不透明になります。文字色には適用されません。",
+  "settings.preview.glossaryHighlightOpacity.label": "ホバーカードハイライトの透明度",
+  "preview.glossaryHoverCard.listSeparator": "、",
+  "preview.glossaryHoverCard.tags": "タグ：{tags}",
   "settings.markdownFiles.lineEnding.option.lf.label": "LF",
   "settings.markdownFiles.lineEnding.option.crlf.label": "CRLF",
   "settings.markdownFiles.encoding.option.utf8.label": "UTF-8",
@@ -2390,6 +2400,7 @@ export const jaTranslations = {
   "toolbar.insertTable": "表を挿入",
   "toolbar.callout": "コールアウト",
   "toolbar.callout.tooltip": "文中に色とアイコン付きの引用ブロックを挿入します",
+  "toolbar.insertPageBreak": "改ページを挿入",
   "toolbar.italic": "斜体",
   "toolbar.openProject": "プロジェクトを開く",
   "toolbar.orderedList": "オーダーリスト",

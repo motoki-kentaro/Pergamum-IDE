@@ -22,6 +22,7 @@ import italicIconRaw from "../../../assets/icons/codicons/toolbar/italic.svg?raw
 import strikeIconRaw from "../../../assets/icons/codicons/toolbar/strikethrough.svg?raw";
 import linkIconRaw from "../../../assets/icons/codicons/toolbar/link.svg?raw";
 import horizontalRuleIconRaw from "../../../assets/icons/codicons/toolbar/horizontal-rule.svg?raw";
+import pageBreakIconRaw from "../../../assets/icons/svgrepo/toolbar/page-break.svg?raw";
 import codeBlockIconRaw from "../../../assets/icons/codicons/toolbar/code.svg?raw";
 import quoteIconRaw from "../../../assets/icons/codicons/toolbar/quote.svg?raw";
 import imageIconRaw from "../../../assets/icons/feather/toolbar/image.svg?raw";
@@ -59,6 +60,9 @@ export interface EditorToolbarProps {
   onIndent: () => void;
   onOpenLinkDialog: (opener: Element) => void;
   onInsertHorizontalRule: () => void;
+  /** #733: Markdown document only — see App's `canInsertPageBreak`. */
+  canInsertPageBreak?: boolean;
+  onInsertPageBreak?: () => void;
   onInsertCodeBlock: () => void;
   onInsertBlockquote: () => void;
   /** #535: narrower than `canUseMarkdownToolbarCommands` — image insertion
@@ -135,6 +139,8 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   onIndent,
   onOpenLinkDialog,
   onInsertHorizontalRule,
+  canInsertPageBreak = false,
+  onInsertPageBreak,
   onInsertCodeBlock,
   onInsertBlockquote,
   canInsertImage,
@@ -579,6 +585,25 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
             translate={translate}
             dataUsageTourTarget={USAGE_TOUR_TARGETS.toolbarCallout}
           />
+        </div>
+
+        <div className="editorToolbarItem">
+          <button
+            type="button"
+            className="editorToolbarButton"
+            disabled={!canInsertPageBreak}
+            onClick={onInsertPageBreak}
+            aria-label={translate("toolbar.insertPageBreak")}
+            title={formatCommandTooltip(
+              translate("toolbar.insertPageBreak"),
+              resolveShortcut(editorCommandIds.insertPageBreak)
+            )}
+          >
+            <span
+              className="editorToolbarButtonIcon"
+              dangerouslySetInnerHTML={{ __html: pageBreakIconRaw }}
+            />
+          </button>
         </div>
       </div>
 
