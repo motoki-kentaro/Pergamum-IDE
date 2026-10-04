@@ -2082,6 +2082,10 @@ export const jaTranslations = {
   "settings.textCursor.sampleText": "サンプル文書です",
   "settings.textCursor.width.invalid": "1〜15pxの整数を入力してください。",
   "settings.textCursor.blink.invalid": "0〜2000msの値を200ms単位で入力してください。",
+  "settings.textCursor.style.label": "スタイル",
+  "settings.textCursor.style.description": "テキストカーソルの表示スタイルを Line または Block から選択します。幅は Line のみに適用されます。",
+  "settings.textCursor.style.line": "Line",
+  "settings.textCursor.style.block": "Block",
   "settings.textCursor.width.label": "テキストカーソルの幅",
   "settings.textCursor.width.description":
     "テキストカーソル（キャレット）の幅を指定します。初期値1px",

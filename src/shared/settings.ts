@@ -372,6 +372,7 @@ export interface ApplicationTextFilesSettings {
 }
 
 export interface ApplicationTextCursorSettings {
+  style: import("./caretSettings").CaretStyle;
   /** Width in pixels. Minimum 1, defaults to 1. */
   width: number;
   /** Blink interval in milliseconds. Minimum 0 (no blink), maximum 2000, step 200, defaults to 1200. */
@@ -379,6 +380,7 @@ export interface ApplicationTextCursorSettings {
 }
 
 export const defaultTextCursorSettings: ApplicationTextCursorSettings = {
+  style: getCatalogDefaultValue("textCursor.style"),
   width: getCatalogDefaultValue("textCursor.width"),
   blink: getCatalogDefaultValue("textCursor.blink")
 };
@@ -825,6 +827,7 @@ export const builtInDefaultSettings: EffectiveSettings = {
     saveDirectory: getCatalogDefaultValue("imageAttachment.saveDirectory")
   },
   textCursor: {
+    style: getCatalogDefaultValue("textCursor.style"),
     width: getCatalogDefaultValue("textCursor.width"),
     blink: getCatalogDefaultValue("textCursor.blink")
   },
@@ -949,6 +952,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     saveDirectory: builtInDefaultSettings.imageAttachment.saveDirectory
   },
   textCursor: {
+    style: getCatalogDefaultValue("textCursor.style"),
     width: builtInDefaultSettings.textCursor.width,
     blink: builtInDefaultSettings.textCursor.blink
   },
@@ -1075,6 +1079,7 @@ export function createDefaultApplicationSettings(): ApplicationSettings {
         defaultApplicationSettings.imageAttachment.saveDirectory
     },
     textCursor: {
+      style: defaultApplicationSettings.textCursor.style,
       width: defaultApplicationSettings.textCursor.width,
       blink: defaultApplicationSettings.textCursor.blink
     },
@@ -1320,6 +1325,7 @@ export function resolveEffectiveSettings(
     },
     // #719: applicationOnly text cursor settings.
     textCursor: {
+      style: applicationSettings.textCursor?.style ?? builtInDefaultSettings.textCursor.style,
       width:
         applicationSettings.textCursor?.width ??
         builtInDefaultSettings.textCursor.width,

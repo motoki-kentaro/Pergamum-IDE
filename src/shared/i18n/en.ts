@@ -2081,6 +2081,10 @@ export const enTranslations = {
   "settings.textCursor.sampleText": "This is a sample document.",
   "settings.textCursor.width.invalid": "Enter an integer from 1 to 15px.",
   "settings.textCursor.blink.invalid": "Enter a value from 0 to 2000ms in steps of 200ms.",
+  "settings.textCursor.style.label": "Style",
+  "settings.textCursor.style.description": "Choose Line or Block for the text cursor's display style. Width applies only to Line.",
+  "settings.textCursor.style.line": "Line",
+  "settings.textCursor.style.block": "Block",
   "settings.textCursor.width.label": "Text cursor width",
   "settings.textCursor.width.description":
     "Specifies the width of the text cursor (caret). The default is 1px.",

@@ -725,6 +725,7 @@ function readTextCursorSettings(
 ): ApplicationSettings["textCursor"] {
   if (!isObject(value)) {
     return {
+      style: resolveCatalogValue("textCursor.style", undefined).value,
       width: resolveCatalogValue("textCursor.width", undefined).value,
       blink: resolveCatalogValue("textCursor.blink", undefined).value
     };
@@ -734,6 +735,7 @@ function readTextCursorSettings(
   const blinkResolution = resolveCatalogValue("textCursor.blink", value.blink);
 
   const textCursor: ApplicationSettings["textCursor"] = {
+    style: resolveCatalogValue("textCursor.style", value.style).value,
     width: widthResolution.value,
     blink: blinkResolution.value
   };
@@ -834,7 +836,7 @@ function parseTextCursorSettingsForWrite(
   }
 
   const keys = Object.keys(value);
-  const expectedKeyCount = 2;
+  const expectedKeyCount = keys.includes("style") ? 3 : 2;
 
   if (
     keys.length !== expectedKeyCount ||
@@ -847,11 +849,13 @@ function parseTextCursorSettingsForWrite(
   const widthResolution = resolveCatalogValue("textCursor.width", value.width);
   const blinkResolution = resolveCatalogValue("textCursor.blink", value.blink);
 
-  if (!widthResolution.ok || !blinkResolution.ok) {
+  const styleResolution = resolveCatalogValue("textCursor.style", value.style);
+  if (!widthResolution.ok || !blinkResolution.ok || !styleResolution.ok) {
     throw new Error("Invalid application settings.");
   }
 
   const textCursor: ApplicationSettings["textCursor"] = {
+    style: styleResolution.value,
     width: widthResolution.value,
     blink: blinkResolution.value
   };
@@ -2180,4 +2184,3 @@ export async function removeRecentProject(
     recentProjects
   });
 }
-

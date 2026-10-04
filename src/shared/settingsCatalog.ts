@@ -182,7 +182,7 @@ export type SettingCatalogEntry =
 // Cross-module type imports
 // ---------------------------------------------------------------------------
 
-import { CARET_WIDTH, CARET_BLINK } from "./caretSettings";
+import { CARET_WIDTH, CARET_BLINK, caretStyles } from "./caretSettings";
 
 import {
   defaultDocumentMapDialogueDelimiterPairs,
@@ -1238,6 +1238,16 @@ export const settingsCatalog = defineSettingsCatalog({
     defaultValue: "aozora",
     labelKey: "settings.editor.ruby.rule.label",
     descriptionKey: "settings.editor.ruby.rule.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  "textCursor.style": defineEnumSetting({
+    key: "textCursor.style",
+    scope: "applicationOnly",
+    enumValues: caretStyles,
+    defaultValue: "line",
+    labelKey: "settings.textCursor.style.label",
+    descriptionKey: "settings.textCursor.style.description",
     deprecatedAliases: [],
     migrationNotes: []
   }),

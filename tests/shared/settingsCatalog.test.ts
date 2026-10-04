@@ -1382,6 +1382,7 @@ describe("Settings Catalog Foundation (#150)", () => {
           "search.nearby.unit",
           "search.nearby.characterDistance",
           "search.nearby.paragraphDistance",
+          "textCursor.style",
           "textCursor.width",
           "textCursor.blink",
           "workbench.colorTheme",

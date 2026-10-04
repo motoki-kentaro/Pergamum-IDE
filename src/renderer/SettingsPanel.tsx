@@ -765,6 +765,9 @@ function buildNextSettings(
           fontFamilyList: rawValue as any
         }
       });
+    case "textCursor.style":
+      if (rawValue !== "line" && rawValue !== "block") return null;
+      return saveRequest(settings, { textCursor: { ...settings.textCursor, style: rawValue } });
     case "textCursor.width":
       if (typeof rawValue !== "number" || !validateCatalogValue(key, rawValue).ok) {
         return null;
@@ -812,6 +815,8 @@ function isSettingDisabled(
   if (isLoading) {
     return true;
   }
+
+  if (item.key === "textCursor.width" && settings.textCursor.style === "block") return true;
 
   if (unwiredKeys.has(item.key)) {
     return true;

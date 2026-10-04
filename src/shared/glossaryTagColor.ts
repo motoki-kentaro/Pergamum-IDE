@@ -8,9 +8,10 @@
  * the foreground afterwards.
  */
 
+import { isLightByYiq, YIQ_LIGHT_THRESHOLD } from "./colorYiq";
 import { normalizeGlossaryRgbHex } from "./glossary";
 
-export const GLOSSARY_TAG_YIQ_THRESHOLD = 128000;
+export const GLOSSARY_TAG_YIQ_THRESHOLD = YIQ_LIGHT_THRESHOLD * 1000;
 
 function rgbChannels(rgbHex: string): [number, number, number] {
   const hex = normalizeGlossaryRgbHex(rgbHex).slice(1);
@@ -29,9 +30,7 @@ export function autoGlossaryTagForegroundRgb(
   backgroundRgb: string
 ): "#000000" | "#ffffff" {
   const [r, g, b] = rgbChannels(backgroundRgb);
-  const luminance = r * 299 + g * 587 + b * 114;
-
-  return luminance >= GLOSSARY_TAG_YIQ_THRESHOLD ? "#000000" : "#ffffff";
+  return isLightByYiq({ r, g, b }) ? "#000000" : "#ffffff";
 }
 
 /** A random normalized `#rrggbb`. `random` is injectable for tests. */

@@ -129,6 +129,7 @@ export interface MarkdownEditorDocumentStateOptions {
    */
   readonly undoHistoryMinDepth: number;
   readonly caretBlinkRate?: number;
+  readonly caretStyle?: import("../shared/caretSettings").CaretStyle;
   readonly newFileLineEndingFallbackRef: LiveRef<LineEndingKind>;
   readonly readOnlyCompartment: Compartment;
   readonly readOnlyRef: LiveRef<boolean>;
@@ -351,6 +352,7 @@ export function createMarkdownEditorDocumentState(
       ...createMarkdownEditorBaseSetup({
         undoHistoryMinDepth: options.undoHistoryMinDepth,
         caretBlinkRate: options.caretBlinkRate,
+        caretStyle: options.caretStyle,
         fencedCodeIndentUnit: options.fencedCodeIndentUnitRef?.current,
         themeModeCompartment: options.themeModeCompartment,
         isDarkTheme: options.isDarkThemeRef?.current
