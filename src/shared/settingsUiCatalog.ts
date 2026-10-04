@@ -1295,6 +1295,48 @@ export const settingCatalogItems = defineSettingCatalog([
     )
   },
   {
+    key: "textCursor.colorMode",
+    category: "textCursor",
+    order: 400,
+    labelKey: "settings.textCursor.colorMode.label",
+    descriptionKey: "settings.textCursor.colorMode.description",
+    control: {
+      kind: "select",
+      options: [
+        { value: "theme", labelKey: "settings.textCursor.colorMode.theme" },
+        { value: "custom", labelKey: "settings.textCursor.colorMode.custom" }
+      ]
+    },
+    defaultValue: getCatalogDefaultValue("textCursor.colorMode")
+  },
+  {
+    key: "textCursor.color",
+    category: "textCursor",
+    order: 500,
+    labelKey: "settings.textCursor.color.label",
+    descriptionKey: "settings.textCursor.color.description",
+    control: { kind: "text" },
+    defaultValue: getCatalogDefaultValue("textCursor.color")
+  },
+  {
+    key: "textCursor.autoCursorTextColor",
+    category: "textCursor",
+    order: 600,
+    labelKey: "settings.textCursor.autoCursorTextColor.label",
+    descriptionKey: "settings.textCursor.autoCursorTextColor.description",
+    control: { kind: "switch" },
+    defaultValue: getCatalogDefaultValue("textCursor.autoCursorTextColor")
+  },
+  {
+    key: "textCursor.cursorTextColor",
+    category: "textCursor",
+    order: 700,
+    labelKey: "settings.textCursor.cursorTextColor.label",
+    descriptionKey: "settings.textCursor.cursorTextColor.description",
+    control: { kind: "text" },
+    defaultValue: getCatalogDefaultValue("textCursor.cursorTextColor")
+  },
+  {
     key: "textCursor.style",
     category: "textCursor",
     order: 100,

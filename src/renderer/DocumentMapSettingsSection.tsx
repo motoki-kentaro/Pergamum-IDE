@@ -1,3 +1,4 @@
+import { SettingsColorInput } from "./SettingsColorInput";
 import { useEffect, useMemo, useState } from "react";
 import type {
   ApplicationSettings,
@@ -42,11 +43,6 @@ function saveRequestWithDocumentMap(
     request.notification = settings.notification;
   }
   return request;
-}
-
-/** A `#rrggbb` safe to feed a native `<input type="color">` (else a grey). */
-function colorPickerValue(raw: string): string {
-  return normalizeDocumentMapColor(raw) ?? "#888888";
 }
 
 /**
@@ -145,40 +141,13 @@ export function DocumentMapSettingsSection({
     settingKey: string
   ): JSX.Element => {
     const value = draft[field];
-    const invalid = normalizeDocumentMapColor(value) === null;
     return (
       <div className="settingsItemRow documentMapSettingsColorField">
         <label>
           <span className="settingsItemLabel">{label}</span>
-          <span className="documentMapSettingsColorInputs">
-            <input
-              type="color"
-              className="documentMapSettingsColorSwatch"
-              value={colorPickerValue(value)}
-              disabled={isLoading}
-              aria-label={label}
-              onChange={(event) =>
-                commit({ ...draft, [field]: event.target.value })
-              }
-            />
-            <input
-              type="text"
-              className="documentMapSettingsColorText"
-              value={value}
-              disabled={isLoading}
-              aria-label={label}
-              aria-invalid={invalid || undefined}
-              onChange={(event) =>
-                commit({ ...draft, [field]: event.target.value })
-              }
-            />
-          </span>
+          <SettingsColorInput value={value} disabled={isLoading} label={label} translate={translate} normalizeOnChange={false}
+            onChange={color => commit({ ...draft, [field]: color })} />
         </label>
-        {invalid ? (
-          <p className="documentMapSettingsError" role="alert">
-            {translate("settings.documentMap.color.invalid")}
-          </p>
-        ) : null}
         {/* Setting-key line, same look as the Application settings rows. */}
         <code className="settingsItemKey">{settingKey}</code>
       </div>

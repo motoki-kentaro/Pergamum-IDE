@@ -182,6 +182,10 @@ export function readSettingValue(
         settings.preview.fontFamilyList ??
         getCatalogDefaultValue("preview.fontFamilyList")
       );
+    case "textCursor.colorMode": return settings.textCursor?.colorMode ?? getCatalogDefaultValue("textCursor.colorMode");
+    case "textCursor.color": return settings.textCursor?.color ?? getCatalogDefaultValue("textCursor.color");
+    case "textCursor.autoCursorTextColor": return settings.textCursor?.autoCursorTextColor ?? getCatalogDefaultValue("textCursor.autoCursorTextColor");
+    case "textCursor.cursorTextColor": return settings.textCursor?.cursorTextColor ?? getCatalogDefaultValue("textCursor.cursorTextColor");
     case "textCursor.style":
       return settings.textCursor?.style ?? getCatalogDefaultValue("textCursor.style");
     case "textCursor.width":

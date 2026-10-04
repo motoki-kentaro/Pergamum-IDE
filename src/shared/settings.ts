@@ -372,6 +372,10 @@ export interface ApplicationTextFilesSettings {
 }
 
 export interface ApplicationTextCursorSettings {
+  colorMode: "theme" | "custom";
+  color: string;
+  autoCursorTextColor: boolean;
+  cursorTextColor: string;
   style: import("./caretSettings").CaretStyle;
   /** Width in pixels. Minimum 1, defaults to 1. */
   width: number;
@@ -380,6 +384,10 @@ export interface ApplicationTextCursorSettings {
 }
 
 export const defaultTextCursorSettings: ApplicationTextCursorSettings = {
+  colorMode: getCatalogDefaultValue("textCursor.colorMode"),
+  color: getCatalogDefaultValue("textCursor.color"),
+  autoCursorTextColor: getCatalogDefaultValue("textCursor.autoCursorTextColor"),
+  cursorTextColor: getCatalogDefaultValue("textCursor.cursorTextColor"),
   style: getCatalogDefaultValue("textCursor.style"),
   width: getCatalogDefaultValue("textCursor.width"),
   blink: getCatalogDefaultValue("textCursor.blink")
@@ -827,6 +835,10 @@ export const builtInDefaultSettings: EffectiveSettings = {
     saveDirectory: getCatalogDefaultValue("imageAttachment.saveDirectory")
   },
   textCursor: {
+    colorMode: getCatalogDefaultValue("textCursor.colorMode"),
+    color: getCatalogDefaultValue("textCursor.color"),
+    autoCursorTextColor: getCatalogDefaultValue("textCursor.autoCursorTextColor"),
+    cursorTextColor: getCatalogDefaultValue("textCursor.cursorTextColor"),
     style: getCatalogDefaultValue("textCursor.style"),
     width: getCatalogDefaultValue("textCursor.width"),
     blink: getCatalogDefaultValue("textCursor.blink")
@@ -952,6 +964,10 @@ export const defaultApplicationSettings: ApplicationSettings = {
     saveDirectory: builtInDefaultSettings.imageAttachment.saveDirectory
   },
   textCursor: {
+    colorMode: getCatalogDefaultValue("textCursor.colorMode"),
+    color: getCatalogDefaultValue("textCursor.color"),
+    autoCursorTextColor: getCatalogDefaultValue("textCursor.autoCursorTextColor"),
+    cursorTextColor: getCatalogDefaultValue("textCursor.cursorTextColor"),
     style: getCatalogDefaultValue("textCursor.style"),
     width: builtInDefaultSettings.textCursor.width,
     blink: builtInDefaultSettings.textCursor.blink
@@ -1079,6 +1095,10 @@ export function createDefaultApplicationSettings(): ApplicationSettings {
         defaultApplicationSettings.imageAttachment.saveDirectory
     },
     textCursor: {
+      colorMode: defaultApplicationSettings.textCursor.colorMode,
+      color: defaultApplicationSettings.textCursor.color,
+      autoCursorTextColor: defaultApplicationSettings.textCursor.autoCursorTextColor,
+      cursorTextColor: defaultApplicationSettings.textCursor.cursorTextColor,
       style: defaultApplicationSettings.textCursor.style,
       width: defaultApplicationSettings.textCursor.width,
       blink: defaultApplicationSettings.textCursor.blink
@@ -1325,6 +1345,10 @@ export function resolveEffectiveSettings(
     },
     // #719: applicationOnly text cursor settings.
     textCursor: {
+      colorMode: applicationSettings.textCursor?.colorMode ?? builtInDefaultSettings.textCursor.colorMode,
+      color: applicationSettings.textCursor?.color ?? builtInDefaultSettings.textCursor.color,
+      autoCursorTextColor: applicationSettings.textCursor?.autoCursorTextColor ?? builtInDefaultSettings.textCursor.autoCursorTextColor,
+      cursorTextColor: applicationSettings.textCursor?.cursorTextColor ?? builtInDefaultSettings.textCursor.cursorTextColor,
       style: applicationSettings.textCursor?.style ?? builtInDefaultSettings.textCursor.style,
       width:
         applicationSettings.textCursor?.width ??

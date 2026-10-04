@@ -227,6 +227,10 @@ describe("Settings UI Catalog Schema (#226)", () => {
           "search.nearby.unit",
           "search.nearby.characterDistance",
           "search.nearby.paragraphDistance",
+          "textCursor.colorMode",
+          "textCursor.color",
+          "textCursor.autoCursorTextColor",
+          "textCursor.cursorTextColor",
           "textCursor.style",
           "textCursor.width",
           "textCursor.blink"

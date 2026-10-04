@@ -1,3 +1,5 @@
+import { applyTextCursorSettingsToDom } from "../../src/renderer/caretSettingsCodeMirror";
+import { defaultTextCursorSettings } from "../../src/shared/settings";
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EditorSelection, EditorState } from "@codemirror/state";
@@ -89,6 +91,24 @@ describe("#722 hybrid Block caret", () => {
     } finally { style.remove(); document.documentElement.className = original; }
   });
 
+  it("applies custom colors to the actual Block glyph without replacing state", () => {
+    document.documentElement.style.setProperty("--pg-color-editor-caret", "#2563a8");
+    document.documentElement.style.setProperty("--pg-color-editor-background", "#ffffff");
+    const view = editor();
+    view.dispatch({ effects: caretBlinkCompartment.reconfigure(createCaretBlinkExtension(0)) });
+    const state = view.state;
+    try {
+      applyTextCursorSettingsToDom({ ...defaultTextCursorSettings, style: "block", colorMode: "custom", color: "#abcdef", autoCursorTextColor: false, cursorTextColor: "#123456" });
+      expect(getComputedStyle(marks(view)[0]!).backgroundColor).toBe("#abcdef");
+      expect(getComputedStyle(marks(view)[0]!).color).toBe("#123456");
+      expect(view.state).toBe(state);
+    } finally {
+      document.documentElement.style.removeProperty("--pg-color-editor-caret");
+      document.documentElement.style.removeProperty("--pg-color-editor-background");
+      document.documentElement.style.removeProperty("--pergamum-effective-caret");
+      document.documentElement.style.removeProperty("--pergamum-block-foreground");
+    }
+  });
   it("removes marks and restores regular cursors during composition, then restores Block", () => {
     const view = editor();
     const native = document.createElement("div");

@@ -3077,7 +3077,7 @@ export function App(): JSX.Element {
   }, [effectiveSettings.preview.fontFamilyList]);
   useEffect(() => {
     applyTextCursorSettingsToDom(effectiveSettings.textCursor);
-  }, [effectiveSettings.textCursor]);
+  }, [effectiveSettings.textCursor, effectiveSettings.workbench.colorTheme]);
   // #659: Main keeps the window hidden until this fires. It MUST stay after
   // the visual-settings effects above: effects of one commit run in
   // declaration order, so by the time Application Settings have finished

@@ -1368,28 +1368,28 @@ describe("#719 caret persistence", () => {
     fsMock.readFile.mockReset(); fsMock.writeFile.mockReset(); fsMock.mkdir.mockReset();
   });
   it("loads defaults for missing and invalid values", async () => {
-    fsMock.readFile.mockResolvedValue(JSON.stringify({ textCursor: { style: "line", width: 100, blink: 500 } }));
-    expect((await loadSettings()).textCursor).toEqual({ style: "line", width: 1, blink: 1200 });
+    fsMock.readFile.mockResolvedValue(JSON.stringify({ textCursor: { colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 100, blink: 500 } }));
+    expect((await loadSettings()).textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink: 1200 });
     fsMock.readFile.mockResolvedValue("{}");
-    expect((await loadSettings()).textCursor).toEqual({ style: "line", width: 1, blink: 1200 });
+    expect((await loadSettings()).textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink: 1200 });
   });
   it("round-trips valid width and blink without color", async () => {
     fsMock.readFile.mockResolvedValue("{}");
     fsMock.writeFile.mockResolvedValue(undefined); fsMock.mkdir.mockResolvedValue(undefined);
-    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: { style: "line", width: 15, blink: 0 } }));
-    expect(saved.textCursor).toEqual({ style: "line", width: 15, blink: 0 });
+    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: { colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 15, blink: 0 } }));
+    expect(saved.textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 15, blink: 0 });
     const written = fsMock.writeFile.mock.calls[0][1] as string;
-    expect(JSON.parse(written).textCursor).toEqual({ style: "line", width: 15, blink: 0 });
+    expect(JSON.parse(written).textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 15, blink: 0 });
     fsMock.readFile.mockResolvedValue(written);
-    expect((await loadSettings()).textCursor).toEqual({ style: "line", width: 15, blink: 0 });
+    expect((await loadSettings()).textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 15, blink: 0 });
   });
   it.each([500, -200, 2200, 200.5])("rejects blink %s on save", (blink) => {
-    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { style: "line", width: 1, blink } }))).toThrow();
+    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink } }))).toThrow();
   });
-  it("rejects width above MAX and removed color settings", () => {
-    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { style: "line", width: 17, blink: 1200 } }))).toThrow();
+  it("rejects width above MAX and invalid color settings", () => {
+    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 17, blink: 1200 } }))).toThrow();
     const request = validSaveRequest();
-    expect(() => parseSaveApplicationSettingsRequest({ ...request, textCursor: { style: "line", width: 1, blink: 1200, color: "#ffffff" } })).toThrow();
+    expect(() => parseSaveApplicationSettingsRequest({ ...request, textCursor: { colorMode: "theme", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink: 1200, color: "invalid" } })).toThrow();
   });
 });
 
@@ -1400,8 +1400,8 @@ describe("#722 caret style persistence", () => {
   it("round-trips Block and keeps width for a return to Line", async () => {
     fsMock.readFile.mockResolvedValue("{}");
     fsMock.writeFile.mockResolvedValue(undefined); fsMock.mkdir.mockResolvedValue(undefined);
-    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: { style: "block", width: 9, blink: 400 } }));
-    expect(saved.textCursor).toEqual({ style: "block", width: 9, blink: 400 });
+    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: { colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "block", width: 9, blink: 400 } }));
+    expect(saved.textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "block", width: 9, blink: 400 });
     const written = fsMock.writeFile.mock.calls[0][1] as string;
     fsMock.readFile.mockResolvedValue(written);
     expect((await loadSettings()).textCursor).toEqual(saved.textCursor);
@@ -1417,5 +1417,28 @@ describe("#722 caret style persistence", () => {
   });
   it.each(["bar", null, 0, true])("rejects invalid style on save: %s", style => {
     expect(() => parseSaveApplicationSettingsRequest({ ...validSaveRequest(), textCursor: { style, width: 1, blink: 1200 } })).toThrow();
+  });
+});
+
+describe("#725 caret color persistence", () => {
+  beforeEach(() => { fsMock.readFile.mockReset(); fsMock.writeFile.mockReset(); fsMock.mkdir.mockReset(); });
+  it("saves low-contrast manual colors, reloads, and retains them through disabled modes", async () => {
+    fsMock.readFile.mockResolvedValue("{}"); fsMock.writeFile.mockResolvedValue(undefined); fsMock.mkdir.mockResolvedValue(undefined);
+    const cursor = { ...defaultTextCursorSettings, style: "block" as const, colorMode: "custom" as const,
+      color: "#AbC", cursorTextColor: "#aabbcc", autoCursorTextColor: false };
+    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: cursor }));
+    expect(saved.textCursor).toEqual({ ...cursor, color: "#aabbcc" });
+    fsMock.readFile.mockResolvedValue(fsMock.writeFile.mock.calls[0][1]);
+    expect((await loadSettings()).textCursor).toEqual(saved.textCursor);
+    const switched = await saveApplicationSettings(validSaveRequest({ textCursor: { ...saved.textCursor, colorMode: "theme", style: "line", autoCursorTextColor: true } }));
+    expect(switched.textCursor.color).toBe("#aabbcc"); expect(switched.textCursor.cursorTextColor).toBe("#aabbcc");
+  });
+  it("falls back on missing/invalid disk colors and rejects malformed save colors", async () => {
+    fsMock.readFile.mockResolvedValue(JSON.stringify({ textCursor: { colorMode: "bad", color: "red", autoCursorTextColor: 1, cursorTextColor: "invalid", width: 1, blink: 1200 } }));
+    expect((await loadSettings()).textCursor).toEqual(defaultTextCursorSettings);
+    expect(parseSaveApplicationSettingsRequest({ ...validSaveRequest(), textCursor: { width: 1, blink: 1200 } }).textCursor).toEqual(defaultTextCursorSettings);
+    for (const [field, value] of [["colorMode", "bad"], ["color", "red"], ["cursorTextColor", "#gggggg"], ["autoCursorTextColor", 1]]) {
+      expect(() => parseSaveApplicationSettingsRequest({ ...validSaveRequest(), textCursor: { ...defaultTextCursorSettings, [field]: value } })).toThrow();
+    }
   });
 });

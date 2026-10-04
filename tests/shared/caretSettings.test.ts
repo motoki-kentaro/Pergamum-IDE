@@ -23,9 +23,9 @@ describe("#719 caret setting contract", () => {
       expect(settingCatalogItems.find((item) => item.key === key)?.control)
         .toEqual({ kind: "number", min: range.min, max: range.max, step: range.step });
     }
-    expect(defaultApplicationSettings.textCursor).toEqual({ style: "line", width: 1, blink: 1200 });
-    expect(resolveEffectiveSettings(defaultApplicationSettings, null).textCursor).toEqual({ style: "line", width: 1, blink: 1200 });
-    expect(isSettingKey("textCursor.color")).toBe(false);
+    expect(defaultApplicationSettings.textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink: 1200 });
+    expect(resolveEffectiveSettings(defaultApplicationSettings, null).textCursor).toEqual({ colorMode: "theme", color: "#2563a8", autoCursorTextColor: true, cursorTextColor: "#ffffff", style: "line", width: 1, blink: 1200 });
+    expect(isSettingKey("textCursor.color")).toBe(true);
   });
   it.each(Array.from({ length: 11 }, (_, i) => i * 200))("accepts blink %s", (value) => {
     expect(validateCatalogValue("textCursor.blink", value).ok).toBe(true);

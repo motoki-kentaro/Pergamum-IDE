@@ -1,3 +1,5 @@
+import { SettingsColorInput } from "../SettingsColorInput";
+import { CaretContrastWarning } from "../CaretContrastWarning";
 /** #719: application caret controls and a live CodeMirror preview. */
 import { useEffect, useRef, useState, type FC } from "react";
 import { Compartment, EditorState } from "@codemirror/state";
@@ -142,7 +144,10 @@ export const CaretSettingsSection: FC<CaretSettingsSectionProps> = ({
     ) });
   }, [textCursor.style, displayLanguage]);
 
-  function update(field: "width" | "blink", value: number): void {
+  useEffect(() => {
+    applyTextCursorSettingsToDom(textCursor);
+  }, [textCursor, settings.workbench.colorTheme]);
+  function update(field: keyof typeof textCursor, value: string | number | boolean): void {
     const next = { ...textCursor, [field]: value };
     applyTextCursorSettingsToDom(next);
     onChangeSettings({ ...toSaveApplicationSettingsRequest(settings), textCursor: next });
@@ -154,8 +159,7 @@ export const CaretSettingsSection: FC<CaretSettingsSectionProps> = ({
     </div>
     <div className="caretSettingsControls">
       <div className="caretSettingRow">
-        <label htmlFor="caretStyleSelect">{translate("settings.textCursor.style.label")}</label>
-        <p className="caretSettingDescription">{translate("settings.textCursor.style.description")}</p>
+        <label className="caretSettingLabel" htmlFor="caretStyleSelect">{translate("settings.textCursor.style.label")}</label>
         <select id="caretStyleSelect" className="settingsSelect" value={textCursor.style}
           disabled={isLoading} onChange={(event) => {
             const style = event.target.value;
@@ -166,6 +170,7 @@ export const CaretSettingsSection: FC<CaretSettingsSectionProps> = ({
           <option value="line">{translate("settings.textCursor.style.line")}</option>
           <option value="block">{translate("settings.textCursor.style.block")}</option>
         </select>
+        <p className="caretSettingDescription">{translate("settings.textCursor.style.description")}</p>
         <code className="settingsItemKey">textCursor.style</code>
       </div>
       {(["width", "blink"] as const).map((field) => <div key={field} className="caretSettingRow"
@@ -173,11 +178,40 @@ export const CaretSettingsSection: FC<CaretSettingsSectionProps> = ({
         <label className="caretSettingLabel" htmlFor={field === "width" ? "caretWidthRange" : "caretBlinkRange"}>
           {translate(`settings.textCursor.${field}.label`)}
         </label>
-        <p className="caretSettingDescription">{translate(`settings.textCursor.${field}.description`)}</p>
         <CaretNumberControl field={field} value={textCursor[field]} disabled={isLoading || field === "width" && textCursor.style === "block"}
           translate={translate} onChange={(value) => update(field, value)} />
+        <p className="caretSettingDescription">{translate(`settings.textCursor.${field}.description`)}</p>
         <code className="settingsItemKey">{`textCursor.${field}`}</code>
       </div>)}
+      <div className="caretSettingRow">
+        <label className="caretSettingLabel" htmlFor="caretColorMode">{translate("settings.textCursor.colorMode.label")}</label>
+        <select id="caretColorMode" className="settingsSelect" disabled={isLoading} value={textCursor.colorMode}
+          onChange={event => update("colorMode", event.target.value)}>
+          <option value="theme">{translate("settings.textCursor.colorMode.theme")}</option>
+          <option value="custom">{translate("settings.textCursor.colorMode.custom")}</option>
+        </select>
+        <p className="caretSettingDescription">{translate("settings.textCursor.colorMode.description")}</p>
+        <code className="settingsItemKey">textCursor.colorMode</code>
+      </div>
+      <div className="caretSettingRow">
+        <label className="caretSettingLabel" htmlFor="caretAutoCursorTextColor">{translate("settings.textCursor.autoCursorTextColor.label")}</label>
+        <input id="caretAutoCursorTextColor" type="checkbox" className="settingsSwitchInput"
+          checked={textCursor.autoCursorTextColor} disabled={isLoading || textCursor.style === "line"}
+          onChange={event => update("autoCursorTextColor", event.target.checked)} />
+        <p className="caretSettingDescription">{translate("settings.textCursor.autoCursorTextColor.description")}</p>
+        <code className="settingsItemKey">textCursor.autoCursorTextColor</code>
+      </div>
+      {(["color", "cursorTextColor"] as const).map(field => <div key={field} className="caretSettingRow">
+        <label className="caretSettingLabel" htmlFor={`caret-${field}`}>{translate(`settings.textCursor.${field}.label`)}</label>
+        <SettingsColorInput id={`caret-${field}`} value={textCursor[field]} translate={translate}
+          label={translate(`settings.textCursor.${field}.label`)}
+          disabled={isLoading || (field === "color" ? textCursor.colorMode === "theme" : textCursor.style === "line" || textCursor.autoCursorTextColor)}
+          onChange={value => update(field, value)} />
+        <p className="caretSettingDescription">{translate(`settings.textCursor.${field}.description`)}</p>
+        <code className="settingsItemKey">{`textCursor.${field}`}</code>
+      </div>)}
+      <CaretContrastWarning settings={settings} translate={translate} />
+
     </div>
   </div>;
 };
