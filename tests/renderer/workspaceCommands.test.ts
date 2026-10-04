@@ -25,6 +25,8 @@ describe("workspace commands", () => {
     focusDocumentMetricsDescription:
       "Show the Document Metrics panel in the left pane.",
     openApplicationSettings: "Open Application Settings",
+    exportApplicationSettingsJson: "Export Application Settings as JSON",
+    exportApplicationSettingsJsonDescription: "",
     openKeyboardShortcuts: "Open Keyboard Shortcuts",
     openKeyboardShortcutsDescription: "Open Keyboard Shortcuts",
     openApplicationSettingsDescription: "Open application-wide settings.",
@@ -40,6 +42,7 @@ describe("workspace commands", () => {
       {
         focusSidebarMode: () => undefined,
         openApplicationSettings: () => undefined,
+        exportApplicationSettingsJson: () => undefined,
         openKeyboardShortcuts: () => undefined,
         showResumeHub: () => undefined,
         canShowResumeHub: () => true
@@ -54,9 +57,42 @@ describe("workspace commands", () => {
       workspaceCommandIds.focusDocumentMap,
       workspaceCommandIds.focusDocumentMetrics,
       workspaceCommandIds.openApplicationSettings,
+      workspaceCommandIds.exportApplicationSettingsJson,
       workspaceCommandIds.openKeyboardShortcuts,
       workspaceCommandIds.showResumeHub
     ]);
+  });
+
+  it("registers workspace.applicationSettings.exportJson and runs the shared export action (#721)", async () => {
+    const registry = new CommandRegistry();
+    const exportApplicationSettingsJson = vi.fn();
+
+    registerWorkspaceCommands(
+      registry,
+      {
+        focusSidebarMode: () => undefined,
+        openApplicationSettings: () => undefined,
+        exportApplicationSettingsJson,
+        openKeyboardShortcuts: () => undefined,
+        showResumeHub: () => undefined,
+        canShowResumeHub: () => true
+      },
+      titles
+    );
+
+    expect(workspaceCommandIds.exportApplicationSettingsJson).toBe(
+      "workspace.applicationSettings.exportJson"
+    );
+    const command = registry.get(workspaceCommandIds.exportApplicationSettingsJson);
+    expect(command?.title).toBe("Export Application Settings as JSON");
+    // Always available: no `when` gate.
+    expect(command?.when).toBeUndefined();
+
+    await registry.execute(
+      workspaceCommandIds.exportApplicationSettingsJson,
+      executionOptions
+    );
+    expect(exportApplicationSettingsJson).toHaveBeenCalledTimes(1);
   });
 
   it("focuses the requested Sidebar mode through commands", async () => {
@@ -70,6 +106,7 @@ describe("workspace commands", () => {
           focusedModes.push(mode);
         },
         openApplicationSettings: () => undefined,
+        exportApplicationSettingsJson: () => undefined,
         openKeyboardShortcuts: () => undefined,
         showResumeHub: () => undefined,
         canShowResumeHub: () => true
@@ -104,6 +141,7 @@ describe("workspace commands", () => {
       {
         focusSidebarMode: () => undefined,
         openApplicationSettings,
+        exportApplicationSettingsJson: () => undefined,
         openKeyboardShortcuts: () => undefined,
         showResumeHub: () => undefined,
         canShowResumeHub: () => true
@@ -129,6 +167,7 @@ describe("workspace commands", () => {
       {
         focusSidebarMode: () => undefined,
         openApplicationSettings: () => undefined,
+        exportApplicationSettingsJson: () => undefined,
         openKeyboardShortcuts: () => undefined,
         showResumeHub,
         canShowResumeHub: () => true
@@ -186,6 +225,10 @@ describe("workspace commands", () => {
         "translated:command.workspace.applicationSettings.open",
       openApplicationSettingsDescription:
         "translated:command.workspace.applicationSettings.open.description",
+      exportApplicationSettingsJson:
+        "translated:command.workspace.applicationSettings.exportJson",
+      exportApplicationSettingsJsonDescription:
+        "translated:command.workspace.applicationSettings.exportJson.description",
       openKeyboardShortcuts:
         "translated:command.workspace.keyboardShortcuts.open",
       openKeyboardShortcutsDescription:

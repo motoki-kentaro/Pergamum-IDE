@@ -214,6 +214,9 @@ exports[`resolveDefaultKeybindings (#639) > darwin resolution snapshot 1`] = `
   "import.text.bulk.openDialog": [
     null,
   ],
+  "project.settings.exportJson": [
+    null,
+  ],
   "project.settings.open": [
     null,
   ],
@@ -252,6 +255,9 @@ exports[`resolveDefaultKeybindings (#639) > darwin resolution snapshot 1`] = `
     null,
   ],
   "workbench.showResumeHub": [
+    null,
+  ],
+  "workspace.applicationSettings.exportJson": [
     null,
   ],
   "workspace.applicationSettings.open": [
@@ -513,6 +519,9 @@ exports[`resolveDefaultKeybindings (#639) > linux resolution snapshot 1`] = `
   "import.text.bulk.openDialog": [
     null,
   ],
+  "project.settings.exportJson": [
+    null,
+  ],
   "project.settings.open": [
     null,
   ],
@@ -551,6 +560,9 @@ exports[`resolveDefaultKeybindings (#639) > linux resolution snapshot 1`] = `
     "Mod-%",
   ],
   "workbench.showResumeHub": [
+    null,
+  ],
+  "workspace.applicationSettings.exportJson": [
     null,
   ],
   "workspace.applicationSettings.open": [
@@ -812,6 +824,9 @@ exports[`resolveDefaultKeybindings (#639) > win32 resolution snapshot 1`] = `
   "import.text.bulk.openDialog": [
     null,
   ],
+  "project.settings.exportJson": [
+    null,
+  ],
   "project.settings.open": [
     null,
   ],
@@ -850,6 +865,9 @@ exports[`resolveDefaultKeybindings (#639) > win32 resolution snapshot 1`] = `
     "Mod-%",
   ],
   "workbench.showResumeHub": [
+    null,
+  ],
+  "workspace.applicationSettings.exportJson": [
     null,
   ],
   "workspace.applicationSettings.open": [

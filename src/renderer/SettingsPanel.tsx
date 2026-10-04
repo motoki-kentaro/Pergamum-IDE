@@ -45,6 +45,12 @@ import type { FontFamilySetting, FontSlot } from "../shared/fontSettings";
 import { normalizeCommandPaletteLaunchAnimationDurationMs } from "../shared/commandPaletteLaunchAnimationSettings";
 import { resolveCatalogValue, validateCatalogValue } from "../shared/settingsCatalog";
 import { CaretSettingsSection, CaretNumberControl } from "./components/CaretSettingsSection";
+import { workspaceCommandIds } from "../shared/commandIds";
+import { SettingsCollapsibleGroup } from "./components/SettingsCollapsibleGroup";
+import {
+  buildSettingsItemEntries,
+  type SettingsItemEntry
+} from "./settingsItemGroups";
 
 import type {
   AppConfirmDialogOptions,
@@ -133,17 +139,6 @@ const textFilesDependentKeys = new Set<SettingKey>([
   "textFiles.lineEnding"
 ]);
 
-// Presentational only (unit suffix for a number control) — not part of the
-// UI catalog schema, which has no `unit` field on SettingControl.
-const numberUnitKeyByKey: Partial<Record<SettingKey, TranslationKey>> = {
-  "commandPalette.footerDetail.marquee.delay": "settings.unit.ms",
-  "commandPalette.footerDetail.marquee.speed": "settings.unit.pxPerSecond",
-  "commandPalette.launchAnimation.durationMs": "settings.unit.ms",
-  "preview.updateDelayMs": "settings.unit.ms",
-  "workbench.notification.durationMs": "settings.unit.ms",
-  "textCursor.width": "settings.unit.px",
-  "textCursor.blink": "settings.unit.ms"
-};
 
 function fontFamilyValue(value: string): string | undefined {
   const trimmed = value.trim();
@@ -271,13 +266,13 @@ function buildNextSettings(
           }
         }
       });
-    case "workbench.statusBar.characterCount.visible":
+    case "editor.characterCount.visible":
       return saveRequest(settings, {
-        workbench: {
-          ...settings.workbench,
-          statusBar: {
-            ...settings.workbench.statusBar,
-            characterCount: { visible: Boolean(rawValue) }
+        editor: {
+          ...settings.editor,
+          characterCount: {
+            ...settings.editor.characterCount,
+            visible: Boolean(rawValue)
           }
         }
       });
@@ -832,6 +827,20 @@ function isSettingDisabled(
   if (item.key === "textCursor.cursorTextColor" && (settings.textCursor.style === "line" || settings.textCursor.autoCursorTextColor)) return true;
   if (item.key === "textCursor.width" && settings.textCursor.style === "block") return true;
 
+  const currentNearbyUnit = settings.search?.nearby?.unit ?? "paragraphs";
+  if (
+    item.key === "search.nearby.characterDistance" &&
+    currentNearbyUnit !== "characters"
+  ) {
+    return true;
+  }
+  if (
+    item.key === "search.nearby.paragraphDistance" &&
+    currentNearbyUnit !== "paragraphs"
+  ) {
+    return true;
+  }
+
   if (unwiredKeys.has(item.key)) {
     return true;
   }
@@ -849,7 +858,7 @@ function isSettingDisabled(
 
   if (
     characterCountExcludeKeys.has(item.key) &&
-    !settings.workbench.statusBar.characterCount.visible
+    !settings.editor.characterCount.visible
   ) {
     return true;
   }
@@ -943,6 +952,9 @@ function SettingsExportSection({
         <p className="settingsDescription">
           {translate("settings.export.action.description")}
         </p>
+        <code className="settingsItemKey">
+          {workspaceCommandIds.exportApplicationSettingsJson}
+        </code>
       </div>
     </div>
   );
@@ -1038,7 +1050,7 @@ function SettingControlInput({
           value={Number(value)} disabled={disabled} translate={translate}
           onChange={onChange} showSlider={false} numberId={controlId} />;
       }
-      const unitKey = numberUnitKeyByKey[item.key];
+      const unitKey = control.unitKey;
 
       return (
         <div className="settingsNumberInputGroup">
@@ -1054,7 +1066,11 @@ function SettingControlInput({
             aria-labelledby={labelId}
             onChange={(event) => onChange(event.target.valueAsNumber)}
           />
-          {unitKey ? <span className="settingsUnit">{translate(unitKey)}</span> : null}
+          {unitKey ? (
+            <span className="settingsUnit">
+              {translateI18nKey(translate, unitKey)}
+            </span>
+          ) : null}
         </div>
       );
     }
@@ -1213,11 +1229,52 @@ export function SettingsPanelView({
       category.id === "export" ||
       settingCatalogItems.some((item) => item.category === category.id)
   );
-  const isSearching = normalizeSearchQuery(searchQuery).length > 0;
+  const normalizedSearch = normalizeSearchQuery(searchQuery);
+  const isSearching = normalizedSearch.length > 0;
+  // #721: the special Export row is not a catalog item, so it gets the same
+  // search match as Project Settings (label / description / command id).
+  const matchesExportSearch =
+    isSearching &&
+    ("export".includes(normalizedSearch) ||
+      "json".includes(normalizedSearch) ||
+      "エクスポート".includes(normalizedSearch) ||
+      translate("settings.export.action.label")
+        .toLowerCase()
+        .includes(normalizedSearch) ||
+      translate("settings.export.action.description")
+        .toLowerCase()
+        .includes(normalizedSearch) ||
+      workspaceCommandIds.exportApplicationSettingsJson
+        .toLowerCase()
+        .includes(normalizedSearch));
   const visibleItems = getVisibleSettingCatalogItems(
     searchQuery,
     selectedCategoryId,
     translate
+  );
+
+  // #721: only the plain Editor category folds related items into groups.
+  // Search results stay a flat list so a matching item is never hidden inside
+  // a collapsed group.
+  const settingItemEntries: readonly SettingsItemEntry[] =
+    !isSearching && selectedCategoryId === "editor"
+      ? buildSettingsItemEntries(visibleItems)
+      : visibleItems.map((item) => ({ kind: "item", item }));
+
+  const renderSettingItemRow = (item: SettingCatalogItem): JSX.Element => (
+    <SettingItemRow
+      key={item.key}
+      item={item}
+      settings={settings}
+      isLoading={isLoading}
+      translate={translate}
+      displayLanguage={displayLanguage}
+      onChange={handleChange}
+      onFieldFocus={onSettingFieldFocus}
+      onFieldBlur={onSettingFieldBlur}
+      onOpenSaveDestinationDialog={onOpenSaveDestinationDialog}
+      onOpenFontPickerDialog={onOpenFontPickerDialog}
+    />
   );
 
   async function handleChange(
@@ -1367,7 +1424,7 @@ export function SettingsPanelView({
               onChangeSettings={onChangeSettings}
             />
           ) : visibleItems.length === 0 ? (
-            isSearching ? (
+            isSearching && !matchesExportSearch ? (
               <p className="settingsSearchEmpty">
                 {translate("settings.search.empty")}
               </p>
@@ -1375,21 +1432,19 @@ export function SettingsPanelView({
           ) : (
             <div className="settingsItemList">
               {visibleItems.some(item => item.category === "textCursor") && <CaretContrastWarning settings={settings} translate={translate} />}
-              {visibleItems.map((item) => (
-                <SettingItemRow
-                  key={item.key}
-                  item={item}
-                  settings={settings}
-                  isLoading={isLoading}
-                  translate={translate}
-                  displayLanguage={displayLanguage}
-                  onChange={handleChange}
-                  onFieldFocus={onSettingFieldFocus}
-                  onFieldBlur={onSettingFieldBlur}
-                  onOpenSaveDestinationDialog={onOpenSaveDestinationDialog}
-                  onOpenFontPickerDialog={onOpenFontPickerDialog}
-                />
-              ))}
+              {settingItemEntries.map((entry) =>
+                entry.kind === "group" ? (
+                  <SettingsCollapsibleGroup
+                    key={`group-${entry.group.id}`}
+                    groupId={entry.group.id}
+                    title={translate(entry.group.titleKey)}
+                  >
+                    {entry.items.map(renderSettingItemRow)}
+                  </SettingsCollapsibleGroup>
+                ) : (
+                  renderSettingItemRow(entry.item)
+                )
+              )}
             </div>
           )}
 
@@ -1412,7 +1467,7 @@ export function SettingsPanelView({
               onChangeSettings={onChangeSettings}
             />
           ) : null}
-          {!isSearching && selectedCategoryId === "export" ? (
+          {(isSearching ? matchesExportSearch : selectedCategoryId === "export") ? (
             <SettingsExportSection
               translate={translate}
               disabled={isLoading}

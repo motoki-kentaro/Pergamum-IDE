@@ -274,6 +274,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
+
     const textInput = container.querySelector<HTMLInputElement>('input[type="text"]')!;
     expect(textInput).not.toBeNull();
     expect(textInput.value).toBe("「");
@@ -303,6 +306,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
         })
       );
     });
+
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
 
     const textInput = container.querySelector<HTMLInputElement>('input[type="text"]')!;
     expect(textInput.value).toBe("『");
@@ -334,6 +340,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
         })
       );
     });
+
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
 
     const textInput = container.querySelector<HTMLInputElement>('input[type="text"]')!;
 
@@ -380,6 +389,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
+
     const textInput = container.querySelector<HTMLInputElement>('input[type="text"]')!;
 
     act(() => {
@@ -423,6 +435,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
+
     const resetBtn = container.querySelector<HTMLButtonElement>(".projectSettingResetButton")!;
     expect(resetBtn).not.toBeNull();
 
@@ -451,6 +466,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
         })
       );
     });
+
+    const previewBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "プレビュー")!;
+    act(() => { previewBtn.click(); });
 
     const previewRow = Array.from(
       container.querySelectorAll(".settingsItemRow")
@@ -531,8 +549,12 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
         );
       });
 
-      const rows = container.querySelectorAll(".settingsItemRow");
-      const previewRow = rows[1];
+      const previewBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "プレビュー")!;
+      act(() => { previewBtn.click(); });
+
+      const previewRow = Array.from(container.querySelectorAll(".settingsItemRow")).find(
+        (r) => r.querySelector(".settingsItemKey")?.textContent === "preview.renderer"
+      )!;
       const select = previewRow.querySelector<HTMLSelectElement>("select")!;
 
       await act(async () => {
@@ -604,8 +626,12 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
-    const rows = container.querySelectorAll(".settingsItemRow");
-    const previewRow = rows[1];
+    const previewBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "プレビュー")!;
+    act(() => { previewBtn.click(); });
+
+    const previewRow = Array.from(container.querySelectorAll(".settingsItemRow")).find(
+      (r) => r.querySelector(".settingsItemKey")?.textContent === "preview.renderer"
+    )!;
     const select = previewRow.querySelector<HTMLSelectElement>("select")!;
 
     await act(async () => {
@@ -647,20 +673,28 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
-    const rows = container.querySelectorAll(".settingsItemRow");
-    // #407: +2 for imageAttachment.*; #424 Slice 7: +3 for search.nearby.*; #484: +3 for editor.emphasisMark.*; #486: +1 for editor.ruby.rule; #490: +3 for font family list settings; #497 omits the legacy editor.fontFamily UI row; #501 adds textFiles.lineEnding.
-    expect(rows).toHaveLength(22);
+    const categoryButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    );
+    const editorBtn = categoryButtons.find((b) => b.textContent === "エディタ")!;
+    const previewBtn = categoryButtons.find((b) => b.textContent === "プレビュー")!;
 
-    // Both should have modified badges
-    const editorRow = Array.from(rows).find(
+    act(() => {
+      editorBtn.click();
+    });
+    const editorRow = Array.from(container.querySelectorAll(".settingsItemRow")).find(
       (r) =>
         r.querySelector(".settingsItemKey")?.textContent === "editor.fontFamilyList"
     )!;
-    const previewRow = Array.from(rows).find(
+    expect(editorRow.querySelector(".projectSettingModifiedBadge")).not.toBeNull();
+
+    act(() => {
+      previewBtn.click();
+    });
+    const previewRow = Array.from(container.querySelectorAll(".settingsItemRow")).find(
       (r) =>
         r.querySelector(".settingsItemKey")?.textContent === "preview.renderer"
     )!;
-    expect(editorRow.querySelector(".projectSettingModifiedBadge")).not.toBeNull();
     expect(previewRow.querySelector(".projectSettingModifiedBadge")).not.toBeNull();
 
     // Reset only preview.renderer
@@ -693,6 +727,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
+
     const textInput = container.querySelector<HTMLInputElement>('input[type="text"]')!;
     expect(textInput.disabled).toBe(true);
     expect(container.querySelector(".projectSettingModifiedBadge")).toBeNull();
@@ -716,6 +753,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
         })
       );
     });
+
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
 
     const textInput = container.querySelector<HTMLInputElement>('input[type="text"]')!;
     expect(textInput.disabled).toBe(true);
@@ -751,6 +791,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
         })
       );
     });
+
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
 
     const textInput = container.querySelector<HTMLInputElement>('input[type="text"]')!;
 
@@ -793,6 +836,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
+
     expect(container.querySelector<HTMLInputElement>('input[type="text"]')!.value).toBe("「");
 
     // Application settings change from one inherited value to another.
@@ -809,6 +855,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
         })
       );
     });
+
+    const editorBtn2 = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn2.click(); });
 
     expect(container.querySelector<HTMLInputElement>('input[type="text"]')!.value).toBe("『");
     expect(container.querySelector(".projectSettingModifiedBadge")).toBeNull();
@@ -832,6 +881,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
+    const editorBtn = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn.click(); });
+
     expect(container.querySelector<HTMLInputElement>('input[type="text"]')!.value).toBe("『");
     expect(container.querySelector(".projectSettingModifiedBadge")).not.toBeNull();
 
@@ -851,6 +903,9 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
         })
       );
     });
+
+    const editorBtn2 = Array.from(container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")).find((b) => b.textContent === "エディタ")!;
+    act(() => { editorBtn2.click(); });
 
     expect(container.querySelector<HTMLInputElement>('input[type="text"]')!.value).toBe("『");
     expect(container.querySelector(".projectSettingModifiedBadge")).not.toBeNull();
@@ -925,20 +980,28 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
-    const rows = container.querySelectorAll(".settingsItemRow");
-    // #407: +2 for imageAttachment.*; #424 Slice 7: +3 for search.nearby.*; #484: +3 for editor.emphasisMark.*; #486: +1 for editor.ruby.rule; #490: +3 for font family list settings; #497 omits the legacy editor.fontFamily UI row; #501 adds textFiles.lineEnding.
-    expect(rows).toHaveLength(22);
+    const categoryButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    );
+    const editorBtn = categoryButtons.find((b) => b.textContent === "エディタ")!;
+    const previewBtn = categoryButtons.find((b) => b.textContent === "プレビュー")!;
 
-    // Both should have modified badges
-    const editorRow = Array.from(rows).find(
+    act(() => {
+      editorBtn.click();
+    });
+    const editorRow = Array.from(container.querySelectorAll(".settingsItemRow")).find(
       (r) =>
         r.querySelector(".settingsItemKey")?.textContent === "editor.fontFamilyList"
     )!;
-    const previewRow = Array.from(rows).find(
+    expect(editorRow.querySelector(".projectSettingModifiedBadge")).not.toBeNull();
+
+    act(() => {
+      previewBtn.click();
+    });
+    const previewRow = Array.from(container.querySelectorAll(".settingsItemRow")).find(
       (r) =>
         r.querySelector(".settingsItemKey")?.textContent === "preview.renderer"
     )!;
-    expect(editorRow.querySelector(".projectSettingModifiedBadge")).not.toBeNull();
     expect(previewRow.querySelector(".projectSettingModifiedBadge")).not.toBeNull();
 
     // Reset only preview.renderer
@@ -969,23 +1032,25 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       );
     });
 
-    // Category headings
+    // Category headings for initial category (外観)
     const headings = container.querySelectorAll<HTMLHeadingElement>(
       "h2.settingsItemPaneHeading"
     );
-    // #407 / #424 Slice 7 / #490 / #501: file settings are split into Markdown/Text categories.
-    expect(headings).toHaveLength(8);
+    expect(headings).toHaveLength(1);
     expect(headings[0].textContent).toBe("外観");
-    expect(headings[1].textContent).toBe("エディタ");
-    expect(headings[2].textContent).toBe("検索・置換");
-    expect(headings[3].textContent).toBe("画像添付");
-    expect(headings[4].textContent).toBe("プレビュー");
-    expect(headings[5].textContent).toBe("文書マップ");
-    expect(headings[6].textContent).toBe("マークダウンファイル");
-    expect(headings[7].textContent).toBe("テキストファイル");
 
     // Sections use existing .settingsItemPane class
-    expect(container.querySelectorAll(".settingsItemPane")).toHaveLength(8);
+    expect(container.querySelectorAll(".settingsItemPane")).toHaveLength(1);
+
+    const categoryButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    );
+    const editorBtn = categoryButtons.find((b) => b.textContent === "エディタ")!;
+    const previewBtn = categoryButtons.find((b) => b.textContent === "プレビュー")!;
+
+    act(() => {
+      editorBtn.click();
+    });
 
     // Verify exact sequence of elements inside row:
     // 1. header (label + inline actions) -> 2. control -> 3. description -> 4. key
@@ -1000,7 +1065,6 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
     }));
     expect(childTags).toEqual([
       { tag: "div", className: "settingsItemHeader" },
-      { tag: "input", className: "settingsTextInput" },
       { tag: "p", className: "settingsDescription" },
       { tag: "code", className: "settingsItemKey" }
     ]);
@@ -1032,6 +1096,10 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
       "editor.paragraphIndent.excludeLeadingCharacters"
     );
 
+    act(() => {
+      previewBtn.click();
+    });
+
     // Preview row control directly with .settingsSelect and same sequence
     const previewRow = Array.from(
       container.querySelectorAll(".settingsItemRow")
@@ -1045,7 +1113,6 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
     }));
     expect(previewChildTags).toEqual([
       { tag: "div", className: "settingsItemHeader" },
-      { tag: "select", className: "settingsSelect" },
       { tag: "p", className: "settingsDescription" },
       { tag: "code", className: "settingsItemKey" }
     ]);
@@ -1071,14 +1138,13 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
 
   describe("pure helpers", () => {
     describe("getEligibleProjectSettingCategories", () => {
-      it("returns 'all' first followed by categories of eligible items in catalog sort order", () => {
+      it("returns categories of eligible items in catalog sort order", () => {
         const eligibleItems = getProjectSettingsUiItems();
         const categories = getEligibleProjectSettingCategories(
           eligibleItems,
           translateJa
         );
         expect(categories).toEqual([
-          { id: "all", labelKey: "settings.category.all.label" },
           {
             id: "appearance",
             labelKey: "settings.category.appearance.label"
@@ -1102,11 +1168,9 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
         ]);
       });
 
-      it("returns only 'all' when eligible items list is empty", () => {
+      it("returns empty array when eligible items list is empty", () => {
         const categories = getEligibleProjectSettingCategories([], translateJa);
-        expect(categories).toEqual([
-          { id: "all", labelKey: "settings.category.all.label" }
-        ]);
+        expect(categories).toEqual([]);
       });
 
       it("preserves stable category order even if input items are reversed", () => {
@@ -1116,7 +1180,6 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
           translateJa
         );
         expect(categories.map((c) => c.id)).toEqual([
-          "all",
           "appearance",
           "editor",
           "searchReplace",
@@ -1413,17 +1476,16 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
       const categoryButtons = Array.from(
         container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
       );
-      expect(categoryButtons).toHaveLength(10);
-      expect(categoryButtons[0].textContent).toBe("すべて");
-      expect(categoryButtons[1].textContent).toBe("外観");
-      expect(categoryButtons[2].textContent).toBe("エディタ");
-      expect(categoryButtons[3].textContent).toBe("検索・置換");
-      expect(categoryButtons[4].textContent).toBe("画像添付");
-      expect(categoryButtons[5].textContent).toBe("プレビュー");
-      expect(categoryButtons[6].textContent).toBe("文書マップ");
-      expect(categoryButtons[7].textContent).toBe("マークダウンファイル");
-      expect(categoryButtons[8].textContent).toBe("テキストファイル");
-      expect(categoryButtons[9].textContent).toBe("エクスポート");
+      expect(categoryButtons).toHaveLength(9);
+      expect(categoryButtons[0].textContent).toBe("外観");
+      expect(categoryButtons[1].textContent).toBe("エディタ");
+      expect(categoryButtons[2].textContent).toBe("検索・置換");
+      expect(categoryButtons[3].textContent).toBe("画像添付");
+      expect(categoryButtons[4].textContent).toBe("プレビュー");
+      expect(categoryButtons[5].textContent).toBe("文書マップ");
+      expect(categoryButtons[6].textContent).toBe("マークダウンファイル");
+      expect(categoryButtons[7].textContent).toBe("テキストファイル");
+      expect(categoryButtons[8].textContent).toBe("エクスポート");
 
       expect(
         categoryButtons[0].classList.contains("settingsCategoryButtonSelected")
@@ -1436,44 +1498,12 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
       const headings = Array.from(
         container.querySelectorAll(".settingsItemPaneHeading")
       ).map((h) => h.textContent);
-      expect(headings).toEqual([
-        "外観",
-        "エディタ",
-        "検索・置換",
-        "画像添付",
-        "プレビュー",
-        "文書マップ",
-        "マークダウンファイル",
-        "テキストファイル"
-      ]);
+      expect(headings).toEqual(["外観"]);
 
       const itemKeys = Array.from(
         container.querySelectorAll(".settingsItemKey")
       ).map((k) => k.textContent);
-      expect(itemKeys).toEqual([
-        "workbench.uiFontFamilyList",
-        "editor.fontFamilyList",
-        "editor.paragraphIndent.excludeLeadingCharacters",
-        "editor.emphasisMark.rule",
-        "editor.emphasisMark.aozoraMark",
-        "editor.emphasisMark.narouMarkText",
-        "editor.ruby.rule",
-        "editor.lineEnding.expected",
-        "editor.characterCount.exclude.whitespace",
-        "editor.characterCount.exclude.lineBreaks",
-        "editor.characterCount.exclude.headings",
-        "editor.characterCount.exclude.markdownSyntax",
-        "editor.characterCount.exclude.markdownComments",
-        "search.nearby.unit",
-        "search.nearby.characterDistance",
-        "search.nearby.paragraphDistance",
-        "imageAttachment.saveDirectory",
-        "preview.renderer",
-        "preview.fontFamilyList",
-        "documentMap.dialogueDelimiterPairs",
-        "markdownFiles.lineEnding",
-        "textFiles.lineEnding"
-      ]);
+      expect(itemKeys).toEqual(["workbench.uiFontFamilyList"]);
     });
 
     it("renders the Project Settings export category and invokes the export handler with current project settings", () => {
@@ -1564,7 +1594,6 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
       const textFilesButton = categoryButtons.find(
         (b) => b.textContent === "テキストファイル"
       )!;
-      const allButton = categoryButtons.find((b) => b.textContent === "すべて")!;
 
       // Click "エディタ"
       act(() => {
@@ -1677,42 +1706,6 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
         container.querySelectorAll(".settingsItemKey")
       ).map((k) => k.textContent);
       expect(itemKeys).toEqual(["textFiles.lineEnding"]);
-
-      // Click "すべて"
-      act(() => {
-        allButton.click();
-      });
-
-      expect(
-        allButton.classList.contains("settingsCategoryButtonSelected")
-      ).toBe(true);
-      itemKeys = Array.from(
-        container.querySelectorAll(".settingsItemKey")
-      ).map((k) => k.textContent);
-      expect(itemKeys).toEqual([
-        "workbench.uiFontFamilyList",
-        "editor.fontFamilyList",
-        "editor.paragraphIndent.excludeLeadingCharacters",
-        "editor.emphasisMark.rule",
-        "editor.emphasisMark.aozoraMark",
-        "editor.emphasisMark.narouMarkText",
-        "editor.ruby.rule",
-        "editor.lineEnding.expected",
-        "editor.characterCount.exclude.whitespace",
-        "editor.characterCount.exclude.lineBreaks",
-        "editor.characterCount.exclude.headings",
-        "editor.characterCount.exclude.markdownSyntax",
-        "editor.characterCount.exclude.markdownComments",
-        "search.nearby.unit",
-        "search.nearby.characterDistance",
-        "search.nearby.paragraphDistance",
-        "imageAttachment.saveDirectory",
-        "preview.renderer",
-        "preview.fontFamilyList",
-        "documentMap.dialogueDelimiterPairs",
-        "markdownFiles.lineEnding",
-        "textFiles.lineEnding"
-      ]);
     });
 
     it("filters items when typing in the search input", () => {
@@ -1780,33 +1773,10 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
       itemKeys = Array.from(
         container.querySelectorAll(".settingsItemKey")
       ).map((k) => k.textContent);
-      expect(itemKeys).toEqual([
-        "workbench.uiFontFamilyList",
-        "editor.fontFamilyList",
-        "editor.paragraphIndent.excludeLeadingCharacters",
-        "editor.emphasisMark.rule",
-        "editor.emphasisMark.aozoraMark",
-        "editor.emphasisMark.narouMarkText",
-        "editor.ruby.rule",
-        "editor.lineEnding.expected",
-        "editor.characterCount.exclude.whitespace",
-        "editor.characterCount.exclude.lineBreaks",
-        "editor.characterCount.exclude.headings",
-        "editor.characterCount.exclude.markdownSyntax",
-        "editor.characterCount.exclude.markdownComments",
-        "search.nearby.unit",
-        "search.nearby.characterDistance",
-        "search.nearby.paragraphDistance",
-        "imageAttachment.saveDirectory",
-        "preview.renderer",
-        "preview.fontFamilyList",
-        "documentMap.dialogueDelimiterPairs",
-        "markdownFiles.lineEnding",
-        "textFiles.lineEnding"
-      ]);
+      expect(itemKeys).toEqual(["workbench.uiFontFamilyList"]);
     });
 
-    it("combines category selection and search query with AND logic", () => {
+    it("displays cross-category search results when searching", () => {
       act(() => {
         root.render(
           <ProjectSettingsPanel
@@ -1833,17 +1803,18 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
         editorButton.click();
       });
 
-      // Type "renderer" into search (renderer is in preview category, not editor)
+      // Type "renderer" into search (renderer is in preview category)
       act(() => {
         changeInputValue(searchInput, "renderer");
       });
 
-      expect(container.querySelectorAll(".settingsItemKey")).toHaveLength(0);
-      expect(container.querySelector(".settingsSearchEmpty")?.textContent).toBe(
-        translateJa("settings.search.empty")
-      );
+      // Search results display cross-category matches
+      const searchItemKeys = Array.from(
+        container.querySelectorAll(".settingsItemKey")
+      ).map((k) => k.textContent);
+      expect(searchItemKeys).toEqual(["preview.renderer"]);
 
-      // Switch to "プレビュー" category while search remains "renderer"
+      // Clicking a category button clears search and selects category
       act(() => {
         previewButton.click();
       });
@@ -1851,7 +1822,7 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
       const itemKeys = Array.from(
         container.querySelectorAll(".settingsItemKey")
       ).map((k) => k.textContent);
-      expect(itemKeys).toEqual(["preview.renderer"]);
+      expect(itemKeys).toEqual(["preview.renderer", "preview.fontFamilyList"]);
       expect(container.querySelector(".settingsSearchEmpty")).toBeNull();
     });
 
@@ -1901,7 +1872,7 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
             translate={translateJa}
             items={[]}
             categories={getEligibleProjectSettingCategories([], translateJa)}
-            selectedCategoryId="all"
+            selectedCategoryId="project"
             onSelectCategory={vi.fn()}
             searchQuery=""
             onSearchQueryChange={vi.fn()}
@@ -1951,10 +1922,6 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
         );
       });
 
-      expect(
-        container.querySelector(".projectSettingModifiedBadge")?.textContent
-      ).toBe("変更中");
-
       const categoryButtons = Array.from(
         container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
       );
@@ -1965,6 +1932,14 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
       const editorButton = categoryButtons.find(
         (b) => b.textContent === "エディタ"
       )!;
+
+      act(() => {
+        editorButton.click();
+      });
+
+      expect(
+        container.querySelector(".projectSettingModifiedBadge")?.textContent
+      ).toBe("変更中");
 
       // Switch to "プレビュー" category (hiding editor setting)
       act(() => {
@@ -2031,6 +2006,20 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
         );
       });
 
+      const categoryButtons = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      );
+      const editorButton = categoryButtons.find(
+        (b) => b.textContent === "エディタ"
+      )!;
+      const previewButton = categoryButtons.find(
+        (b) => b.textContent === "プレビュー"
+      )!;
+
+      act(() => {
+        editorButton.click();
+      });
+
       const textInput = container.querySelector<HTMLInputElement>(
         'input[type="text"]'
       )!;
@@ -2048,13 +2037,6 @@ describe("ProjectSettingsPanel Slice 6 - Search and Category Filtering (#396)", 
       expect(onSaveSettings).not.toHaveBeenCalled();
 
       // 3. User clicks Preview category: focus leaves input (blur) and Editor item is filtered out
-      const categoryButtons = Array.from(
-        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
-      );
-      const previewButton = categoryButtons.find(
-        (b) => b.textContent === "プレビュー"
-      )!;
-
       await act(async () => {
         textInput.blur();
         previewButton.click();
@@ -2185,6 +2167,20 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
   });
 
   describe("switch controls UI and differential behavior", () => {
+    const getEditorRow = (key: string): HTMLElement => {
+      const editorBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      ).find((b) => b.textContent === "エディタ");
+      if (editorBtn && !editorBtn.classList.contains("settingsCategoryButtonSelected")) {
+        act(() => {
+          editorBtn.click();
+        });
+      }
+      return Array.from(
+        container.querySelectorAll<HTMLElement>(".settingsItemRow")
+      ).find((r) => r.querySelector(".settingsItemKey")?.textContent === key)!;
+    };
+
     it("renders switch control with settingsItemControl wrapper and settingsSwitchInput", () => {
       act(() => {
         root.render(
@@ -2194,6 +2190,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2210,13 +2207,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const whitespaceRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "editor.characterCount.exclude.whitespace"
-      )!;
+      const whitespaceRow = getEditorRow("editor.characterCount.exclude.whitespace");
       expect(whitespaceRow).not.toBeNull();
 
       const switchWrapper = whitespaceRow.querySelector(".settingsItemControl");
@@ -2248,6 +2239,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2264,13 +2256,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const whitespaceRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "editor.characterCount.exclude.whitespace"
-      )!;
+      const whitespaceRow = getEditorRow("editor.characterCount.exclude.whitespace");
       const switchInput = whitespaceRow.querySelector<HTMLInputElement>(
         'input.settingsSwitchInput[type="checkbox"]'
       )!;
@@ -2303,6 +2289,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2319,13 +2306,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const whitespaceRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "editor.characterCount.exclude.whitespace"
-      )!;
+      const whitespaceRow = getEditorRow("editor.characterCount.exclude.whitespace");
 
       // Modified badge and reset button are visible
       expect(
@@ -2370,6 +2351,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2386,13 +2368,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const whitespaceRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "editor.characterCount.exclude.whitespace"
-      )!;
+      const whitespaceRow = getEditorRow("editor.characterCount.exclude.whitespace");
       const resetBtn = whitespaceRow.querySelector<HTMLButtonElement>(
         ".projectSettingResetButton"
       )!;
@@ -2424,6 +2400,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
             applicationSettings={{
               editor: {
                 characterCount: {
+                  visible: true,
                   exclude: {
                     whitespace: true,
                     lineBreaks: false,
@@ -2440,13 +2417,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const whitespaceRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "editor.characterCount.exclude.whitespace"
-      )!;
+      const whitespaceRow = getEditorRow("editor.characterCount.exclude.whitespace");
 
       const switchInput = whitespaceRow.querySelector<HTMLInputElement>(
         'input.settingsSwitchInput[type="checkbox"]'
@@ -2464,6 +2435,20 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
   });
 
   describe("paragraph indent excludeLeadingCharacters UI and differential behavior", () => {
+    const getEditorRow = (key: string): HTMLElement => {
+      const editorBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      ).find((b) => b.textContent === "エディタ");
+      if (editorBtn && !editorBtn.classList.contains("settingsCategoryButtonSelected")) {
+        act(() => {
+          editorBtn.click();
+        });
+      }
+      return Array.from(
+        container.querySelectorAll<HTMLElement>(".settingsItemRow")
+      ).find((r) => r.querySelector(".settingsItemKey")?.textContent === key)!;
+    };
+
     it("allows overriding non-empty application value with empty string '' and preserves full-width spaces", async () => {
       const onSaveSettings = vi.fn(async () => undefined);
       act(() => {
@@ -2484,13 +2469,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const indentRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "editor.paragraphIndent.excludeLeadingCharacters"
-      )!;
+      const indentRow = getEditorRow("editor.paragraphIndent.excludeLeadingCharacters");
       const textInput = indentRow.querySelector<HTMLInputElement>(
         "input.settingsTextInput"
       )!;
@@ -2532,13 +2511,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const indentRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "editor.paragraphIndent.excludeLeadingCharacters"
-      )!;
+      const indentRow = getEditorRow("editor.paragraphIndent.excludeLeadingCharacters");
       const textInput = indentRow.querySelector<HTMLInputElement>(
         "input.settingsTextInput"
       )!;
@@ -2561,6 +2534,20 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
   });
 
   describe("line ending select controls and category filtering", () => {
+    const getFilesRow = (key: string): HTMLElement => {
+      const filesBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      ).find((b) => b.textContent === "マークダウンファイル");
+      if (filesBtn && !filesBtn.classList.contains("settingsCategoryButtonSelected")) {
+        act(() => {
+          filesBtn.click();
+        });
+      }
+      return Array.from(
+        container.querySelectorAll<HTMLElement>(".settingsItemRow")
+      ).find((r) => r.querySelector(".settingsItemKey")?.textContent === key)!;
+    };
+
     it("handles markdownFiles.lineEnding select change and differential reset", async () => {
       const onSaveSettings = vi.fn(async () => undefined);
       act(() => {
@@ -2585,13 +2572,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const filesRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "markdownFiles.lineEnding"
-      )!;
+      const filesRow = getFilesRow("markdownFiles.lineEnding");
       const select = filesRow.querySelector<HTMLSelectElement>("select.settingsSelect")!;
       expect(select.value).toBe("lf");
 
@@ -2650,6 +2631,24 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
   });
 
   describe("documentMap.dialogueDelimiterPairs UI and differential behavior (#396 Slice 7 Addendum)", () => {
+    const getDocMapRow = (): HTMLElement => {
+      const docMapBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      ).find((b) => b.textContent === "文書マップ");
+      if (docMapBtn && !docMapBtn.classList.contains("settingsCategoryButtonSelected")) {
+        act(() => {
+          docMapBtn.click();
+        });
+      }
+      return Array.from(
+        container.querySelectorAll<HTMLElement>(".settingsItemRow")
+      ).find(
+        (r) =>
+          r.querySelector(".settingsItemKey")?.textContent ===
+          "documentMap.dialogueDelimiterPairs"
+      )!;
+    };
+
     it("renders DialogueDelimiterPairsEditor with inherited application pairs when no project override exists", () => {
       act(() => {
         root.render(
@@ -2670,13 +2669,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
       expect(docMapRow).not.toBeNull();
 
       // No modified badge or reset button initially:
@@ -2724,13 +2717,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       expect(
         docMapRow.querySelector(".projectSettingModifiedBadge")
@@ -2761,13 +2748,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       // Click "Add dialogue pair" button
       const addBtn = docMapRow.querySelector<HTMLButtonElement>(
@@ -2834,13 +2815,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const resetBtn = docMapRow.querySelector<HTMLButtonElement>(
         ".projectSettingResetButton"
@@ -2881,13 +2856,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const resetBtn = docMapRow.querySelector<HTMLButtonElement>(
         ".projectSettingResetButton"
@@ -2942,13 +2911,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const editBtn = docMapRow.querySelector<HTMLButtonElement>(
         ".documentMapSettingsDialoguePairEdit"
@@ -3009,13 +2972,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const editBtn = docMapRow.querySelector<HTMLButtonElement>(
         ".documentMapSettingsDialoguePairEdit"
@@ -3100,13 +3057,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const editBtn = docMapRow.querySelector<HTMLButtonElement>(
         ".documentMapSettingsDialoguePairEdit"
@@ -3162,13 +3113,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       act(() => {
         docMapRow
@@ -3214,13 +3159,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const dragHandles = docMapRow.querySelectorAll<HTMLButtonElement>(
         ".glossaryEntryTagAssignmentDragHandle"
@@ -3275,13 +3214,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const deleteBtns = docMapRow.querySelectorAll<HTMLButtonElement>(
         ".documentMapSettingsDialoguePairDelete"
@@ -3327,13 +3260,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const deleteBtn = docMapRow.querySelector<HTMLButtonElement>(
         ".documentMapSettingsDialoguePairDelete"
@@ -3379,13 +3306,6 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
       act(() => {
         renderPanel();
       });
-
-      const getDocMapRow = () =>
-        Array.from(container.querySelectorAll(".settingsItemRow")).find(
-          (r) =>
-            r.querySelector(".settingsItemKey")?.textContent ===
-            "documentMap.dialogueDelimiterPairs"
-        )!;
 
       // 2. User opens edit dialog on first pair and types -> draft B
       const editBtn = getDocMapRow().querySelector<HTMLButtonElement>(
@@ -3463,13 +3383,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       });
 
-      const docMapRow = Array.from(
-        container.querySelectorAll(".settingsItemRow")
-      ).find(
-        (r) =>
-          r.querySelector(".settingsItemKey")?.textContent ===
-          "documentMap.dialogueDelimiterPairs"
-      )!;
+      const docMapRow = getDocMapRow();
 
       const editBtn = docMapRow.querySelector<HTMLButtonElement>(
         ".documentMapSettingsDialoguePairEdit"
@@ -3559,13 +3473,6 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         );
       }
 
-      const getDocMapRow = () =>
-        Array.from(container.querySelectorAll(".settingsItemRow")).find(
-          (r) =>
-            r.querySelector(".settingsItemKey")?.textContent ===
-            "documentMap.dialogueDelimiterPairs"
-        )!;
-
       // 1. Mount Project A
       act(() => {
         root.render(<ProjectHarness project={projectA} />);
@@ -3605,7 +3512,7 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
       expect(preview?.textContent).toBe("「これが会話文です」");
 
       expect(onSaveSettings).not.toHaveBeenCalled();
-    });
+    });});
 
     it("Test 4: App.tsx renders ProjectSettingsPanel keyed by project activeProjectFilePath", () => {
       const appTsxPath = path.resolve(__dirname, "../../src/renderer/App.tsx");
@@ -3616,7 +3523,6 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
       );
     });
   });
-});
 
 describe("ProjectSettingsPanel image attachment save destination workflow (#407 B2 remediation)", () => {
   let container: HTMLDivElement;
@@ -3662,6 +3568,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
           onSaveSettings={onSaveSettings}
         />
       );
+    });
+
+    const categoryBtn = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    ).find((b) => b.textContent === "画像添付")!;
+    act(() => {
+      categoryBtn.click();
     });
 
     const editButton = container.querySelector<HTMLButtonElement>(
@@ -3728,6 +3641,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
       );
     });
 
+    const categoryBtn = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    ).find((b) => b.textContent === "画像添付")!;
+    act(() => {
+      categoryBtn.click();
+    });
+
     const editButton = container.querySelector<HTMLButtonElement>(
       "#projectSettingControl-imageAttachment\\.saveDirectory"
     );
@@ -3775,6 +3695,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
           onSaveSettings={onSaveSettings}
         />
       );
+    });
+
+    const categoryBtn = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    ).find((b) => b.textContent === "画像添付")!;
+    act(() => {
+      categoryBtn.click();
     });
 
     const editButton = container.querySelector<HTMLButtonElement>(
@@ -3830,6 +3757,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
       );
     });
 
+    const categoryBtn = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    ).find((b) => b.textContent === "画像添付")!;
+    act(() => {
+      categoryBtn.click();
+    });
+
     const editButton = container.querySelector<HTMLButtonElement>(
       "#projectSettingControl-imageAttachment\\.saveDirectory"
     );
@@ -3880,6 +3814,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
       );
     });
 
+    const categoryBtn = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    ).find((b) => b.textContent === "画像添付")!;
+    act(() => {
+      categoryBtn.click();
+    });
+
     const row = Array.from(
       container.querySelectorAll(".settingsItemRow")
     ).find(
@@ -3928,6 +3869,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
       );
     });
 
+    const categoryBtn = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+    ).find((b) => b.textContent === "画像添付")!;
+    act(() => {
+      categoryBtn.click();
+    });
+
     const row = Array.from(
       container.querySelectorAll(".settingsItemRow")
     ).find(
@@ -3973,6 +3921,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
             onSaveSettings={async () => undefined}
           />
         );
+      });
+
+      const categoryBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      ).find((b) => b.textContent === "エディタ")!;
+      act(() => {
+        categoryBtn.click();
       });
 
       const rows = Array.from(container.querySelectorAll(".settingsItemRow"));
@@ -4025,6 +3980,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
         );
       });
 
+      const categoryBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      ).find((b) => b.textContent === "エディタ")!;
+      act(() => {
+        categoryBtn.click();
+      });
+
       const ruleRow = Array.from(
         container.querySelectorAll(".settingsItemRow")
       ).find(
@@ -4074,6 +4036,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
             onSaveSettings={onSaveSettings}
           />
         );
+      });
+
+      const categoryBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      ).find((b) => b.textContent === "エディタ")!;
+      act(() => {
+        categoryBtn.click();
       });
 
       const aozoraRow = Array.from(
@@ -4137,6 +4106,13 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
         );
       });
 
+      const categoryBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.settingsCategoryButton")
+      ).find((b) => b.textContent === "エディタ")!;
+      act(() => {
+        categoryBtn.click();
+      });
+
       const rubyRow = Array.from(
         container.querySelectorAll(".settingsItemRow")
       ).find(
@@ -4152,6 +4128,115 @@ describe("ProjectSettingsPanel image attachment save destination workflow (#407 
       expect(select).not.toBeNull();
       expect(select.value).toBe("aozora");
       expect(select.selectedOptions[0].textContent).toBe("青空文庫");
+    });
+  });
+
+  describe("Project Settings layout unification and search UX (#721)", () => {
+    it("preserves selectedCategoryId during search and restores original category view after clear", async () => {
+      act(() => {
+        root.render(
+          <ProjectSettingsPanel
+            translate={translateJa}
+            projectName="My Novel"
+            projectSettings={undefined}
+            applicationSettings={{}}
+            isReadOnly={false}
+            onSaveSettings={async () => undefined}
+          />
+        );
+      });
+
+      // Initially showing project general category
+      expect(container.querySelector('input[aria-label="プロジェクト名"]')).not.toBeNull();
+
+      // Switch to 'searchReplace' category
+      const searchReplaceBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".settingsCategoryButton")
+      ).find((btn) => btn.textContent?.includes("検索・置換"))!;
+      expect(searchReplaceBtn).not.toBeUndefined();
+
+      act(() => {
+        searchReplaceBtn.click();
+      });
+
+      // Now showing 'searchReplace' category items
+      const headingBeforeSearch = container.querySelector(".settingsItemPaneHeading");
+      expect(headingBeforeSearch?.textContent).toBe("検索・置換");
+
+      const searchInput = container.querySelector<HTMLInputElement>(
+        "input.settingsSearchInput"
+      )!;
+
+      // Type a search query matching a setting in another category (e.g. "delay")
+      act(() => {
+        const nativeSetter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype,
+          "value"
+        )?.set;
+        nativeSetter?.call(searchInput, "delay");
+        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+
+      // Pane heading switches to Search Results
+      const headingDuringSearch = container.querySelector(".settingsItemPaneHeading");
+      expect(headingDuringSearch?.textContent).toBe("検索結果");
+
+      // Clear search query
+      act(() => {
+        const nativeSetter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype,
+          "value"
+        )?.set;
+        nativeSetter?.call(searchInput, "");
+        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+
+      // Restores original category view ('searchReplace')
+      const headingAfterClear = container.querySelector(".settingsItemPaneHeading");
+      expect(headingAfterClear?.textContent).toBe("検索・置換");
+    });
+
+    it("renders unit suffix and aligns number input for numeric settings", async () => {
+      act(() => {
+        root.render(
+          <ProjectSettingsPanel
+            translate={translateJa}
+            projectName="My Novel"
+            projectSettings={undefined}
+            applicationSettings={{}}
+            isReadOnly={false}
+            onSaveSettings={async () => undefined}
+          />
+        );
+      });
+
+      // Switch to searchReplace category
+      const searchReplaceBtn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".settingsCategoryButton")
+      ).find((btn) => btn.textContent?.includes("検索・置換"))!;
+
+      act(() => {
+        searchReplaceBtn.click();
+      });
+
+      const charDistRow = Array.from(
+        container.querySelectorAll(".settingsItemRow")
+      ).find(
+        (r) =>
+          r.querySelector(".settingsItemKey")?.textContent ===
+          "search.nearby.characterDistance"
+      )!;
+      expect(charDistRow).not.toBeUndefined();
+
+      const numGroup = charDistRow.querySelector(".settingsNumberInputGroup");
+      expect(numGroup).not.toBeNull();
+
+      const input = numGroup?.querySelector<HTMLInputElement>(".settingsNumberInput");
+      expect(input).not.toBeNull();
+
+      const unit = numGroup?.querySelector(".settingsUnit");
+      expect(unit).not.toBeNull();
+      expect(unit?.textContent).toBe("文字");
     });
   });
 });

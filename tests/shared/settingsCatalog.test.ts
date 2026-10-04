@@ -1011,7 +1011,6 @@ describe("Settings Catalog Foundation (#150)", () => {
 
       expect(booleanEntries.map((entry) => entry.key)).toEqual([
         "workbench.statusBar.visible",
-        "workbench.statusBar.characterCount.visible",
         "workbench.normalizeUnicodeToNfc",
         "workbench.usageTourAutoShowDisabled",
         "workbench.sound.enabled",
@@ -1025,6 +1024,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "editor.whitespace.renderAsciiSpace",
         "editor.whitespace.renderTab",
         "editor.whitespace.renderOtherUnicodeSpace",
+        "editor.characterCount.visible",
         "editor.characterCount.exclude.whitespace",
         "editor.characterCount.exclude.lineBreaks",
         "editor.characterCount.exclude.headings",
@@ -1159,7 +1159,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "applicationOnly"
       );
       expect(
-        getCatalogEntry("workbench.statusBar.characterCount.visible").scope
+        getCatalogEntry("editor.characterCount.visible").scope
       ).toBe("applicationOnly");
       expect(getCatalogEntry("workbench.sound.enabled").scope).toBe(
         "applicationOnly"
@@ -1246,6 +1246,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "editor.characterCount.exclude.markdownComments",
         "editor.characterCount.exclude.markdownSyntax",
         "editor.characterCount.exclude.whitespace",
+        "editor.characterCount.visible",
         "editor.emphasisMark.aozoraMark",
         "editor.emphasisMark.narouMarkText",
         "editor.emphasisMark.rule",
@@ -1398,7 +1399,7 @@ describe("Settings Catalog Foundation (#150)", () => {
           "workbench.sound.newline.enabled",
           "workbench.sound.keypress.enabled",
           "workbench.language",
-          "workbench.statusBar.characterCount.visible",
+          "editor.characterCount.visible",
           "workbench.statusBar.visible",
           "workbench.normalizeUnicodeToNfc",
           "workbench.usageTourAutoShowDisabled"
@@ -1633,7 +1634,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "workbench.statusBar.visible"
       );
       expect(Object.keys(settingsCatalog)).toContain(
-        "workbench.statusBar.characterCount.visible"
+        "editor.characterCount.visible"
       );
     });
 
@@ -1648,7 +1649,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "applicationOnly"
       );
       expect(
-        getCatalogEntry("workbench.statusBar.characterCount.visible").scope
+        getCatalogEntry("editor.characterCount.visible").scope
       ).toBe("applicationOnly");
     });
 
@@ -1661,7 +1662,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         true
       );
       expect(
-        getCatalogDefaultValue("workbench.statusBar.characterCount.visible")
+        getCatalogDefaultValue("editor.characterCount.visible")
       ).toBe(true);
     });
 
@@ -1677,7 +1678,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "boolean"
       );
       expect(
-        getCatalogEntry("workbench.statusBar.characterCount.visible").type
+        getCatalogEntry("editor.characterCount.visible").type
       ).toBe("boolean");
     });
 
@@ -1709,10 +1710,10 @@ describe("Settings Catalog Foundation (#150)", () => {
         validateCatalogValue("workbench.statusBar.visible", "true")
       ).toEqual({ ok: false, failure: "typeMismatch" });
       expect(
-        validateCatalogValue("workbench.statusBar.characterCount.visible", true)
+        validateCatalogValue("editor.characterCount.visible", true)
       ).toEqual({ ok: true });
       expect(
-        validateCatalogValue("workbench.statusBar.characterCount.visible", "true")
+        validateCatalogValue("editor.characterCount.visible", "true")
       ).toEqual({ ok: false, failure: "typeMismatch" });
     });
 
@@ -1724,7 +1725,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         getCatalogEntry("workbench.statusBar.visible").deprecatedAliases
       ).toEqual([]);
       expect(
-        getCatalogEntry("workbench.statusBar.characterCount.visible")
+        getCatalogEntry("editor.characterCount.visible")
           .deprecatedAliases
       ).toEqual([]);
     });
@@ -1869,7 +1870,7 @@ describe("Settings Catalog Foundation (#150)", () => {
       expect(settingsStoreSource).toContain('"workbench.sound.newline.enabled"');
       expect(settingsStoreSource).toContain('"workbench.sound.keypress.enabled"');
       expect(settingsStoreSource).toContain(
-        '"workbench.statusBar.characterCount.visible"'
+        '"editor.characterCount.visible"'
       );
       expect(settingsStoreSource).toContain(
         '"editor.characterCount.exclude.whitespace"'
@@ -1909,7 +1910,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         'getCatalogDefaultValue("workbench.sound.keypress.enabled")'
       );
       expect(settingsSource).toMatch(
-        /getCatalogDefaultValue\(\s*"workbench\.statusBar\.characterCount\.visible"\s*\)/
+        /getCatalogDefaultValue\(\s*"editor\.characterCount\.visible"\s*\)/
       );
       expect(settingsSource).toMatch(
         /getCatalogDefaultValue\(\s*"editor\.characterCount\.exclude\.markdownSyntax"\s*\)/
@@ -1940,7 +1941,7 @@ describe("Settings Catalog Foundation (#150)", () => {
           "workbench.sound.dialog.enabled",
           "workbench.sound.newline.enabled",
           "workbench.sound.keypress.enabled",
-          "workbench.statusBar.characterCount.visible",
+          "editor.characterCount.visible",
           "editor.characterCount.exclude.whitespace",
           "editor.characterCount.exclude.lineBreaks",
           "editor.characterCount.exclude.headings",
@@ -1972,7 +1973,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "workbench.sound.dialog.enabled",
         "workbench.sound.newline.enabled",
         "workbench.sound.keypress.enabled",
-        "workbench.statusBar.characterCount.visible",
+        "editor.characterCount.visible",
         "editor.whitespace.renderIdeographicSpace",
         "editor.whitespace.renderAsciiSpace",
         "editor.whitespace.renderTab",

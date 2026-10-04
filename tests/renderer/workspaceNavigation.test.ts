@@ -365,6 +365,7 @@ describe("workspace navigation", () => {
         openApplicationSettings: () => {
           didOpenApplicationSettings = true;
         },
+        exportApplicationSettingsJson: () => undefined,
         openKeyboardShortcuts: () => undefined,
         showResumeHub: () => undefined,
         canShowResumeHub: () => true
@@ -381,6 +382,8 @@ describe("workspace navigation", () => {
         focusDocumentMetrics: "Focus Document Metrics",
         focusDocumentMetricsDescription: "Focus Document Metrics",
         openApplicationSettings: "Open Application Settings",
+        exportApplicationSettingsJson: "Export Application Settings as JSON",
+        exportApplicationSettingsJsonDescription: "",
         openKeyboardShortcuts: "Open Keyboard Shortcuts",
         openKeyboardShortcutsDescription: "Open Keyboard Shortcuts",
         openApplicationSettingsDescription: "Open Application Settings",

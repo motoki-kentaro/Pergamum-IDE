@@ -9,6 +9,7 @@ import type {
   UpdateProjectNameResult,
   UpdateProjectSettingsRequest
 } from "../shared/api";
+import { projectSettingsCommandIds } from "../shared/commandIds";
 import { validateProjectName } from "../shared/projectName";
 import type { Language, Translate } from "../shared/i18n";
 import type { SaveApplicationSettingsRequest } from "../shared/settings";
@@ -176,10 +177,7 @@ export function getEligibleProjectSettingCategories(
       labelKey: cat.labelKey
     }));
 
-  return [
-    { id: "all", labelKey: "settings.category.all.label" },
-    ...matchingCategories
-  ];
+  return matchingCategories;
 }
 
 export function readProjectSettingValue(
@@ -485,28 +483,30 @@ export function ProjectSettingField({
   return (
     <div className="settingsItemRow projectSettingField">
       <div className="settingsItemHeader">
-        <span id={labelId} className="settingsItemLabel">
-          {label}
-        </span>
-        {isModified ? (
-          <span className="projectSettingHeaderActions">
-            <button
-              type="button"
-              className="projectSettingResetButton"
-              disabled={isReadOnly || isSaving}
-              onClick={onReset}
-              title={resetLabel}
-              aria-label={resetLabel}
-            >
-              ↺
-            </button>
-            <span className="projectSettingModifiedBadge" role="status">
-              {modifiedLabel}
-            </span>
+        <div className="projectSettingLabelGroup">
+          <span id={labelId} className="settingsItemLabel">
+            {label}
           </span>
-        ) : null}
+          {isModified ? (
+            <span className="projectSettingHeaderActions">
+              <button
+                type="button"
+                className="projectSettingResetButton"
+                disabled={isReadOnly || isSaving}
+                onClick={onReset}
+                title={resetLabel}
+                aria-label={resetLabel}
+              >
+                ↺
+              </button>
+              <span className="projectSettingModifiedBadge" role="status">
+                {modifiedLabel}
+              </span>
+            </span>
+          ) : null}
+        </div>
+        <div className="settingsItemControl">{children}</div>
       </div>
-      {children}
       {description ? (
         <p className="settingsDescription">{description}</p>
       ) : null}
@@ -627,35 +627,39 @@ export function ProjectSettingsPanelView({
   const categoryGroups = groupProjectSettingItemsByCategory(items);
 
   const normalizedSearch = normalizeProjectSettingsSearchQuery(searchQuery);
-  const isProjectCategorySelected =
-    (selectedCategoryId === "all" || selectedCategoryId === "project") &&
-    projectName !== undefined;
-  const matchesProjectNameSearch =
-    normalizedSearch.length === 0 ||
-    "プロジェクト名".toLowerCase().includes(normalizedSearch) ||
-    "project name".toLowerCase().includes(normalizedSearch) ||
-    "プロジェクト全般".toLowerCase().includes(normalizedSearch) ||
-    "general".toLowerCase().includes(normalizedSearch) ||
-    "project".toLowerCase().includes(normalizedSearch) ||
-    translate("settings.project.name.label").toLowerCase().includes(normalizedSearch) ||
-    translate("settings.category.project.label").toLowerCase().includes(normalizedSearch) ||
-    translate("settings.project.name.description").toLowerCase().includes(normalizedSearch);
+  const isSearching = normalizedSearch.length > 0;
 
-  const shouldShowProjectGeneralPane =
-    isProjectCategorySelected && matchesProjectNameSearch;
-  const isExportCategorySelected = selectedCategoryId === "export";
+  const matchesProjectNameSearch =
+    isSearching &&
+    ("プロジェクト名".toLowerCase().includes(normalizedSearch) ||
+      "project name".toLowerCase().includes(normalizedSearch) ||
+      "プロジェクト全般".toLowerCase().includes(normalizedSearch) ||
+      "general".toLowerCase().includes(normalizedSearch) ||
+      "project".toLowerCase().includes(normalizedSearch) ||
+      translate("settings.project.name.label").toLowerCase().includes(normalizedSearch) ||
+      translate("settings.category.project.label").toLowerCase().includes(normalizedSearch) ||
+      translate("settings.project.name.description").toLowerCase().includes(normalizedSearch));
+
+  const shouldShowProjectGeneralPane = projectName !== undefined && (
+    isSearching ? matchesProjectNameSearch : selectedCategoryId === "project"
+  );
+
   const matchesExportSearch =
-    normalizedSearch.length === 0 ||
-    "export".includes(normalizedSearch) ||
-    "json".includes(normalizedSearch) ||
-    "エクスポート".toLowerCase().includes(normalizedSearch) ||
-    translate("settings.export.action.label")
-      .toLowerCase()
-      .includes(normalizedSearch) ||
-    translate("settings.export.action.description")
-      .toLowerCase()
-      .includes(normalizedSearch);
-  const shouldShowExportPane = isExportCategorySelected && matchesExportSearch;
+    isSearching &&
+    ("export".includes(normalizedSearch) ||
+      "json".includes(normalizedSearch) ||
+      "エクスポート".toLowerCase().includes(normalizedSearch) ||
+      projectSettingsCommandIds.exportJson
+        .toLowerCase()
+        .includes(normalizedSearch) ||
+      translate("settings.export.action.label")
+        .toLowerCase()
+        .includes(normalizedSearch) ||
+      translate("settings.export.action.description")
+        .toLowerCase()
+        .includes(normalizedSearch));
+
+  const shouldShowExportPane = isSearching ? matchesExportSearch : selectedCategoryId === "export";
 
   return (
     <section
@@ -704,7 +708,7 @@ export function ProjectSettingsPanelView({
         >
           <ul className="settingsCategoryList">
             {categories.map((category) => {
-              const isSelected = category.id === selectedCategoryId;
+              const isSelected = !isSearching && category.id === selectedCategoryId;
 
               return (
                 <li key={category.id}>
@@ -727,174 +731,156 @@ export function ProjectSettingsPanelView({
           </ul>
         </nav>
 
-        <div className="projectSettingsContent">
-          {!shouldShowProjectGeneralPane && !shouldShowExportPane && items.length === 0 ? (
-            <p className="settingsSearchEmpty">
-              {translate("settings.search.empty")}
-            </p>
+        <div className="settingsItemPane">
+          <h2 className="settingsItemPaneHeading">
+            {isSearching
+              ? translate("settings.search.resultsHeading")
+              : translateI18nKey(
+                  translate,
+                  selectedCategoryId === "all"
+                    ? ("settings.category.paneLabel" as any)
+                    : settingCategoryLabelKey(selectedCategoryId)
+                )}
+          </h2>
+
+          {!shouldShowProjectGeneralPane &&
+          !shouldShowExportPane &&
+          items.length === 0 ? (
+            isSearching ? (
+              <p className="settingsSearchEmpty">
+                {translate("settings.search.empty")}
+              </p>
+            ) : null
           ) : (
-            <>
+            <div className="settingsItemList">
               {shouldShowProjectGeneralPane ? (
                 <div
-                  key="project"
-                  className="settingsItemPane"
-                  data-settings-category="project"
+                  className="settingsItemRow projectSettingField"
+                  data-project-setting="name"
                 >
-                  <h2 className="settingsItemPaneHeading">
-                    {translate("settings.category.project.label")}
-                  </h2>
-                  <div className="settingsItemList">
-                    <div
-                      className="settingsItemRow projectSettingField"
-                      data-project-setting="name"
-                    >
-                      <div className="settingsItemHeader">
-                        <label
-                          htmlFor="projectNameInput"
-                          className="settingsItemLabel"
-                        >
-                          {translate("settings.project.name.label")}
-                        </label>
-                        {isSavingProjectName ? (
-                          <span
-                            className="projectSettingSavingBadge"
-                            role="status"
-                          >
-                            {translate("settings.project.name.saving")}
-                          </span>
-                        ) : isProjectNameDirty ? (
-                          <span
-                            className="projectSettingModifiedBadge"
-                            role="status"
-                          >
-                            {translate("settings.project.modified")}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="projectSettingInputWrapper">
-                        <input
-                          id="projectNameInput"
-                          type="text"
-                          className={`settingsTextInput${projectNameError ? " isError" : ""}`}
-                          value={projectNameDraft}
-                          disabled={
-                            isReadOnly || isSavingProjectName || !projectName
-                          }
-                          onChange={(e) => onProjectNameChange?.(e.target.value)}
-                          onFocus={() => onProjectNameFocus?.()}
-                          onBlur={() => onProjectNameBlur?.()}
-                          aria-label={translate("settings.project.name.label")}
-                          aria-invalid={projectNameError ? "true" : undefined}
-                          aria-describedby={
-                            projectNameError
-                              ? "projectNameError projectNameDescription"
-                              : "projectNameDescription"
-                          }
-                        />
-                      </div>
-                      {projectNameError ? (
-                        <p
-                          id="projectNameError"
-                          className="settingsFieldError"
-                          role="alert"
-                        >
-                          {projectNameError}
-                        </p>
-                      ) : null}
-                      <p
-                        id="projectNameDescription"
-                        className="settingsDescription"
+                  <div className="settingsItemHeader">
+                    <div className="projectSettingLabelGroup">
+                      <label
+                        htmlFor="projectNameInput"
+                        className="settingsItemLabel"
                       >
-                        {translate("settings.project.name.description")}
-                      </p>
-                      <code className="settingsItemKey">project.name</code>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-              {shouldShowExportPane ? (
-                <div
-                  key="export"
-                  className="settingsItemPane"
-                  data-settings-category="export"
-                >
-                  <h2 className="settingsItemPaneHeading">
-                    {translate("settings.category.export.label")}
-                  </h2>
-                  <div className="settingsItemList">
-                    <div className="settingsItemRow settingsExportRow">
-                      <div className="settingsItemHeader">
-                        <span className="settingsItemLabel">
-                          {translate("settings.export.action.label")}
-                        </span>
-                        <button
-                          type="button"
-                          className="settingsExportButton"
-                          disabled={isSaving || !onExportSettings}
-                          onClick={() => {
-                            void onExportSettings?.();
-                          }}
+                        {translate("settings.project.name.label")}
+                      </label>
+                      {isSavingProjectName ? (
+                        <span
+                          className="projectSettingSavingBadge"
+                          role="status"
                         >
-                          {translate("settings.export.button")}
-                        </button>
-                      </div>
-                      <p className="settingsDescription">
-                        {translate("settings.export.action.description")}
-                      </p>
+                          {translate("settings.project.name.saving")}
+                        </span>
+                      ) : isProjectNameDirty ? (
+                        <span
+                          className="projectSettingModifiedBadge"
+                          role="status"
+                        >
+                          {translate("settings.project.modified")}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="settingsItemControl projectSettingInputWrapper">
+                      <input
+                        id="projectNameInput"
+                        type="text"
+                        className={`settingsTextInput${projectNameError ? " isError" : ""}`}
+                        value={projectNameDraft}
+                        disabled={
+                          isReadOnly || isSavingProjectName || !projectName
+                        }
+                        onChange={(e) => onProjectNameChange?.(e.target.value)}
+                        onFocus={() => onProjectNameFocus?.()}
+                        onBlur={() => onProjectNameBlur?.()}
+                        aria-label={translate("settings.project.name.label")}
+                        aria-invalid={projectNameError ? "true" : undefined}
+                        aria-describedby={
+                          projectNameError
+                            ? "projectNameError projectNameDescription"
+                            : "projectNameDescription"
+                        }
+                      />
                     </div>
                   </div>
+                  {projectNameError ? (
+                    <p
+                      id="projectNameError"
+                      className="settingsFieldError"
+                      role="alert"
+                    >
+                      {projectNameError}
+                    </p>
+                  ) : null}
+                  <p
+                    id="projectNameDescription"
+                    className="settingsDescription"
+                  >
+                    {translate("settings.project.name.description")}
+                  </p>
+                  <code className="settingsItemKey">project.name</code>
                 </div>
               ) : null}
-              {categoryGroups.map((group) => (
-                <div key={group.category} className="settingsItemPane">
-                <h2 className="settingsItemPaneHeading">
-                  {translateI18nKey(translate, group.categoryLabelKey)}
-                </h2>
-                <div className="settingsItemList">
-                  {group.items.map(
-                    ({ item, isModified, displayValue, effectiveValue }) => {
-                      const labelId = `${item.key.replace(/\./g, "-")}-label`;
 
-                      let controlElement: JSX.Element | null = null;
-                      if (item.control.kind === "text") {
-                        controlElement = (
-                          <input
-                            type="text"
-                            className="settingsTextInput"
-                            value={displayValue}
-                            disabled={isReadOnly || isSaving}
-                            onChange={(e) => {
-                              onTextChange?.(item.key, e.target.value);
-                            }}
-                            onFocus={() => {
-                              onTextFocus?.(item.key);
-                            }}
-                            onBlur={() => {
-                              onTextBlur?.(item.key);
-                            }}
-                            aria-labelledby={labelId}
-                          />
-                        );
-                      } else if (item.control.kind === "select") {
-                        controlElement = (
-                          <select
-                            className="settingsSelect"
-                            value={displayValue}
-                            disabled={isReadOnly || isSaving}
-                            onChange={(e) => {
-                              onSelectChange?.(item.key, e.target.value);
-                            }}
-                            aria-labelledby={labelId}
-                          >
-                            {item.control.options.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {translateI18nKey(translate, option.labelKey)}
-                              </option>
-                            ))}
-                          </select>
-                        );
-                      } else if (item.control.kind === "number") {
-                        controlElement = (
+              {items.map(
+                ({ item, isModified, displayValue, effectiveValue }) => {
+                  const labelId = `${item.key.replace(/\./g, "-")}-label`;
+                  const nearbyUnitItem = items.find(
+                    (i) => i.item.key === "search.nearby.unit"
+                  );
+                  const effectiveNearbyUnit = String(
+                    nearbyUnitItem?.effectiveValue ?? "paragraphs"
+                  );
+                  const isNearbyDisabled =
+                    (item.key === "search.nearby.characterDistance" &&
+                      effectiveNearbyUnit !== "characters") ||
+                    (item.key === "search.nearby.paragraphDistance" &&
+                      effectiveNearbyUnit !== "paragraphs");
+                  const disabled = isReadOnly || isSaving || isNearbyDisabled;
+
+                    let controlElement: JSX.Element | null = null;
+                    if (item.control.kind === "text") {
+                      controlElement = (
+                        <input
+                          type="text"
+                          className="settingsTextInput"
+                          value={displayValue}
+                          disabled={disabled}
+                          onChange={(e) => {
+                            onTextChange?.(item.key, e.target.value);
+                          }}
+                          onFocus={() => {
+                            onTextFocus?.(item.key);
+                          }}
+                          onBlur={() => {
+                            onTextBlur?.(item.key);
+                          }}
+                          aria-labelledby={labelId}
+                        />
+                      );
+                    } else if (item.control.kind === "select") {
+                      controlElement = (
+                        <select
+                          className="settingsSelect"
+                          value={displayValue}
+                          disabled={disabled}
+                          onChange={(e) => {
+                            onSelectChange?.(item.key, e.target.value);
+                          }}
+                          aria-labelledby={labelId}
+                        >
+                          {item.control.options.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {translateI18nKey(translate, option.labelKey)}
+                            </option>
+                          ))}
+                        </select>
+                      );
+                    } else if (item.control.kind === "number") {
+                      const unitKey = item.control.unitKey;
+                      controlElement = (
+                        <div className="settingsNumberInputGroup">
                           <input
                             type="number"
                             className="settingsNumberInput"
@@ -902,7 +888,7 @@ export function ProjectSettingsPanelView({
                             min={item.control.min}
                             max={item.control.max}
                             step={item.control.step}
-                            disabled={isReadOnly || isSaving}
+                            disabled={disabled}
                             onChange={(e) => {
                               const next = e.target.valueAsNumber;
                               if (Number.isFinite(next)) {
@@ -911,105 +897,135 @@ export function ProjectSettingsPanelView({
                             }}
                             aria-labelledby={labelId}
                           />
-                        );
-                      } else if (item.control.kind === "switch") {
-                        controlElement = (
-                          <div className="settingsItemControl">
-                            <input
-                              id={`settingControl-${item.key}`}
-                              type="checkbox"
-                              className="settingsSwitchInput"
-                              checked={displayValue === "true"}
-                              disabled={isReadOnly || isSaving}
-                              onChange={(e) => {
-                                onSwitchChange?.(item.key, e.target.checked);
-                              }}
-                              aria-labelledby={labelId}
-                            />
-                          </div>
-                        );
-                      } else if (item.control.kind === "custom") {
-                        if (
-                          item.control.customKind ===
-                          "documentMap.dialogueDelimiterPairs"
-                        ) {
-                          const pairs = Array.isArray(effectiveValue)
-                            ? (effectiveValue as DocumentMapDialogueDelimiterPair[])
-                            : defaultDocumentMapDialogueDelimiterPairs();
-                          controlElement = (
-                            <DialogueDelimiterPairsEditor
-                              pairs={pairs}
-                              disabled={isReadOnly || isSaving}
-                              translate={translate}
-                              onChange={(nextPairs) => {
-                                onDialoguePairsCommit?.(item.key, nextPairs);
-                              }}
-                            />
-                          );
-                        } else if (
-                          item.control.customKind ===
-                          "imageAttachment.saveDirectory"
-                        ) {
-                          controlElement = (
-                            <SaveDestinationSettingControl
-                              id={`projectSettingControl-${item.key}`}
-                              value={displayValue}
-                              disabled={isReadOnly || isSaving}
-                              translate={translate}
-                              onOpenDialog={onOpenImageAttachmentDialog}
-                            />
-                          );
-                        } else if (
-                          item.control.customKind === "fontFamilyList"
-                        ) {
-                          const fontListValue = Array.isArray(effectiveValue)
-                            ? (effectiveValue as FontFamilySetting[])
-                            : undefined;
-                          controlElement = (
-                            <FontFamilyListSettingControl
-                              id={`projectSettingControl-${item.key}`}
-                              slot={item.key as FontSlot}
-                              value={fontListValue}
-                              disabled={isReadOnly || isSaving}
-                              translate={translate}
-                              uiLanguage={displayLanguage}
-                              onOpenDialog={(slot, opener) =>
-                                onOpenFontPickerDialog?.(slot, opener)
-                              }
-                            />
-                          );
-                        } else {
-                          throw new Error(
-                            `Unsupported custom Project Settings control kind: "${item.control.customKind}" for key "${item.key}".`
-                          );
-                        }
-                      } else {
-                        throw new Error(
-                          `Unsupported Project Settings control kind: "${(item.control as SettingControl).kind}" for key "${item.key}".`
-                        );
-                      }
-
-                    return (
-                      <ProjectSettingField
-                        key={item.key}
-                        label={translateI18nKey(translate, item.labelKey)}
-                        description={translateI18nKey(translate, item.descriptionKey)}
-                        settingKey={item.key}
-                        isModified={isModified}
-                        isReadOnly={isReadOnly}
-                        isSaving={isSaving}
-                        resetLabel={translate("settings.project.matchApplicationSettings")}
-                        modifiedLabel={translate("settings.project.modified")}
-                        onReset={() => onReset(item.key)}
-                      >
-                        {controlElement}
-                      </ProjectSettingField>
+                          {unitKey ? (
+                            <span className="settingsUnit">
+                              {translateI18nKey(translate, unitKey)}
+                            </span>
+                          ) : null}
+                        </div>
+                      );
+                    } else if (item.control.kind === "switch") {
+                      controlElement = (
+                        <div className="settingsItemControl">
+                          <input
+                            id={`settingControl-${item.key}`}
+                            type="checkbox"
+                            className="settingsSwitchInput"
+                            checked={displayValue === "true"}
+                            disabled={disabled}
+                          onChange={(e) => {
+                            onSwitchChange?.(item.key, e.target.checked);
+                          }}
+                          aria-labelledby={labelId}
+                        />
+                      </div>
                     );
-                  })}
+                  } else if (item.control.kind === "custom") {
+                    if (
+                      item.control.customKind ===
+                      "documentMap.dialogueDelimiterPairs"
+                    ) {
+                      const pairs = Array.isArray(effectiveValue)
+                        ? (effectiveValue as DocumentMapDialogueDelimiterPair[])
+                        : defaultDocumentMapDialogueDelimiterPairs();
+                      controlElement = (
+                        <DialogueDelimiterPairsEditor
+                          pairs={pairs}
+                          disabled={isReadOnly || isSaving}
+                          translate={translate}
+                          onChange={(nextPairs) => {
+                            onDialoguePairsCommit?.(item.key, nextPairs);
+                          }}
+                        />
+                      );
+                    } else if (
+                      item.control.customKind ===
+                      "imageAttachment.saveDirectory"
+                    ) {
+                      controlElement = (
+                        <SaveDestinationSettingControl
+                          id={`projectSettingControl-${item.key}`}
+                          value={displayValue}
+                          disabled={isReadOnly || isSaving}
+                          translate={translate}
+                          onOpenDialog={onOpenImageAttachmentDialog}
+                        />
+                      );
+                    } else if (
+                      item.control.customKind === "fontFamilyList"
+                    ) {
+                      const fontListValue = Array.isArray(effectiveValue)
+                        ? (effectiveValue as FontFamilySetting[])
+                        : undefined;
+                      controlElement = (
+                        <FontFamilyListSettingControl
+                          id={`projectSettingControl-${item.key}`}
+                          slot={item.key as FontSlot}
+                          value={fontListValue}
+                          disabled={isReadOnly || isSaving}
+                          translate={translate}
+                          uiLanguage={displayLanguage}
+                          onOpenDialog={(slot, opener) =>
+                            onOpenFontPickerDialog?.(slot, opener)
+                          }
+                        />
+                      );
+                    } else {
+                      throw new Error(
+                        `Unsupported custom Project Settings control kind: "${item.control.customKind}" for key "${item.key}".`
+                      );
+                    }
+                  } else {
+                    throw new Error(
+                      `Unsupported Project Settings control kind: "${(item.control as SettingControl).kind}" for key "${item.key}".`
+                    );
+                  }
+
+                  return (
+                    <ProjectSettingField
+                      key={item.key}
+                      label={translateI18nKey(translate, item.labelKey)}
+                      description={translateI18nKey(translate, item.descriptionKey)}
+                      settingKey={item.key}
+                      isModified={isModified}
+                      isReadOnly={isReadOnly}
+                      isSaving={isSaving}
+                      resetLabel={translate("settings.project.matchApplicationSettings")}
+                      modifiedLabel={translate("settings.project.modified")}
+                      onReset={() => onReset(item.key)}
+                    >
+                      {controlElement}
+                    </ProjectSettingField>
+                  );
+                }
+              )}
+
+              {shouldShowExportPane ? (
+                <div className="settingsItemRow settingsExportRow">
+                  <div className="settingsItemHeader">
+                    <span className="settingsItemLabel">
+                      {translate("settings.export.action.label")}
+                    </span>
+                    <button
+                      type="button"
+                      className="settingsExportButton"
+                      disabled={isSaving || !onExportSettings}
+                      onClick={() => {
+                        void onExportSettings?.();
+                      }}
+                    >
+                      {translate("settings.export.button")}
+                    </button>
+                  </div>
+                  <p className="settingsDescription">
+                    {translate("settings.export.action.description")}
+                  </p>
+                  <code className="settingsItemKey">
+                    {projectSettingsCommandIds.exportJson}
+                  </code>
                 </div>
-              </div>
-            ))}
-            </>
+              ) : null}
+            </div>
           )}
         </div>
       </div>
@@ -1165,7 +1181,7 @@ export function ProjectSettingsPanel({
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategoryId, setSelectedCategoryId] =
-    useState<ProjectSettingCategoryFilter>("all");
+    useState<ProjectSettingCategoryFilter>("project");
   const [isDestinationDialogOpen, setIsDestinationDialogOpen] =
     useState<boolean>(false);
   const [dialogOpener, setDialogOpener] = useState<Element | null>(null);
@@ -1639,9 +1655,16 @@ export function ProjectSettingsPanel({
     }
   );
 
+  const effectiveCategoryId = categories.some(
+    (cat) => cat.id === selectedCategoryId
+  )
+    ? selectedCategoryId
+    : (categories[0]?.id ?? "project");
+
+  const isSearching = searchQuery.trim().length > 0;
   const filteredItems = filterProjectSettingItems(
     eligibleItems,
-    selectedCategoryId,
+    isSearching ? "all" : effectiveCategoryId,
     searchQuery,
     translate
   );
@@ -1701,8 +1724,11 @@ export function ProjectSettingsPanel({
         }}
         items={viewItems}
         categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelectCategory={setSelectedCategoryId}
+        selectedCategoryId={effectiveCategoryId}
+        onSelectCategory={(id) => {
+          setSelectedCategoryId(id);
+          setSearchQuery("");
+        }}
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         isReadOnly={isReadOnly}

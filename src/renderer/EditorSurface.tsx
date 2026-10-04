@@ -482,6 +482,7 @@ export interface GlossaryDescriptionMetadataConfig {
 
 interface EditorSurfaceProps {
   editor: CurrentEditor;
+  editorHeaderCharacterCountText?: string | null;
   /** #573 Slice 5: omitted = no metadata panel on glossary tabs. */
   glossaryDescriptionMetadata?: GlossaryDescriptionMetadataConfig;
   /**
@@ -754,6 +755,7 @@ type TextEditorSurfaceProps = Omit<EditorSurfaceProps, "editor"> & {
 
 function TextEditorSurface({
   editor,
+  editorHeaderCharacterCountText,
   glossaryDescriptionMetadata,
   builtinMarkdownText,
   isDebugModeEnabled,
@@ -892,6 +894,7 @@ function TextEditorSurface({
         />
       ) : null}
       <MarkdownEditorSurface
+          editorHeaderCharacterCountText={editorHeaderCharacterCountText}
           source={markdownSurfaceSource}
           isRenameEnabled={isRenameEnabled}
           onRequestRenameActiveDocument={onRequestRenameActiveDocument}
@@ -987,6 +990,7 @@ function TextEditorSurface({
 }
 
 interface MarkdownEditorSurfaceProps {
+  editorHeaderCharacterCountText?: string | null;
   /** #573 Slice 2: what is being edited — see markdownSurfaceSource.ts. */
   source: MarkdownSurfaceSource;
   isRenameEnabled?: boolean;
@@ -1127,6 +1131,7 @@ interface MarkdownEditorSurfaceProps {
 }
 
 function MarkdownEditorSurface({
+  editorHeaderCharacterCountText,
   source,
   isRenameEnabled,
   onRequestRenameActiveDocument,
@@ -3504,7 +3509,12 @@ function MarkdownEditorSurface({
         data-usage-tour-target={USAGE_TOUR_TARGETS.editorSurface}
       >
         <div className="paneHeader">
-          {translate("workspace.editor")}
+          <span>{translate("workspace.editor")}</span>
+          {editorHeaderCharacterCountText ? (
+            <span className="editorPaneHeaderCharacterCount">
+              {editorHeaderCharacterCountText}
+            </span>
+          ) : null}
         </div>
         {findOpen ? (
           <ActiveFindPanel

@@ -179,7 +179,7 @@ describe("Settings UI Catalog Schema (#226)", () => {
           "workbench.uiFontFamilyList",
           "workbench.language",
           "workbench.statusBar.visible",
-          "workbench.statusBar.characterCount.visible",
+          "editor.characterCount.visible",
           "workbench.normalizeUnicodeToNfc",
           "workbench.sound.enabled",
           "workbench.sound.dialog.enabled",
@@ -261,6 +261,16 @@ describe("Settings UI Catalog Schema (#226)", () => {
       expect(getSettingCatalogItem("workbench.uiFontFamilyList")).toBeDefined();
       expect(getSettingCatalogItem("editor.fontFamilyList")).toBeDefined();
       expect(getSettingCatalogItem("preview.fontFamilyList")).toBeDefined();
+    });
+
+    it("every number control with a unitKey resolves in ja and en", () => {
+      for (const item of settingCatalogItems) {
+        if (item.control.kind === "number" && item.control.unitKey) {
+          for (const language of languages) {
+            expect(t(language, item.control.unitKey as never).length).toBeGreaterThan(0);
+          }
+        }
+      }
     });
 
     it("no longer registers workbench.advancedSettings.enabled (#232: legacy Advanced Settings gate removed)", () => {
@@ -440,7 +450,8 @@ describe("Settings UI Catalog Schema (#226)", () => {
         kind: "number",
         min: range.min,
         max: range.max,
-        step: 1000
+        step: 1000,
+        unitKey: "settings.unit.ms"
       });
       expect(item.defaultValue).toBe(10000);
     });
@@ -521,7 +532,7 @@ describe("Settings UI Catalog Schema (#226)", () => {
 
     it("places all character count settings together in the editor category, with visibility before exclusions (#259 taxonomy)", () => {
       const keys = [
-        "workbench.statusBar.characterCount.visible",
+        "editor.characterCount.visible",
         "editor.characterCount.exclude.whitespace",
         "editor.characterCount.exclude.lineBreaks",
         "editor.characterCount.exclude.headings",
@@ -785,7 +796,7 @@ describe("Settings UI Catalog Schema (#226)", () => {
       const newlyCoveredKeys = [
         "workbench.language",
         "workbench.statusBar.visible",
-        "workbench.statusBar.characterCount.visible",
+        "editor.characterCount.visible",
         "workbench.sound.enabled",
         "workbench.sound.dialog.enabled",
         "workbench.sound.newline.enabled",

@@ -267,6 +267,51 @@ describe("SettingsPanelView catalog-driven rendering (#230)", () => {
     expect(onExportSettings).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ["en", "Export settings as JSON"],
+    ["ja", "設定をJSONとしてエクスポート"],
+    ["ja", "JSON ファイルとして保存"],
+    ["en", "workspace.applicationSettings.exportJson"],
+    ["en", "applicationSettings.exportjson"]
+  ] as const)(
+    "shows the Export row (and runs export) when searching %s '%s' (#721)",
+    (language, query) => {
+      const onExportSettings = vi.fn();
+      const element = settingsPanelViewElement(language, {
+        selectedCategoryId: "application",
+        searchQuery: query,
+        onExportSettings
+      });
+      const markup = renderToStaticMarkup(element);
+
+      expect(markup).toContain("workspace.applicationSettings.exportJson</code>");
+      expect(markup).not.toContain("settingsSearchEmpty");
+
+      const exportButton = collectElements(
+        element,
+        (child) =>
+          child.type === "button" &&
+          typeof child.props.className === "string" &&
+          child.props.className.includes("settingsExportButton")
+      )[0];
+      expect(exportButton).toBeDefined();
+      (exportButton.props.onClick as () => void)();
+      expect(onExportSettings).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it("does not show the Export row for an unrelated search, and still shows it in the Export category (#721)", () => {
+    const unrelated = renderSettingsPanelView("en", {
+      searchQuery: "zzzz-no-such-setting"
+    });
+    expect(unrelated).not.toContain("settingsExportButton");
+    expect(unrelated).toContain("No settings match your search.");
+
+    expect(
+      renderSettingsPanelView("en", { selectedCategoryId: "export" })
+    ).toContain("settingsExportButton");
+  });
+
   it("shows the '文書マップ' heading only once in the pane body (no duplicate section heading) (#375 fix)", () => {
     const markup = renderSettingsPanelView("ja", {
       selectedCategoryId: "documentMap"
@@ -329,7 +374,7 @@ describe("SettingsPanelView catalog-driven rendering (#230)", () => {
       "settings.workbench.language.label",
       "settings.workbench.language.description",
       "settings.workbench.statusBar.visible.label",
-      "settings.workbench.statusBar.characterCount.visible.label",
+      "settings.editor.characterCount.visible.label",
       "settings.workbench.sound.enabled.label",
       "settings.editor.characterCount.exclude.markdownSyntax.label",
       "settings.editor.whitespace.renderIdeographicSpace.label",
@@ -494,7 +539,7 @@ describe("SettingsPanelView category behavior (#230)", () => {
       "editor.whitespace.renderAsciiSpace",
       "editor.whitespace.renderTab",
       "editor.whitespace.renderOtherUnicodeSpace",
-      "workbench.statusBar.characterCount.visible",
+      "editor.characterCount.visible",
       "editor.characterCount.exclude.whitespace",
       "editor.characterCount.exclude.lineBreaks",
       "editor.characterCount.exclude.headings",
@@ -591,8 +636,7 @@ describe("getVisibleSettingCatalogItems search behavior (#230)", () => {
     );
 
     expect(items.map((item) => item.key)).toEqual([
-      "workbench.statusBar.visible",
-      "workbench.statusBar.characterCount.visible"
+      "workbench.statusBar.visible"
     ]);
   });
 
@@ -931,15 +975,15 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
     });
   });
 
-  it("saves immediately when the status-bar character count visibility switch changes (#259)", () => {
+  it("saves immediately when the character count visibility switch changes", () => {
     const onChangeSettings = vi.fn();
     const element = settingsPanelViewElement("en", {
-      searchQuery: isolate("workbench.statusBar.characterCount.visible"),
+      searchQuery: isolate("editor.characterCount.visible"),
       onChangeSettings
     });
     const input = controlElement(
       element,
-      "workbench.statusBar.characterCount.visible"
+      "editor.characterCount.visible"
     );
     const onChange = input.props.onChange as (event: {
       target: { checked: boolean };
@@ -953,15 +997,15 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: defaultApplicationSettings.preview,
-      workbench: {
-        ...defaultApplicationSettings.workbench,
-        statusBar: {
-          ...defaultApplicationSettings.workbench.statusBar,
-          characterCount: { visible: false }
+      workbench: defaultApplicationSettings.workbench,
+      commandPalette: defaultApplicationSettings.commandPalette,
+      editor: {
+        ...defaultApplicationSettings.editor,
+        characterCount: {
+          ...defaultApplicationSettings.editor.characterCount,
+          visible: false
         }
       },
-      commandPalette: defaultApplicationSettings.commandPalette,
-      editor: defaultApplicationSettings.editor,
       markdownFiles: defaultApplicationSettings.markdownFiles,
       textFiles: defaultApplicationSettings.textFiles
     });
@@ -1431,6 +1475,77 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
     );
   });
 
+  it("renders JA options as '文字' and '段落' and EN options as 'Characters' and 'Paragraphs'", () => {
+    const jaView = renderSettingsPanelView("ja", {
+      settings: defaultApplicationSettings,
+      selectedCategoryId: "searchReplace"
+    });
+    expect(jaView).toContain("文字");
+    expect(jaView).toContain("段落");
+    expect(jaView).not.toContain("パラグラフ");
+
+    const enView = renderSettingsPanelView("en", {
+      settings: defaultApplicationSettings,
+      selectedCategoryId: "searchReplace"
+    });
+    expect(enView).toContain("Characters");
+    expect(enView).toContain("Paragraphs");
+  });
+
+  it("enables paragraphDistance and disables characterDistance when unit is paragraphs, preserving values", () => {
+    const paragraphSettings: ApplicationSettings = {
+      ...defaultApplicationSettings,
+      search: {
+        nearby: {
+          unit: "paragraphs",
+          characterDistance: 800,
+          paragraphDistance: 5
+        }
+      }
+    };
+
+    const view = settingsPanelViewElement("ja", {
+      settings: paragraphSettings,
+      selectedCategoryId: "searchReplace"
+    });
+
+    const charInput = controlElement(view, "search.nearby.characterDistance");
+    const paraInput = controlElement(view, "search.nearby.paragraphDistance");
+
+    expect(charInput.props.disabled).toBe(true);
+    expect(charInput.props.value).toBe(800);
+
+    expect(paraInput.props.disabled).toBe(false);
+    expect(paraInput.props.value).toBe(5);
+  });
+
+  it("enables characterDistance and disables paragraphDistance when unit is characters, preserving values", () => {
+    const characterSettings: ApplicationSettings = {
+      ...defaultApplicationSettings,
+      search: {
+        nearby: {
+          unit: "characters",
+          characterDistance: 800,
+          paragraphDistance: 5
+        }
+      }
+    };
+
+    const view = settingsPanelViewElement("ja", {
+      settings: characterSettings,
+      selectedCategoryId: "searchReplace"
+    });
+
+    const charInput = controlElement(view, "search.nearby.characterDistance");
+    const paraInput = controlElement(view, "search.nearby.paragraphDistance");
+
+    expect(charInput.props.disabled).toBe(false);
+    expect(charInput.props.value).toBe(800);
+
+    expect(paraInput.props.disabled).toBe(true);
+    expect(paraInput.props.value).toBe(5);
+  });
+
   it("preserves the save-failure display: the error prop still renders as a settingsError message", () => {
     const markup = renderSettingsPanelView("en", {
       error: "Settings save failed: disk full"
@@ -1652,19 +1767,13 @@ describe("SettingsPanelView: legacy Advanced Settings gate removed (#232)", () =
     ).toBe(true);
   });
 
-  it("disables character-count exclude controls when the status-bar character count toggle is off, preserving their stored values (#259)", () => {
+  it("disables character-count exclude controls when the character count toggle is off, preserving their stored values", () => {
     const settings: ApplicationSettings = {
       ...defaultApplicationSettings,
-      workbench: {
-        ...defaultApplicationSettings.workbench,
-        statusBar: {
-          ...defaultApplicationSettings.workbench.statusBar,
-          characterCount: { visible: false }
-        }
-      },
       editor: {
         ...defaultApplicationSettings.editor,
         characterCount: {
+          visible: false,
           exclude: {
             ...defaultApplicationSettings.editor.characterCount.exclude,
             whitespace: false,
@@ -2090,7 +2199,7 @@ describe("Settings number control right-alignment (common style)", () => {
     // carries the alignment. Anchored on that width so it can't be confused
     // with the shared `.settingsSelect, .settingsTextInput, .settingsNumberInput`
     // box rule or the responsive override.
-    const anchor = ".settingsNumberInput {\n  width: min(100%, 160px);";
+    const anchor = ".settingsNumberInput {\n  width: 140px;";
     const start = css.indexOf(anchor);
     expect(start).toBeGreaterThan(-1);
     const numberRule = css.slice(start, css.indexOf("}", start));
@@ -2318,5 +2427,80 @@ describe("SettingsPanel image attachment save destination workflow (#407 B2 reme
 
     expect(onChangeSettings).not.toHaveBeenCalled();
     expect(container.querySelector(".saveDestinationDialog")).toBeNull();
+  });
+});
+
+describe("SettingsPanel text input layout unification (#721)", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it("renders text inputs inside .settingsItemControl within .settingsItemHeader for aligned right edge", () => {
+    act(() => {
+      root.render(
+        <SettingsPanelView
+          settings={defaultApplicationSettings}
+          isLoading={false}
+          error={null}
+          translate={translateFor("ja")}
+          onChangeSettings={() => {}}
+          selectedCategoryId="editor"
+          onSelectCategory={() => {}}
+          searchQuery=""
+          onSearchQueryChange={() => {}}
+        />
+      );
+    });
+
+    const textInput = container.querySelector<HTMLInputElement>("input.settingsTextInput");
+    expect(textInput).not.toBeNull();
+    const itemControl = textInput?.closest(".settingsItemControl");
+    expect(itemControl).not.toBeNull();
+
+    const header = itemControl?.closest(".settingsItemHeader");
+    expect(header).not.toBeNull();
+  });
+
+  it("uses shared .settingsTextInput class with min(100%, 360px) width and no ad-hoc inline margin/width styles", () => {
+    const css = stylesSource();
+    const sharedSelector = ".settingsSelect,\n.settingsTextInput,\n.settingsNumberInput {";
+    expect(css).toContain(sharedSelector);
+    expect(css).toContain("width: min(100%, 360px);");
+
+    act(() => {
+      root.render(
+        <SettingsPanelView
+          settings={defaultApplicationSettings}
+          isLoading={false}
+          error={null}
+          translate={translateFor("ja")}
+          onChangeSettings={() => {}}
+          selectedCategoryId="editor"
+          onSelectCategory={() => {}}
+          searchQuery=""
+          onSearchQueryChange={() => {}}
+        />
+      );
+    });
+
+    const textInputs = container.querySelectorAll<HTMLInputElement>("input.settingsTextInput");
+    for (const input of Array.from(textInputs)) {
+      expect(input.style.width).toBe("");
+      expect(input.style.margin).toBe("");
+      expect(input.style.marginLeft).toBe("");
+      expect(input.style.marginRight).toBe("");
+    }
   });
 });

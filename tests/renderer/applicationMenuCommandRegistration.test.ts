@@ -221,14 +221,23 @@ describe("application menu command registration", () => {
     );
     registerProjectSettingsCommands(
       registry,
-      { openProjectSettings: () => undefined },
-      { open: "Open Project Settings", openDescription: "Open Project Settings" }
+      {
+      openProjectSettings: () => undefined,
+      exportProjectSettingsJson: () => undefined
+    },
+      {
+        open: "Open Project Settings",
+        openDescription: "Open Project Settings",
+        exportJson: "Export Project Settings as JSON",
+        exportJsonDescription: ""
+      }
     );
     registerWorkspaceCommands(
       registry,
       {
         focusSidebarMode: () => undefined,
         openApplicationSettings: () => undefined,
+        exportApplicationSettingsJson: () => undefined,
         openKeyboardShortcuts: () => undefined,
         showResumeHub: () => undefined,
         canShowResumeHub: () => true
@@ -245,6 +254,8 @@ describe("application menu command registration", () => {
         focusDocumentMetrics: "Focus Document Metrics",
         focusDocumentMetricsDescription: "Focus Document Metrics",
         openApplicationSettings: "Open Application Settings",
+        exportApplicationSettingsJson: "Export Application Settings as JSON",
+        exportApplicationSettingsJsonDescription: "",
         openKeyboardShortcuts: "Open Keyboard Shortcuts",
         openKeyboardShortcutsDescription: "Open Keyboard Shortcuts",
         openApplicationSettingsDescription: "Open Application Settings",

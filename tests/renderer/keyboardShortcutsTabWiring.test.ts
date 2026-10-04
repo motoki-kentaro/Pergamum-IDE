@@ -70,6 +70,7 @@ describe("Keyboard Shortcuts special tab wiring (#646)", () => {
       {
         focusSidebarMode: () => undefined,
         openApplicationSettings: () => undefined,
+        exportApplicationSettingsJson: () => undefined,
         openKeyboardShortcuts: () => {
           opened.push("keyboardShortcuts");
         },

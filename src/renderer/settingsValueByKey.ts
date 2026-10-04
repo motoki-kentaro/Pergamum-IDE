@@ -39,8 +39,6 @@ export function readSettingValue(
       return settings.workbench.language;
     case "workbench.statusBar.visible":
       return settings.workbench.statusBar.visible;
-    case "workbench.statusBar.characterCount.visible":
-      return settings.workbench.statusBar.characterCount.visible;
     case "notification.output.enabled":
       return (
         settings.notification?.output.enabled ??
@@ -95,6 +93,8 @@ export function readSettingValue(
       return settings.editor.whitespace.renderTab;
     case "editor.whitespace.renderOtherUnicodeSpace":
       return settings.editor.whitespace.renderOtherUnicodeSpace;
+    case "editor.characterCount.visible":
+      return settings.editor.characterCount.visible;
     case "editor.characterCount.exclude.whitespace":
       return settings.editor.characterCount.exclude.whitespace;
     case "editor.characterCount.exclude.lineBreaks":

@@ -501,8 +501,8 @@ describe("Application Settings core control translations (#195)", () => {
         "settings.workbench.language.description",
         "settings.workbench.statusBar.visible.label",
         "settings.workbench.statusBar.visible.description",
-        "settings.workbench.statusBar.characterCount.visible.label",
-        "settings.workbench.statusBar.characterCount.visible.description",
+        "settings.editor.characterCount.visible.label",
+        "settings.editor.characterCount.visible.description",
         "settings.workbench.fontFamily.label",
         "settings.workbench.fontFamily.description",
         "settings.workbench.sound.enabled.label",
@@ -840,10 +840,23 @@ describe("Application Settings core control translations (#195)", () => {
     ).toBe("Glossary entry: Order");
   });
 
-  it("defines the status-bar character count message for ja and en (#259)", () => {
-    expect(t("ja", "status.characterCount", { count: 123 })).toBe("123文字");
-    expect(t("en", "status.characterCount", { count: 123 })).toBe(
-      "123 characters"
+  it("defines the approximate editor-header character count message for ja and en (#721)", () => {
+    expect(t("ja", "editor.characterCount.display", { count: "12,345" })).toBe(
+      "12,345文字（概算）"
+    );
+    expect(t("en", "editor.characterCount.display", { count: "12,345" })).toBe(
+      "12,345 char. (approx.)"
+    );
+  });
+
+  it("describes the character count setting without a Markdown-only limit (#721)", () => {
+    expect(
+      t("ja", "settings.editor.characterCount.visible.description")
+    ).toBe("現在の文書の文字数（概算）をエディタヘッダー右端に表示します。");
+    expect(
+      t("en", "settings.editor.characterCount.visible.description")
+    ).toBe(
+      "Show the approximate character count of the current document on the right side of the editor header."
     );
   });
 });

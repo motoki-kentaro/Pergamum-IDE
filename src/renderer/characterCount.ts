@@ -428,6 +428,30 @@ function requiresMarkdownParsing(
   return exclude.headings || exclude.markdownSyntax || exclude.markdownComments;
 }
 
+/**
+ * Plain Text (.txt) has no Markdown semantics, so only the format-neutral
+ * excludes (whitespace / line breaks) apply; headings, Markdown syntax and
+ * Markdown comments are ignored.
+ */
+export function countPlainTextDocumentCharacters(
+  content: string,
+  options: CharacterCountOptions
+): number {
+  return countTextCodePoints(content, options.exclude);
+}
+
+export type CharacterCountDocumentFormat = "markdown" | "plainText";
+
+export function countDocumentCharacters(
+  content: string,
+  format: CharacterCountDocumentFormat,
+  options: CharacterCountOptions
+): number {
+  return format === "plainText"
+    ? countPlainTextDocumentCharacters(content, options)
+    : countMarkdownDocumentCharacters(content, options);
+}
+
 export function countMarkdownDocumentCharacters(
   content: string,
   options: CharacterCountOptions

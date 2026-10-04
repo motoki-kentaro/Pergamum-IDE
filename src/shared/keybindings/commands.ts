@@ -598,6 +598,15 @@ export const keybindingCommands: readonly KeybindingCommand[] = [
     when: whenWorkbench
   }),
   pergamum({
+    id: "workspace.applicationSettings.exportJson",
+    title: "Export Application Settings as JSON",
+    category: "View",
+    description:
+      "Saves the Application Settings as a JSON file.",
+    handlerStatus: registered,
+    when: whenWorkbench
+  }),
+  pergamum({
     id: "workspace.tabs.previous",
     title: "Previous Tab",
     category: "View",
@@ -626,6 +635,15 @@ export const keybindingCommands: readonly KeybindingCommand[] = [
     title: "Open Project Settings",
     category: "View",
     description: "Opens the Project Settings tab.",
+    handlerStatus: registered,
+    when: "project.isOpen"
+  }),
+  pergamum({
+    id: "project.settings.exportJson",
+    title: "Export Project Settings as JSON",
+    category: "View",
+    description:
+      "Saves the Project Settings as a JSON file.",
     handlerStatus: registered,
     when: "project.isOpen"
   }),

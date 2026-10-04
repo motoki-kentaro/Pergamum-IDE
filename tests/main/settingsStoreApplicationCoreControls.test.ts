@@ -78,6 +78,7 @@ const defaultFencedCodeIndentUnit = getCatalogDefaultValue(
 );
 
 const defaultCharacterCountSettings = {
+  visible: getCatalogDefaultValue("editor.characterCount.visible"),
   exclude: {
     whitespace: getCatalogDefaultValue(
       "editor.characterCount.exclude.whitespace"
@@ -98,12 +99,7 @@ const defaultCharacterCountSettings = {
 };
 
 const defaultStatusBarSettings = {
-  visible: getCatalogDefaultValue("workbench.statusBar.visible"),
-  characterCount: {
-    visible: getCatalogDefaultValue(
-      "workbench.statusBar.characterCount.visible"
-    )
-  }
+  visible: getCatalogDefaultValue("workbench.statusBar.visible")
 };
 
 const defaultSoundSettings = {
@@ -676,6 +672,7 @@ describe("settingsStore Application Settings core controls write path (#195)", (
           },
           paragraphIndent: { excludeLeadingCharacters: "「『" },
           characterCount: {
+            ...defaultCharacterCountSettings,
             exclude: {
               ...defaultCharacterCountSettings.exclude,
               headings: true
@@ -751,6 +748,7 @@ describe("settingsStore Application Settings core controls write path (#195)", (
       },
       paragraphIndent: { excludeLeadingCharacters: "「『" },
       characterCount: {
+        visible: getCatalogDefaultValue("editor.characterCount.visible"),
         exclude: {
           ...defaultCharacterCountSettings.exclude,
           headings: true
@@ -1131,13 +1129,19 @@ describe("settingsStore Application Settings core controls write path (#195)", (
         }
       }),
       validSaveRequest({
-        workbench: {
-          language: "ja",
-          statusBar: {
-            visible: true,
-            characterCount: { visible: "yes" as unknown as boolean }
+        editor: {
+          lineEnding: defaultLineEndingSettings,
+          whitespace: defaultWhitespaceSettings,
+          paragraphIndent: defaultParagraphIndentSettings,
+          characterCount: {
+            ...defaultCharacterCountSettings,
+            visible: "yes" as unknown as boolean
           },
-          sound: defaultSoundSettings
+          undoHistoryMinDepth: defaultUndoHistoryMinDepth,
+          selectionHighlightMode: defaultSelectionHighlightMode,
+          findGutterMarkers: defaultFindGutterMarkers,
+          captureTabInEditor: defaultCaptureTabInEditor,
+          fencedCodeIndentUnit: defaultFencedCodeIndentUnit
         }
       }),
       validSaveRequest({
@@ -1161,6 +1165,7 @@ describe("settingsStore Application Settings core controls write path (#195)", (
           whitespace: defaultWhitespaceSettings,
           paragraphIndent: defaultParagraphIndentSettings,
           characterCount: {
+            ...defaultCharacterCountSettings,
             exclude: {
               ...defaultCharacterCountSettings.exclude,
               markdownSyntax: "yes" as unknown as boolean

@@ -259,6 +259,7 @@ export type SettingControl =
       readonly min?: number;
       readonly max?: number;
       readonly step?: number;
+      readonly unitKey?: I18nKey;
     }
   | {
       readonly kind: "custom";
@@ -588,7 +589,8 @@ export const settingCatalogItems = defineSettingCatalog([
       kind: "number",
       min: nearbyCharacterDistanceRange.min,
       max: nearbyCharacterDistanceRange.max,
-      step: 50
+      step: 50,
+      unitKey: "settings.unit.characters"
     },
     defaultValue: getCatalogDefaultValue("search.nearby.characterDistance")
   },
@@ -602,7 +604,8 @@ export const settingCatalogItems = defineSettingCatalog([
       kind: "number",
       min: nearbyParagraphDistanceRange.min,
       max: nearbyParagraphDistanceRange.max,
-      step: 1
+      step: 1,
+      unitKey: "settings.unit.paragraphs"
     },
     defaultValue: getCatalogDefaultValue("search.nearby.paragraphDistance")
   },
@@ -836,16 +839,13 @@ export const settingCatalogItems = defineSettingCatalog([
     )
   },
   {
-    key: "workbench.statusBar.characterCount.visible",
+    key: "editor.characterCount.visible",
     category: "editor",
     order: 400,
-    labelKey: "settings.workbench.statusBar.characterCount.visible.label",
-    descriptionKey:
-      "settings.workbench.statusBar.characterCount.visible.description",
+    labelKey: "settings.editor.characterCount.visible.label",
+    descriptionKey: "settings.editor.characterCount.visible.description",
     control: { kind: "switch" },
-    defaultValue: getCatalogDefaultValue(
-      "workbench.statusBar.characterCount.visible"
-    )
+    defaultValue: getCatalogDefaultValue("editor.characterCount.visible")
   },
   {
     key: "editor.characterCount.exclude.whitespace",
@@ -1113,7 +1113,8 @@ export const settingCatalogItems = defineSettingCatalog([
       kind: "number",
       min: previewUpdateDelayRange.min,
       max: previewUpdateDelayRange.max,
-      step: 1000
+      step: 1000,
+      unitKey: "settings.unit.ms"
     },
     defaultValue: getCatalogDefaultValue("preview.updateDelayMs")
   },
@@ -1185,7 +1186,8 @@ export const settingCatalogItems = defineSettingCatalog([
       kind: "number",
       min: notificationDurationRange.min,
       max: notificationDurationRange.max,
-      step: 1000
+      step: 1000,
+      unitKey: "settings.unit.ms"
     },
     defaultValue: getCatalogDefaultValue(
       "workbench.notification.durationMs"
@@ -1255,7 +1257,8 @@ export const settingCatalogItems = defineSettingCatalog([
     control: {
       kind: "number",
       min: commandPaletteFooterDetailMarqueeDelayRange.min,
-      max: commandPaletteFooterDetailMarqueeDelayRange.max
+      max: commandPaletteFooterDetailMarqueeDelayRange.max,
+      unitKey: "settings.unit.ms"
     },
     defaultValue: getCatalogDefaultValue(
       "commandPalette.footerDetail.marquee.delay"
@@ -1271,7 +1274,8 @@ export const settingCatalogItems = defineSettingCatalog([
     control: {
       kind: "number",
       min: commandPaletteFooterDetailMarqueeSpeedRange.min,
-      max: commandPaletteFooterDetailMarqueeSpeedRange.max
+      max: commandPaletteFooterDetailMarqueeSpeedRange.max,
+      unitKey: "settings.unit.pxPerSecond"
     },
     defaultValue: getCatalogDefaultValue(
       "commandPalette.footerDetail.marquee.speed"
@@ -1288,7 +1292,8 @@ export const settingCatalogItems = defineSettingCatalog([
       kind: "number",
       min: commandPaletteLaunchAnimationDurationRange.min,
       max: commandPaletteLaunchAnimationDurationRange.max,
-      step: COMMAND_PALETTE_LAUNCH_ANIMATION_DURATION_STEP_MS
+      step: COMMAND_PALETTE_LAUNCH_ANIMATION_DURATION_STEP_MS,
+      unitKey: "settings.unit.ms"
     },
     defaultValue: getCatalogDefaultValue(
       "commandPalette.launchAnimation.durationMs"
@@ -1358,7 +1363,8 @@ export const settingCatalogItems = defineSettingCatalog([
       kind: "number",
       min: CARET_WIDTH.min,
       max: CARET_WIDTH.max,
-      step: CARET_WIDTH.step
+      step: CARET_WIDTH.step,
+      unitKey: "settings.unit.px"
     },
     defaultValue: getCatalogDefaultValue("textCursor.width")
   },
@@ -1372,7 +1378,8 @@ export const settingCatalogItems = defineSettingCatalog([
       kind: "number",
       min: CARET_BLINK.min,
       max: CARET_BLINK.max,
-      step: CARET_BLINK.step
+      step: CARET_BLINK.step,
+      unitKey: "settings.unit.ms"
     },
     defaultValue: getCatalogDefaultValue("textCursor.blink")
   }

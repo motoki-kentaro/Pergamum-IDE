@@ -640,16 +640,6 @@ export const settingsCatalog = defineSettingsCatalog({
     deprecatedAliases: [],
     migrationNotes: []
   }),
-  "workbench.statusBar.characterCount.visible": defineBooleanSetting({
-    key: "workbench.statusBar.characterCount.visible",
-    scope: "applicationOnly",
-    defaultValue: true,
-    labelKey: "settings.workbench.statusBar.characterCount.visible.label",
-    descriptionKey:
-      "settings.workbench.statusBar.characterCount.visible.description",
-    deprecatedAliases: [],
-    migrationNotes: []
-  }),
   // #446: application-wide upstream switch for normalizing external-input /
   // saved Unicode text to NFC. Settings-only — no actual normalization is
   // applied by this entry; see src/shared/settings.ts's own comment on the
@@ -892,6 +882,15 @@ export const settingsCatalog = defineSettingsCatalog({
     labelKey: "settings.editor.whitespace.renderOtherUnicodeSpace.label",
     descriptionKey:
       "settings.editor.whitespace.renderOtherUnicodeSpace.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  "editor.characterCount.visible": defineBooleanSetting({
+    key: "editor.characterCount.visible",
+    scope: "applicationOnly",
+    defaultValue: true,
+    labelKey: "settings.editor.characterCount.visible.label",
+    descriptionKey: "settings.editor.characterCount.visible.description",
     deprecatedAliases: [],
     migrationNotes: []
   }),
