@@ -14053,6 +14053,15 @@ export function App(): JSX.Element {
                         isDoubleClickJumpToEditorEnabled={
                           effectiveSettings.preview.doubleClickJumpToEditor
                         }
+                        isGlossaryAnnotationsEnabled={
+                          effectiveSettings.preview.glossaryAnnotations
+                        }
+                        glossaryFallbackColor={
+                          effectiveSettings.documentMap.glossaryFallbackColor
+                        }
+                        glossaryHighlightOpacity={
+                          effectiveSettings.preview.glossaryHighlightOpacity
+                        }
                         activeDocumentKey={serializeEditorId(
                           activeDocument.id
                         )}

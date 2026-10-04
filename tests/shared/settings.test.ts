@@ -115,7 +115,7 @@ describe("preview.updateDelayMs wiring (#250 follow-up)", () => {
   it("resolveEffectiveSettings passes updateDelayMs straight through from application settings — applicationOnly scope, no project override", () => {
     expect(
       resolveEffectiveSettings(
-        { ...defaultApplicationSettings, preview: { renderer: "markdown", updateDelayMs: 800, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true } },
+        { ...defaultApplicationSettings, preview: { renderer: "markdown", updateDelayMs: 800, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 } },
         undefined
       ).preview.updateDelayMs
     ).toBe(800);
@@ -125,7 +125,7 @@ describe("preview.updateDelayMs wiring (#250 follow-up)", () => {
     // resolved value, since this setting has no project scope in the chain.
     expect(
       resolveEffectiveSettings(
-        { ...defaultApplicationSettings, preview: { renderer: "markdown", updateDelayMs: 800, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true } },
+        { ...defaultApplicationSettings, preview: { renderer: "markdown", updateDelayMs: 800, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 } },
         { preview: { renderer: "markdown" } }
       ).preview.updateDelayMs
     ).toBe(800);
@@ -134,7 +134,7 @@ describe("preview.updateDelayMs wiring (#250 follow-up)", () => {
   it("0 is a valid effective value — no fallback kicks in for the explicit 'don't wait' choice", () => {
     expect(
       resolveEffectiveSettings(
-        { ...defaultApplicationSettings, preview: { renderer: "markdown", updateDelayMs: 0, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true } },
+        { ...defaultApplicationSettings, preview: { renderer: "markdown", updateDelayMs: 0, syncScrollEditorToPreview: true, syncScrollPreviewToEditor: true, doubleClickJumpToEditor: true, glossaryAnnotations: false, glossaryHighlightOpacity: 0.35 } },
         undefined
       ).preview.updateDelayMs
     ).toBe(0);

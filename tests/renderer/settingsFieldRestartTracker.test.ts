@@ -24,6 +24,10 @@ function baseApplicationSettings(
       ),
       doubleClickJumpToEditor: getCatalogDefaultValue(
         "preview.doubleClickJumpToEditor"
+      ),
+      glossaryAnnotations: getCatalogDefaultValue("preview.glossaryAnnotations"),
+      glossaryHighlightOpacity: getCatalogDefaultValue(
+        "preview.glossaryHighlightOpacity"
       )
     },
     workbench: {

@@ -1,3 +1,13 @@
+import {
+  normalizeGlossaryRgbHex,
+  primaryGlossaryTag,
+  type GlossaryEntry
+} from "../shared/glossary";
+import { autoGlossaryTagForegroundRgb } from "../shared/glossaryTagColor";
+import {
+  defaultDocumentMapSettings,
+  normalizeDocumentMapColor
+} from "../shared/documentMapSettings";
 import type {
   GlossarySurfaceIndex,
   GlossarySurfaceTextMatch
@@ -104,4 +114,74 @@ export function buildGlossarySurfaceDecorationSegments(
   }
 
   return segments;
+}
+
+export interface GlossaryDecorationColors {
+  readonly backgroundRgb: string;
+  readonly foregroundRgb: string;
+}
+
+/** The container variable holding the highlight alpha (a number, 0..1). */
+export const GLOSSARY_HIGHLIGHT_OPACITY_VAR = "--glossary-highlight-opacity";
+
+/**
+ * #731: the one place a stored `#rrggbb` is converted for a translucent
+ * background: its `"r g b"` channels. The stored colour is never rewritten;
+ * styles.css composes `rgb(<channels> / var(--glossary-highlight-opacity))`, so
+ * changing `preview.glossaryHighlightOpacity` repaints every decoration without
+ * re-decorating. Foreground never gets alpha.
+ */
+export function glossaryDecorationRgbChannels(backgroundRgb: string): string {
+  const hex = normalizeGlossaryRgbHex(backgroundRgb).slice(1);
+  const [r, g, b] = [0, 2, 4].map((offset) =>
+    Number.parseInt(hex.slice(offset, offset + 2), 16)
+  );
+
+  return `${r} ${g} ${b}`;
+}
+
+/** The value for { GLOSSARY_HIGHLIGHT_OPACITY_VAR}: clamped to 0..1. */
+export function glossaryHighlightOpacityValue(opacity: number): string {
+  const clamped = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0;
+
+  return String(Number(clamped.toFixed(4)));
+}
+
+/**
+ * #731: Preview decoration colours for one entry. An entry with tags uses its
+ * PRIMARY (first-assigned, `tags[0]`) tag's stored `backgroundRgb` /
+ * `foregroundRgb` pair verbatim (no alpha, no Document Map visibility
+ * adjustment). An entry without tags returns `null`: the caller paints it with
+ * the `documentMap.glossaryFallbackColor` pair (see
+ * {@link glossaryFallbackDecorationColors}).
+ */
+export function glossaryDecorationColorsForEntry(
+  entry: Pick<GlossaryEntry, "tags"> | undefined
+): GlossaryDecorationColors | null {
+  const primaryTag = entry ? primaryGlossaryTag(entry) : null;
+
+  return primaryTag
+    ? {
+        backgroundRgb: primaryTag.backgroundRgb,
+        foregroundRgb: primaryTag.foregroundRgb
+      }
+    : null;
+}
+
+/**
+ * The untagged-entry pair: `documentMap.glossaryFallbackColor` as the
+ * background, with the foreground derived by the same YIQ policy that seeds a
+ * new Glossary tag's foreground.
+ */
+export function glossaryFallbackDecorationColors(
+  fallbackColor: string | undefined
+): GlossaryDecorationColors {
+  const backgroundRgb =
+    normalizeDocumentMapColor(fallbackColor) ??
+    defaultDocumentMapSettings().glossaryFallbackColor;
+
+  return {
+    backgroundRgb,
+    foregroundRgb: autoGlossaryTagForegroundRgb(backgroundRgb)
+  };
 }

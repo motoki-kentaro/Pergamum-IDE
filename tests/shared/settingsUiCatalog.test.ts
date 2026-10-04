@@ -220,6 +220,8 @@ describe("Settings UI Catalog Schema (#226)", () => {
           "imageAttachment.saveDirectory",
           "preview.renderer",
           "preview.fontFamilyList",
+          "preview.glossaryAnnotations",
+          "preview.glossaryHighlightOpacity",
           "preview.doubleClickJumpToEditor",
           "preview.syncScrollEditorToPreview",
           "preview.syncScrollPreviewToEditor",

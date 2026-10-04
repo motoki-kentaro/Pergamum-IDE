@@ -138,7 +138,8 @@ export function DocumentMapSettingsSection({
   const colorField = (
     label: string,
     field: "narrationColor" | "glossaryFallbackColor",
-    settingKey: string
+    settingKey: string,
+    description?: string
   ): JSX.Element => {
     const value = draft[field];
     return (
@@ -148,6 +149,9 @@ export function DocumentMapSettingsSection({
           <SettingsColorInput value={value} disabled={isLoading} label={label} translate={translate} normalizeOnChange={false}
             onChange={color => commit({ ...draft, [field]: color })} />
         </label>
+        {description ? (
+          <p className="documentMapSettingsHint">{description}</p>
+        ) : null}
         {/* Setting-key line, same look as the Application settings rows. */}
         <code className="settingsItemKey">{settingKey}</code>
       </div>
@@ -222,7 +226,8 @@ export function DocumentMapSettingsSection({
       {colorField(
         translate("settings.documentMap.glossaryFallbackColor.label"),
         "glossaryFallbackColor",
-        "documentMap.glossaryFallbackColor"
+        "documentMap.glossaryFallbackColor",
+        translate("settings.documentMap.glossaryFallbackColor.description")
       )}
 
       {/* Same switch UI as the catalog-driven boolean settings (#375 fix):

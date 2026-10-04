@@ -125,7 +125,9 @@ function saveRequest(
       updateDelayMs: 10000,
       syncScrollEditorToPreview: true,
       syncScrollPreviewToEditor: true,
-      doubleClickJumpToEditor: true
+      doubleClickJumpToEditor: true,
+      glossaryAnnotations: false,
+      glossaryHighlightOpacity: 0.35
     },
     workbench: {
       sound: defaultSoundSettings,
@@ -420,7 +422,9 @@ describe("settingsStore workbench.language / workbench.statusBar.visible write p
       updateDelayMs: 10000,
       syncScrollEditorToPreview: true,
       syncScrollPreviewToEditor: true,
-      doubleClickJumpToEditor: true
+      doubleClickJumpToEditor: true,
+      glossaryAnnotations: false,
+      glossaryHighlightOpacity: 0.35
     });
     expect(written.workbench.fontFamily).toBe("Fira Code");
     expect(written.workbench.sound).toEqual(defaultSoundSettings);

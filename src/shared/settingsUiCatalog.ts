@@ -260,6 +260,9 @@ export type SettingControl =
       readonly max?: number;
       readonly step?: number;
       readonly unitKey?: I18nKey;
+      /** #731: render a slider (`step`) next to the number input, whose
+       *  spinner / ArrowUp / ArrowDown move by `spinStep` instead. */
+      readonly slider?: { readonly step: number; readonly spinStep: number };
     }
   | {
       readonly kind: "custom";
@@ -417,6 +420,9 @@ const commandPaletteFooterDetailMarqueeSpeedRange = getCatalogEntry(
 ).numericRange;
 const commandPaletteLaunchAnimationDurationRange = getCatalogEntry(
   "commandPalette.launchAnimation.durationMs"
+).numericRange;
+const glossaryHighlightOpacityRange = getCatalogEntry(
+  "preview.glossaryHighlightOpacity"
 ).numericRange;
 const previewUpdateDelayRange = getCatalogEntry(
   "preview.updateDelayMs"
@@ -1102,6 +1108,30 @@ export const settingCatalogItems = defineSettingCatalog([
     descriptionKey: "settings.preview.fontFamilyList.description",
     control: { kind: "custom", customKind: "fontFamilyList" },
     defaultValue: getCatalogDefaultValue("preview.fontFamilyList")
+  },
+  {
+    key: "preview.glossaryAnnotations",
+    category: "preview",
+    order: 110,
+    labelKey: "settings.preview.glossaryAnnotations.label",
+    descriptionKey: "settings.preview.glossaryAnnotations.description",
+    control: { kind: "switch" },
+    defaultValue: getCatalogDefaultValue("preview.glossaryAnnotations")
+  },
+  {
+    key: "preview.glossaryHighlightOpacity",
+    category: "preview",
+    order: 115,
+    labelKey: "settings.preview.glossaryHighlightOpacity.label",
+    descriptionKey: "settings.preview.glossaryHighlightOpacity.description",
+    control: {
+      kind: "number",
+      min: glossaryHighlightOpacityRange.min,
+      max: glossaryHighlightOpacityRange.max,
+      step: glossaryHighlightOpacityRange.granularity,
+      slider: { step: 0.05, spinStep: 0.1 }
+    },
+    defaultValue: getCatalogDefaultValue("preview.glossaryHighlightOpacity")
   },
   {
     key: "preview.updateDelayMs",

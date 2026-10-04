@@ -59,6 +59,7 @@ import {
 } from "./editorLineEndingField";
 import type { PendingMarkdownSelection } from "./pendingMarkdownSelection";
 import { GlossaryPreviewDecorator } from "./GlossaryPreviewDecorator";
+import { emptyGlossarySurfaceIndex } from "../shared/glossarySurfaceMatching";
 import {
   collectPreviewAnchors,
   collectPreviewBlockRefs,
@@ -508,6 +509,12 @@ interface EditorSurfaceProps {
   isSyncScrollEditorToPreviewEnabled: boolean;
   isSyncScrollPreviewToEditorEnabled: boolean;
   isDoubleClickJumpToEditorEnabled: boolean;
+  /** #731: `preview.glossaryAnnotations` — Preview glossary decoration + hover card. */
+  isGlossaryAnnotationsEnabled?: boolean;
+  /** #731: `documentMap.glossaryFallbackColor`, for untagged Preview decorations. */
+  glossaryFallbackColor?: string;
+  /** #731: `preview.glossaryHighlightOpacity`. */
+  glossaryHighlightOpacity?: number;
   /**
    * Stable identity of the active tab (#250) — used only to know when the
    * user has switched to a *different* open document, so a debounced
@@ -762,6 +769,9 @@ function TextEditorSurface({
   isSyncScrollEditorToPreviewEnabled,
   isSyncScrollPreviewToEditorEnabled,
   isDoubleClickJumpToEditorEnabled,
+  isGlossaryAnnotationsEnabled = false,
+  glossaryFallbackColor,
+  glossaryHighlightOpacity,
   activeDocumentKey,
   documentStates,
   previewRenderer,
@@ -902,6 +912,9 @@ function TextEditorSurface({
           isSyncScrollEditorToPreviewEnabled={isSyncScrollEditorToPreviewEnabled}
           isSyncScrollPreviewToEditorEnabled={isSyncScrollPreviewToEditorEnabled}
           isDoubleClickJumpToEditorEnabled={isDoubleClickJumpToEditorEnabled}
+          isGlossaryAnnotationsEnabled={isGlossaryAnnotationsEnabled}
+          glossaryFallbackColor={glossaryFallbackColor}
+          glossaryHighlightOpacity={glossaryHighlightOpacity}
           documentKey={activeDocumentKey}
           documentStates={documentStates}
           // #573 Slice 3: glossary Description always previews as plain
@@ -1001,6 +1014,9 @@ interface MarkdownEditorSurfaceProps {
   isSyncScrollEditorToPreviewEnabled: boolean;
   isSyncScrollPreviewToEditorEnabled: boolean;
   isDoubleClickJumpToEditorEnabled: boolean;
+  isGlossaryAnnotationsEnabled?: boolean;
+  glossaryFallbackColor?: string;
+  glossaryHighlightOpacity?: number;
   documentKey: string;
   /** #392: see EditorSurfaceProps's own doc comment. */
   documentStates?: Map<string, MarkdownEditorDocumentState>;
@@ -1139,6 +1155,9 @@ function MarkdownEditorSurface({
   isSyncScrollEditorToPreviewEnabled,
   isSyncScrollPreviewToEditorEnabled,
   isDoubleClickJumpToEditorEnabled,
+  isGlossaryAnnotationsEnabled = false,
+  glossaryFallbackColor,
+  glossaryHighlightOpacity,
   documentKey,
   documentStates,
   previewRenderer,
@@ -3661,7 +3680,16 @@ function MarkdownEditorSurface({
           ) : null}
           <GlossaryPreviewDecorator
             previewHtml={previewHtml}
-            surfaceIndex={surfaceIndex}
+            surfaceIndex={
+              isGlossaryAnnotationsEnabled
+                ? surfaceIndex
+                : emptyGlossarySurfaceIndex
+            }
+            glossaryEntries={
+              isGlossaryAnnotationsEnabled ? glossaryEntries : undefined
+            }
+            glossaryFallbackColor={glossaryFallbackColor}
+            glossaryHighlightOpacity={glossaryHighlightOpacity}
             previewRenderer={previewRenderer}
             narouMarkText={narouMarkText}
             translate={translate}
