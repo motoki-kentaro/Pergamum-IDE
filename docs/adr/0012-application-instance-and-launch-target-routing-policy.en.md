@@ -1,64 +1,30 @@
 # ADR-0012: Application Instance and Launch Target Routing Policy
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Date:** 2026-09-02
 
-> On Status: this ADR records the policy / architecture decision from Issue #278. The actual `second-instance` wiring, primary handoff, routing queue, and window registry are not implemented and are delegated to follow-up Issues. Promotion to Accepted will be considered after PO review.
+**Updated:** 2026-10-05 (Issue #738)
+
+> On Status: Issue #738 updates the Issue #278 proposal to the v0.90 process-per-window / Primary Router policy. Runtime routing remains unimplemented. All policies were approved at PO review on 2026-10-05, and the status is Accepted.
 
 ---
 
 ## Context
 
-Pergamum's current implementation is roughly:
+Issue #278 proposed the routing policy for launch targets received from the OS / command line / file association while Pergamum is already running. Issue #738 updates it to **process-per-window + Primary Router**, the formal policy for v0.90.
 
 ```text
-1 process
-  └ 1 BrowserWindow
-      └ 1 Session
+1 Pergamum process = 1 BrowserWindow = 1 Session / current project context
+
+Pergamum process A         Pergamum process B
+  └ Window A                 └ Window B
+      └ Session A                └ Session B
 ```
 
-At the same time, Pergamum has not adopted a strict single-app-instance model, so multiple application processes can run at the same time.
+#272 introduced Session restore-set persistence, and #274 limited cold-start restore to at most one Session. ADR-0010 / #347 defined and implemented cold-start `.pergamum` / Markdown routing. This ADR reuses those safety conditions and defines routing in the already-running state. Multiple BrowserWindows within one process are not a v0.90 requirement.
 
-```text
-Pergamum process A
-  └ Session A
-
-Pergamum process B
-  └ Session B
-```
-
-#272 introduced Session restore-set persistence, so multiple processes can persist multiple Sessions into the restore set. #274 kept cold start aligned with the current single-window architecture by restoring at most one Session. ADR-0010 defined cold-start file-open routing, while leaving runtime `second-instance`, macOS `open-file`, existing-window focus / routing, and an instance registry as future work.
-
-Issue #278 defines that remaining area: **when Pergamum is already running and a launch target arrives from the OS / command line / file association, which process / window / Session should receive it**.
-
-This ADR adds no implementation. It fixes the application instance model and launch target routing policy first, so follow-up implementation Issues do not add ad-hoc routing policies.
-
-### Conceptual Overview
-
-The following diagram shows the relationship between application instances, primary routing, routing readiness, the queue, and windows.
-
-```mermaid
-flowchart TD
-  target["Launch target<br/>OS / argv / file association / second-instance"]
-
-  subgraph instances["Multiple application instances allowed"]
-    primary["Primary instance<br/>first-started"]
-    secondary["Secondary instance(s)<br/>may exist"]
-  end
-
-  target --> primary
-  primary --> ready{"routing ready?"}
-  ready -->|No| queue["Queue"]
-  queue --> later["Process after ready"]
-  later --> decision["Routing decision"]
-  ready -->|Yes| decision
-  decision --> window["Appropriate window"]
-
-  primary --> primaryWindow["Window(s)"]
-  secondary --> secondaryWindow["Window(s)"]
-  secondary -.-> noAdHoc["Not an ad-hoc<br/>routing owner"]
-```
+This ADR defines policy only. Runtime handoff / routing / queue / child spawn remain unimplemented and belong to separate Issues after the ADR update and PO review.
 
 ---
 
@@ -77,23 +43,23 @@ flowchart TD
 
 **Application instance**
 
-One Pergamum application process / run. It corresponds to the execution unit represented by `instanceRunId`. One application instance may contain multiple windows in the future, but an application instance, a window, and a Session are not the same concept.
+One Pergamum application process / run, represented by `instanceRunId`. In v0.90, one process owns one BrowserWindow and one Session / current project context. Process identity and logical Session identity remain distinct.
 
-**Primary instance**
+**Primary Router**
 
-The first-started reachable Pergamum application instance. It acts as the representative entry point for launch target routing. This ADR does not define the concrete primary liveness / stale-primary takeover conditions.
+The oldest reachable Pergamum process. It is the representative entry point for external launch target routing; this does not imply Recovery / Session persistence / Project write lock ownership. Concrete primary election, reachability / liveness, and stale-primary takeover conditions belong to follow-up Issues.
 
-**Launch target**
+**Launch target / internal routed launch**
 
-A file-open request delivered from the OS / command line / file association / Electron `second-instance` style handoff / future macOS `open-file`. The target is either a `.pergamum` project file or a Markdown file.
+A launch target is a `.pergamum` or Markdown file-open request delivered through OS file association / shell double-click / command line・argv / Electron `second-instance` style handoff / future macOS `open-file`. An internal routed launch is a child process launch performed by Primary as a routing destination and is distinguished from an external launch.
 
 **Routing ready**
 
-The lifecycle point at which the primary instance has completed startup / Session restore enough to safely execute incoming launch-target routing decisions. The concrete ready condition is defined by a follow-up Issue.
+The lifecycle point at which Primary has completed startup / Session Restore enough to safely process incoming targets. Follow-up Issues define the concrete condition.
 
 **Project Document / Standalone Markdown**
 
-This ADR uses the document-kind definitions from ADR-0010. A Project Document is a Markdown document owned by a Pergamum project. Standalone Markdown is an external Markdown document that is not owned by a project.
+This ADR uses ADR-0010 document kinds. A Project Document is project-owned Markdown; Standalone Markdown is an External File Document with no enclosing project. Window context and document kind are independent axes.
 
 ---
 
@@ -101,192 +67,128 @@ This ADR uses the document-kind definitions from ADR-0010. A Project Document is
 
 ### Application instance model
 
-**AIR-1. Pergamum allows multiple application instances.**
+**AIR-1. v0.90 adopts the process-per-window model.**
 
-Pergamum does not adopt a strict single-app-instance model. The existence of multiple application processes / runs is an accepted condition.
+The formal policy is `1 process = 1 BrowserWindow = 1 Session / current project context`. Multiple windows are provided by multiple Pergamum processes. Strict single-app-instance enforcement is not adopted. An in-process BrowserWindow registry is not a v0.90 requirement and is Future Work alongside in-process multi-window support.
 
-**AIR-2. File-open launch targets are routed to the first-started primary instance when possible.**
+**AIR-2. External launch targets converge on the Primary Router when possible.**
 
-File-open requests delivered through OS file association, command line, Electron `second-instance` style launch targets, and future macOS `open-file` are delivered to the first-started primary instance when possible.
+The Primary Router is the oldest reachable Pergamum process. Platform entry points follow the same policy. A cold start with no Primary follows existing ADR-0010 routing. This ADR does not prescribe a concrete handoff / election mechanism.
 
-This is not strict single-instance enforcement. The primary instance is the representative entry point for launch target routing; it does not prohibit other application instances from existing.
+**AIR-3. Primary owns launch-routing decisions.**
 
-**AIR-3. The primary instance owns launch-routing decisions.**
+Based on target kind and its own current Project, Primary decides whether to handle the target itself, route to a new process, or reject safely. Secondary processes must not perform random process selection / ad-hoc routing. Searching other processes for an already-open project and delivering there is not part of the v0.90 policy.
 
-When the primary instance receives a launch target, it decides whether to activate an existing window, open a new window, or reject the target based on the target kind and project ownership.
+**AIR-4. Incoming targets before routing readiness are queued.**
 
-Secondary instances must not perform random process selection or ad-hoc routing on their own.
+Targets that cannot safely be processed during startup / Session Restore must not be dropped. Keep them queued and process them after readiness. Physical queue implementation, ordering, deduplication, and failure handling belong to follow-up Issues.
 
-**AIR-4. Incoming launch targets before routing readiness are queued.**
+**AIR-5. Routing must not implicitly replace existing working environments.**
 
-If the primary instance is still in startup / Session restore and is not routing-ready, incoming launch targets must be queued.
-
-A launch target must not be dropped merely because startup / Session restore is still running. Queued launch targets are processed after routing becomes ready.
-
-The physical queue implementation, ordering, deduplication, and failure handling are defined by follow-up Issues.
-
-**AIR-5. Launch routing must not silently discard dirty working copies in existing windows.**
-
-Launch target routing must not implicitly replace the Project / Session / dirty working copy in an existing window.
-
-A `.pergamum` launch target is not a Project switch for an existing window. If the term Project switch is used, its meaning must be explicitly defined elsewhere.
+Do not silently discard existing Projects / Sessions / dirty working copies for routing. In particular, Markdown outside the current Project and runtime `.pergamum` targets are delivered to a new process without changing Primary's Project / Session / dirty documents. Project-owned Markdown received by a projectless Primary uses the existing project-open lifecycle under MD-2.
 
 ### Launch target routing flow
 
-The following diagram shows the policy decision flow after a launch target is received.
+This is a conceptual policy diagram; input validation and safe rejection apply to every processing path.
 
 ```mermaid
 flowchart TD
-  start["Receive launch target"] --> ready{"routing ready?"}
-  ready -->|No| queue["Queue"]
-  queue --> afterReady["Process after ready"]
-  afterReady --> kind{"target kind"}
-  ready -->|Yes| kind
-
-  kind -->|.pergamum| projectWindow["New project window"]
-  projectWindow --> keep["Existing windows / dirty documents unchanged"]
-  projectWindow --> lock{"write lock?"}
-  lock -->|available| writable["Writable open"]
-  lock -->|owned| readOnly["Read-only project open flow"]
-
-  kind -->|Markdown| ownership{"project ownership"}
-  ownership -->|1 project root| openProject{"project window open?"}
-  openProject -->|Yes| existing["Activate existing window<br/>Project Document"]
-  openProject -->|No| newProject["New project window<br/>Project Document"]
-  ownership -->|No project root| standalone["New window<br/>Standalone Markdown"]
-  ownership -->|Multiple / ambiguous| mdReject["Reject<br/>user-visible error"]
-
-  kind -->|Unknown / unsupported| reject["Reject<br/>user-visible error"]
+  target["External launch target"] --> primary["Primary Router: oldest reachable process"]
+  primary --> ready{"routing ready?"}
+  ready -->|No| queue["Queue: do not drop"]
+  queue --> ready
+  ready -->|Yes| kind{"Validated target kind"}
+  kind -->|.pergamum| child["Spawn new process with target"]
+  kind -->|Markdown| hasProject{"Primary has current Project?"}
+  hasProject -->|No| self["Primary: reuse ADR-0010 routing semantics"]
+  hasProject -->|Yes| belongs{"Belongs to current Project safely?"}
+  belongs -->|Yes| projectDoc["Primary: open Project Document"]
+  belongs -->|No| child
+  belongs -->|Unsafe| reject["Safe rejection: user-visible failure"]
+  kind -->|Unsupported / unsafe| reject
+  child --> bypass["Child: no re-handoff to Primary"]
+  bypass --> cold["Child: existing cold-start routing"]
 ```
-
----
 
 ### `.pergamum` launch targets
 
-**PERGAMUM-1. When the primary instance receives a `.pergamum` launch target, it opens the target project in a new window.**
+**PERGAMUM-1. Runtime `.pergamum` targets route to a new process.**
 
-It does not replace the project currently open in an existing window.
+Whether or not Primary has a Project, pass the target to a new Pergamum process and open it through that process's existing cold-start project open. Do not implicitly Close Project / switch Project in an existing window. Cold start itself follows ADR-0010 and may open the target project in that process's first window.
 
-On cold start, the first window created by that launch may be the target project window. In the already-running state, if an existing window is already present, a new window is created.
+**PERGAMUM-2. Existing windows and dirty documents remain unchanged.**
 
-**PERGAMUM-2. Existing windows and dirty documents are unchanged.**
+Because the source window does not switch Project, dirty confirmation there is unnecessary. This does not bypass the destination's existing project-open lifecycle / confirmation.
 
-A `.pergamum` launch target is not a Project switch for an existing window, so dirty confirmation is not required for that existing window.
+**PERGAMUM-3. Attempt an open in a new process even if the same project is already open.**
 
-**PERGAMUM-3. Even if the same project is already open, Pergamum still attempts to open a new window.**
-
-If the same project is already open in another window or another instance, the launch target is not satisfied by merely activating that existing window. Pergamum attempts to open a new window.
-
-The existing Project write lock / read-only project open policy then applies.
-
-- If the target project's write lock can be acquired, open writable.
-- If the write lock is already owned, follow the existing read-only project open flow.
-
-Launch routing must not steal the Project write lock.
+Do not satisfy the request merely by activating an existing same-project window. The child follows existing Project write lock / read-only confirmation policy. Open writable if the lock is available; use the explicit read-only confirmation flow if an owner already exists. Cancel / failure fails safely; routing must not steal the lock.
 
 **PERGAMUM-4. Project identity is `metadata.project_id`.**
 
-The `.pergamum` file path is a locator, not Project identity. Project name is not identity either. This uses ADR-0008's `metadata.project_id` policy.
-
-#### Example: different project
+Under ADR-0008, the `.pergamum` path is a locator and the project name is a display name; neither is identity.
 
 ```text
-Window A is open with A.pergamum.
-User double-clicks B.pergamum.
-The launch target is routed to the primary instance.
-The primary instance opens a new Window B.
-B.pergamum opens in Window B.
-Window A remains unchanged.
+Primary process A / Window A: A.pergamum
+External launch: B.pergamum (or A.pergamum again)
+  -> Primary spawns process B with target
+  -> B bypasses re-handoff and performs cold-start project open
+  -> Window A remains unchanged; B follows existing lock / read-only policy
 ```
-
-#### Sequence: Open B.pergamum from A.pergamum
-
-```mermaid
-sequenceDiagram
-  participant U as User
-  participant OS as OS / shell
-  participant P as Primary instance
-  participant WA as Window A
-  participant WB as Window B
-
-  U->>OS: Double-click B.pergamum
-  OS->>P: Deliver launch target
-  P->>WB: Create Window B
-  WB->>WB: Open B.pergamum
-  Note over WA: A.pergamum remains unchanged
-  Note over WA: No dirty confirmation
-```
-
-#### Example: same project
-
-```text
-Window A is open with A.pergamum.
-User double-clicks A.pergamum again.
-Pergamum still attempts to open a new window.
-If Window A owns the write lock, the new window follows the read-only project open policy.
-```
-
----
 
 ### Markdown launch targets
 
-**MD-1. Markdown launch targets are classified by project ownership.**
+**MD-1. Determine Primary's current Project from authoritative main-process state.**
 
-A Markdown launch target is first classified by Project ownership.
+Existing `currentProjectRootPath()` / `currentProjectId()` / `currentActiveProjectFilePath()` are reference examples, not a fixed API contract. Do not infer Project presence from renderer appearance or the active tab.
 
-If Project ownership can be safely resolved to exactly one Pergamum project, the Markdown is treated as a Project Document. If Project ownership cannot be determined safely and uniquely, Pergamum must not guess and promote it to a Project Document.
+**MD-2. A projectless Primary handles incoming Markdown itself.**
 
-**MD-2. If the Markdown file is under exactly one Pergamum project root, route it to that project.**
+Reuse the ADR-0010 / #347 classifier and cold-start routing semantics.
 
-The Markdown file opens as a Project Document.
+- No enclosing project: open as Standalone / External File Document in Primary's window.
+- Exactly one `.pergamum` in the nearest enclosing root: open the project through Primary's existing project-open lifecycle, then open the target as a Project Document. Preserve Project lock / read-only confirmation.
+- Ambiguous / unsafe: follow existing safe rejection policy.
 
-**MD-3. If that project is already open in a window, activate that existing project window and open the Markdown file there.**
+This is runtime open; it does not rerun Primary's entire startup / Session Restore. Preserve the non-destructive contract for existing dirty working copies.
 
-Unlike a `.pergamum` launch target, this case does not prefer a new window. The target file belongs to an existing project work environment, so it routes there.
+**MD-3. Markdown belonging to the current Project opens in Primary as a Project Document.**
 
-If the target project is open in multiple windows, the window selection policy is a follow-up.
+Membership checks must align with existing project-boundary / `realpath` safety policy. Use the already-open current Project context; opening Markdown from that project externally must not create another process / read-only window. If the target cannot be resolved as a Project Document, surface a safe failure / status and never fall back to standalone writable.
 
-**MD-4. If that project is not open, open a new window for the project and open the Markdown file as a Project Document.**
+**MD-4. Markdown outside the current Project routes to a new process.**
 
-The project open must not bypass the existing project-open lifecycle or Project write lock / read-only policy.
+A target safely determined not to belong to the current Project is passed to a new Pergamum process and handled through the child's normal cold-start routing. Primary's current Project / Session / dirty documents remain unchanged. Even if the target project is open in another process, do not search for that window to activate it. If the child discovers an enclosing project, it follows existing lock / read-only policy.
 
-**MD-5. If the Markdown file is not under a Pergamum project root, open it as a Standalone Markdown document in a new window.**
+**MD-5. Do not duplicate classifier / safety policy.**
 
-No project owns the file, so it is not promoted to a Project Document.
+Reuse ADR-0010 / #347 and the policy in existing `src/main/startupLaunchTarget.ts` / `src/main/startupMarkdownRouting.ts`. Apply the same boundary and path safety conditions to current Project membership checks.
 
-**MD-6. If the Markdown file is under multiple possible Pergamum project roots, reject it as ambiguous.**
+- Preserve the `.md` / `.markdown` entry-name allowlist, local regular file validation, and URL-like input rejection (`.pergamum` also rejects URL-like input).
+- Resolve symlinks with `realpath` before enclosing-project discovery. Classify extensions by entry name; do not add validation of the real target's extension (ADR-0010 PATH-4 / PATH-5).
+- Enclosing-project discovery uses ADR-0010's nearest ancestor rule. Do not add blanket rejection merely because nested roots exist. Reject multiple `.pergamum` files in the nearest root or any state that cannot be safely and uniquely resolved.
+- Never fall back to standalone writable for project-owned Markdown. Project opens go through existing lifecycle / write lock / read-only confirmation.
+- Safety-relevant discovery / I/O / permission / unresolved symlink / document resolution failures fail safely with a user-visible explanation.
 
-For nested project roots, multiple project candidates, or any state where the active project file cannot be uniquely determined, Pergamum must not guess. It presents a user-visible error and opens nothing.
+This ADR does not resolve ADR-0010's known limitations, including hardlink identity, standalone cross-process locking, and protection coverage for Recovery non-owners.
 
-**MD-7. The case where the same standalone Markdown file is already open in another window / process is a follow-up.**
+**MD-6. Duplicate handling for the same standalone Markdown is a follow-up.**
 
-Duplicate editor prevention / cross-process locking / activation policy for Standalone Markdown is not decided by this ADR.
+Duplicate editor prevention / cross-process locking / activation of another window is not decided here.
 
-#### Example: project-owned Markdown
+| Primary context | Incoming Markdown | Destination |
+| --- | --- | --- |
+| Projectless | No enclosing project | Primary: External File Document |
+| Projectless | One safely resolved enclosing project | Primary: project-open lifecycle → Project Document |
+| Current Project A | Belongs to A | Primary: Project Document |
+| Current Project A | Outside A (external or another project) | New process: ADR-0010 cold-start routing |
+| Any | Unsafe / unresolved classification | Safe rejection; no standalone writable fallback |
 
-```text
-Window A is open with A.pergamum.
-User double-clicks A/chapter.md.
-Pergamum activates Window A.
-chapter.md opens as a Project Document in Window A.
-```
+### Spawned child bypass contract
 
-#### Sequence: Open project-owned Markdown
+**CHILD-1. A routing destination child must not re-handoff its supplied target to Primary.**
 
-```mermaid
-sequenceDiagram
-  participant U as User
-  participant OS as OS / shell
-  participant P as Primary instance
-  participant WA as Window A
-
-  U->>OS: Double-click A/chapter.md
-  OS->>P: Deliver launch target
-  P->>P: Resolve project ownership
-  P->>P: Find A project open in Window A
-  P->>WA: Activate Window A
-  P->>WA: Open chapter.md as Project Document
-```
+Distinguish external launches from internal routed launches spawned by Primary. The child handles that target through its own cold-start routing. This prevents the infinite loop `Primary → spawn child → handoff to Primary → spawn child → ...`. Concrete CLI flag names, transport, and spawn implementation belong to follow-up Issues.
 
 ---
 
@@ -329,25 +231,23 @@ The primary instance is the representative entry point for launch target routing
 
 **LIFE-1. `sessionId` is logical working environment identity; `instanceRunId` is process/run identity.**
 
-The ADR-0009 / #274 contract is preserved. A restored Session keeps the same `sessionId`, and a new run gets a new `instanceRunId`.
+Preserve the ADR-0009 / #274 contract. A restored Session retains its `sessionId`; a new run gets a new `instanceRunId`.
 
-**LIFE-2. Launch targets must not be implicitly merged into unrelated Sessions.**
+**LIFE-2. Do not implicitly merge launch targets into unrelated Sessions.**
 
-A `.pergamum` launch target does not replace an unrelated Session in an existing window. A Markdown launch target routes according to Project ownership. Routing must not silently change open editors / dirty state in an unrelated Session.
+Targets outside the current Project are delivered to a separate process's working environment. Opens in a projectless Primary also follow existing lifecycle and dirty-state safety.
 
-**LIFE-3. A Window is the endpoint of launch target routing.**
+**LIFE-3. Each process's single window is a routing endpoint.**
 
-A `.pergamum` target routes to a new project window. A project-owned Markdown target routes to an existing project window or a new project window. A standalone Markdown target routes to a new standalone window.
+Use Primary self-handling or cold-start open in a new process. An in-process BrowserWindow registry, a registry for searching other processes' project windows, and multi-Session restore are not v0.90 requirements. Cross-process coordination for Primary reachability is a separate responsibility; follow-up Issues define its implementation.
 
-Concrete per-window Session ownership, multi-Session restore, and the window registry are owned by follow-up Issues.
+**LIFE-4. Preserve existing Window Close and Application Quit lifecycle.**
 
-**LIFE-4. Window Close and Application Quit are not the same.**
-
-In a future multi-window implementation, non-final Window Close is the close of that window / Session, not Application Quit. Final window close, explicit Quit, and platform-specific quit behavior must be aligned with the existing lifecycle in follow-up Issues.
+Process-per-window routing must not implicitly close windows / Sessions in other processes. Changes to explicit Quit / platform-specific quit behavior are outside this Issue. Non-final / final window close for future in-process multi-window support is Future Work.
 
 **LIFE-5. Close Project is detach, not Project switch or deletion.**
 
-Launch routing does not change the meaning of Close Project. A `.pergamum` launch target must not implicitly execute Close Project / Project switch against an existing window.
+Launch routing does not change this meaning. Runtime `.pergamum` targets must not implicitly Close Project / switch Project in an existing window.
 
 ---
 
@@ -371,20 +271,18 @@ Primary handoff failure, ambiguous project ownership, target not found, read-onl
 
 ### Positive
 
-- Pergamum can allow multiple application instances while centralizing file-open launch target routing in the primary instance.
-- A `.pergamum` launch target does not become a Project switch in an existing window, avoiding a path that silently discards dirty working copies.
-- `.pergamum` and Markdown routing are separated. A project file routes to a new project window, while project-owned Markdown prefers activating the existing project window.
-- Project write lock / read-only policy, Recovery ownership, and Session persistence ownership are not bypassed by launch routing.
-- ADR-0010's cold-start safety connects to runtime / already-running instance routing design.
-- Launch routing is a mechanism for delivering the user's launch intent to the appropriate window; it is not a mechanism for implicitly organizing, consolidating, or optimizing existing working environments.
+- Fixes process-per-window as the v0.90 multi-window model and removes the need for an in-process window registry.
+- Markdown belonging to Primary's current Project opens in that working environment without unnecessary extra processes / read-only windows.
+- Markdown outside the current Project / runtime `.pergamum` opens in a separate process, protecting Primary's dirty working copies / Session.
+- Reuses ADR-0010 / #347 classifier / safety policy and existing ownership.
+- Prohibiting child re-handoff prevents routing loops.
 
 ### Negative / Trade-offs
 
-- The routing implementation is more complex than a strict single-instance model. It needs primary handoff, a routing queue, a routing-ready lifecycle, a window registry, and stale-primary takeover.
-- Opening the same `.pergamum` again attempts a new window, so multiple read-only windows can accumulate.
-- Duplicate handling differs between Markdown and `.pergamum`: project-owned Markdown routes to an existing project window, while `.pergamum` attempts a new window.
-- The registry needed for the primary instance to observe other instances / windows is not implemented yet, so implementation Issues must handle races and failures.
-- Duplicate editor / cross-process lock policy for Standalone Markdown remains undecided.
+- Cross-process handoff, Primary election / liveness, routing readiness / queue, and child spawn / bypass need implementation. Each window consumes process resources.
+- Reopening the same `.pergamum` can increase the number of read-only processes / windows.
+- Markdown outside the current Project goes to a new process even if its project is open elsewhere, so existing lock / read-only confirmation may apply.
+- Standalone duplicate handling, hardlink identity, and known Recovery non-owner limitations remain.
 
 ---
 
@@ -400,7 +298,7 @@ It simplifies the application model, but a `.pergamum` launch target would tend 
 
 Rejected.
 
-If OS file association or `second-instance`-like requests are handled ad hoc by each process, duplicate opens, random process selection, and inconsistency with Project write locks / Session restore-set semantics become likely.
+If external launches are handled ad hoc by each process, duplicate opens, random process selection, and inconsistency with Project write locks / Session restore-set semantics become likely.
 
 ### Treat a `.pergamum` launch target as a Project switch in an existing window
 
@@ -418,7 +316,13 @@ This ADR treats a `.pergamum` file-open request as a request to open that projec
 
 Rejected.
 
-With nested roots, multiple project candidates, or any state where the active project file cannot be uniquely determined, promoting the target to a Project Document would attach it to the wrong Project / Session / lock policy. Ambiguous Markdown launch targets are rejected.
+When ADR-0010's nearest ancestor rule still cannot safely and uniquely resolve the active project file, promoting the target to a Project Document would attach it to the wrong Project / Session / lock policy. Ambiguous Markdown launch targets are rejected.
+
+---
+
+### Require multiple BrowserWindows within one process for v0.90
+
+Not adopted. Preserve the existing one process / one window / one Session structure; introducing a window registry and per-window context is Future Work.
 
 ---
 
@@ -439,15 +343,22 @@ This ADR does not introduce:
 
 ---
 
-## Follow-up / open implementation issues
+## Future Work / open implementation issues
 
-- actual Electron `second-instance` wiring
-- primary-instance handoff mechanism
-- routing queue implementation
-- routing-ready lifecycle point
-- primary liveness / stale-primary takeover policy
-- window registry for locating an already-open project window
-- handling multiple read-only windows for the same project
-- same standalone Markdown file already open in another window
-- user-facing errors when routing fails
-- tests for launch routing behavior
+- Whether to use `requestSingleInstanceLock`, `second-instance` wiring, and concrete handoff mechanisms such as cross-process IPC / socket / pipe / lock files.
+- Primary election algorithm, reachability / liveness, and stale-primary takeover.
+- Child spawn and identification / bypass of internal routed launches, including CLI flag names.
+- Routing-ready lifecycle and physical queue implementation / ordering / deduplication / failure handling.
+- Runtime Markdown / `.pergamum` open, wiring current Project membership checks, user-visible failure / retry, and routing tests.
+- File association installer and macOS `open-file` event ordering / Dock activation.
+- Same-project read-only windows and standalone duplicate handling / cross-process locking.
+- Future multi-BrowserWindow support within one process, in-process window registry, per-window Sessions / multi-Session restore, and non-final / final window close. These are not v0.90 requirements.
+
+## PO review record (2026-10-05)
+
+1. Primary Router = oldest reachable process.
+2. Opening Markdown belonging to the current Project in Primary itself.
+3. Sending Markdown outside the current Project to a new process.
+4. Sending runtime `.pergamum` to a new process.
+5. Process-per-window as the formal v0.90 multi-window model.
+6. After reviewing the diff, the PO approved all policies above and promotion from `Proposed -> Accepted`.
