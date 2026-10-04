@@ -2320,3 +2320,78 @@ describe("SettingsPanel image attachment save destination workflow (#407 B2 reme
     expect(container.querySelector(".saveDestinationDialog")).toBeNull();
   });
 });
+
+describe("SettingsPanel text input layout unification (#721)", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it("renders text inputs inside .settingsItemControl within .settingsItemHeader for aligned right edge", () => {
+    act(() => {
+      root.render(
+        <SettingsPanelView
+          settings={defaultApplicationSettings}
+          isLoading={false}
+          error={null}
+          translate={translateFor("ja")}
+          onChangeSettings={() => {}}
+          selectedCategoryId="editor"
+          onSelectCategory={() => {}}
+          searchQuery=""
+          onSearchQueryChange={() => {}}
+        />
+      );
+    });
+
+    const textInput = container.querySelector<HTMLInputElement>("input.settingsTextInput");
+    expect(textInput).not.toBeNull();
+    const itemControl = textInput?.closest(".settingsItemControl");
+    expect(itemControl).not.toBeNull();
+
+    const header = itemControl?.closest(".settingsItemHeader");
+    expect(header).not.toBeNull();
+  });
+
+  it("uses shared .settingsTextInput class with min(100%, 360px) width and no ad-hoc inline margin/width styles", () => {
+    const css = stylesSource();
+    const sharedSelector = ".settingsSelect,\n.settingsTextInput,\n.settingsNumberInput {";
+    expect(css).toContain(sharedSelector);
+    expect(css).toContain("width: min(100%, 360px);");
+
+    act(() => {
+      root.render(
+        <SettingsPanelView
+          settings={defaultApplicationSettings}
+          isLoading={false}
+          error={null}
+          translate={translateFor("ja")}
+          onChangeSettings={() => {}}
+          selectedCategoryId="editor"
+          onSelectCategory={() => {}}
+          searchQuery=""
+          onSearchQueryChange={() => {}}
+        />
+      );
+    });
+
+    const textInputs = container.querySelectorAll<HTMLInputElement>("input.settingsTextInput");
+    for (const input of Array.from(textInputs)) {
+      expect(input.style.width).toBe("");
+      expect(input.style.margin).toBe("");
+      expect(input.style.marginLeft).toBe("");
+      expect(input.style.marginRight).toBe("");
+    }
+  });
+});

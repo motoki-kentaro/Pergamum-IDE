@@ -1065,7 +1065,6 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
     }));
     expect(childTags).toEqual([
       { tag: "div", className: "settingsItemHeader" },
-      { tag: "input", className: "settingsTextInput" },
       { tag: "p", className: "settingsDescription" },
       { tag: "code", className: "settingsItemKey" }
     ]);
@@ -1114,7 +1113,6 @@ describe("ProjectSettingsPanel integration and differential behaviors (#396 Slic
     }));
     expect(previewChildTags).toEqual([
       { tag: "div", className: "settingsItemHeader" },
-      { tag: "select", className: "settingsSelect" },
       { tag: "p", className: "settingsDescription" },
       { tag: "code", className: "settingsItemKey" }
     ]);

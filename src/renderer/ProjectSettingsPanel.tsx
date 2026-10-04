@@ -482,28 +482,30 @@ export function ProjectSettingField({
   return (
     <div className="settingsItemRow projectSettingField">
       <div className="settingsItemHeader">
-        <span id={labelId} className="settingsItemLabel">
-          {label}
-        </span>
-        {isModified ? (
-          <span className="projectSettingHeaderActions">
-            <button
-              type="button"
-              className="projectSettingResetButton"
-              disabled={isReadOnly || isSaving}
-              onClick={onReset}
-              title={resetLabel}
-              aria-label={resetLabel}
-            >
-              ↺
-            </button>
-            <span className="projectSettingModifiedBadge" role="status">
-              {modifiedLabel}
-            </span>
+        <div className="projectSettingLabelGroup">
+          <span id={labelId} className="settingsItemLabel">
+            {label}
           </span>
-        ) : null}
+          {isModified ? (
+            <span className="projectSettingHeaderActions">
+              <button
+                type="button"
+                className="projectSettingResetButton"
+                disabled={isReadOnly || isSaving}
+                onClick={onReset}
+                title={resetLabel}
+                aria-label={resetLabel}
+              >
+                ↺
+              </button>
+              <span className="projectSettingModifiedBadge" role="status">
+                {modifiedLabel}
+              </span>
+            </span>
+          ) : null}
+        </div>
+        <div className="settingsItemControl">{children}</div>
       </div>
-      {children}
       {description ? (
         <p className="settingsDescription">{description}</p>
       ) : null}
@@ -753,48 +755,50 @@ export function ProjectSettingsPanelView({
                   data-project-setting="name"
                 >
                   <div className="settingsItemHeader">
-                    <label
-                      htmlFor="projectNameInput"
-                      className="settingsItemLabel"
-                    >
-                      {translate("settings.project.name.label")}
-                    </label>
-                    {isSavingProjectName ? (
-                      <span
-                        className="projectSettingSavingBadge"
-                        role="status"
+                    <div className="projectSettingLabelGroup">
+                      <label
+                        htmlFor="projectNameInput"
+                        className="settingsItemLabel"
                       >
-                        {translate("settings.project.name.saving")}
-                      </span>
-                    ) : isProjectNameDirty ? (
-                      <span
-                        className="projectSettingModifiedBadge"
-                        role="status"
-                      >
-                        {translate("settings.project.modified")}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="projectSettingInputWrapper">
-                    <input
-                      id="projectNameInput"
-                      type="text"
-                      className={`settingsTextInput${projectNameError ? " isError" : ""}`}
-                      value={projectNameDraft}
-                      disabled={
-                        isReadOnly || isSavingProjectName || !projectName
-                      }
-                      onChange={(e) => onProjectNameChange?.(e.target.value)}
-                      onFocus={() => onProjectNameFocus?.()}
-                      onBlur={() => onProjectNameBlur?.()}
-                      aria-label={translate("settings.project.name.label")}
-                      aria-invalid={projectNameError ? "true" : undefined}
-                      aria-describedby={
-                        projectNameError
-                          ? "projectNameError projectNameDescription"
-                          : "projectNameDescription"
-                      }
-                    />
+                        {translate("settings.project.name.label")}
+                      </label>
+                      {isSavingProjectName ? (
+                        <span
+                          className="projectSettingSavingBadge"
+                          role="status"
+                        >
+                          {translate("settings.project.name.saving")}
+                        </span>
+                      ) : isProjectNameDirty ? (
+                        <span
+                          className="projectSettingModifiedBadge"
+                          role="status"
+                        >
+                          {translate("settings.project.modified")}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="settingsItemControl projectSettingInputWrapper">
+                      <input
+                        id="projectNameInput"
+                        type="text"
+                        className={`settingsTextInput${projectNameError ? " isError" : ""}`}
+                        value={projectNameDraft}
+                        disabled={
+                          isReadOnly || isSavingProjectName || !projectName
+                        }
+                        onChange={(e) => onProjectNameChange?.(e.target.value)}
+                        onFocus={() => onProjectNameFocus?.()}
+                        onBlur={() => onProjectNameBlur?.()}
+                        aria-label={translate("settings.project.name.label")}
+                        aria-invalid={projectNameError ? "true" : undefined}
+                        aria-describedby={
+                          projectNameError
+                            ? "projectNameError projectNameDescription"
+                            : "projectNameDescription"
+                        }
+                      />
+                    </div>
                   </div>
                   {projectNameError ? (
                     <p
