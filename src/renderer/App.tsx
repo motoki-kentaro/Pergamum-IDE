@@ -141,6 +141,10 @@ import {
 } from "./applicationCommands";
 import { subscribeApplicationMenuCommands } from "./applicationMenuBridge";
 import {
+  currentCharacterCount,
+  resolveCharacterCountSource
+} from "./characterCountSource";
+import {
   CHARACTER_COUNT_UPDATE_DEBOUNCE_MS,
   countDocumentCharacters,
   type CharacterCountDocumentFormat
@@ -3147,29 +3151,31 @@ export function App(): JSX.Element {
   // Plain Text (.txt), both `kind: "markdown"` editors. With no such editor
   // (special tabs, glossary/built-in/image editors) this is false, so the
   // debounced count never runs and nothing is shown.
-  const markdownCharacterCountEditorIsActive =
-    !isEditorAreaSpecialTabActive && currentEditor?.kind === "markdown";
-  // Plain Text keeps only the format-neutral excludes (whitespace/line breaks).
+  const characterCountSource = resolveCharacterCountSource(
+    currentEditor,
+    isEditorAreaSpecialTabActive
+  );
+  // #727: the Editor header also counts a Glossary Description tab (its live
+  // `draft.description`, as Markdown). Document Metrics stays Markdown / Plain
+  // Text only: it is gated on the `document` surface.
+  const documentMetricsCharacterCountIsActive =
+    characterCountSource?.surface === "document";
   const characterCountDocumentFormat: CharacterCountDocumentFormat =
-    currentEditor?.kind === "markdown" &&
-    !isMarkdownCurrentDocument(currentEditor.document)
-      ? "plainText"
-      : "markdown";
+    characterCountSource?.format ?? "markdown";
   const editorHeaderWantsCharacterCount =
     effectiveSettings.editor.characterCount.visible &&
-    markdownCharacterCountEditorIsActive;
+    characterCountSource !== null;
   const documentMetricsWantsCharacterCount =
-    isDocumentMetricsPaneVisible && markdownCharacterCountEditorIsActive;
+    isDocumentMetricsPaneVisible && documentMetricsCharacterCountIsActive;
   const shouldComputeMarkdownCharacterCount =
     editorHeaderWantsCharacterCount || documentMetricsWantsCharacterCount;
   const markdownCharacterCountDocumentKey =
     shouldComputeMarkdownCharacterCount && activeDocument
       ? serializeEditorId(activeDocument.id)
       : null;
-  const markdownCharacterCountContent =
-    shouldComputeMarkdownCharacterCount && currentEditor?.kind === "markdown"
-      ? currentDocumentContent(currentEditor.document)
-      : "";
+  const markdownCharacterCountContent = shouldComputeMarkdownCharacterCount
+    ? (characterCountSource?.content ?? "")
+    : "";
   useEffect(() => {
     if (
       !shouldComputeMarkdownCharacterCount ||
@@ -3204,11 +3210,10 @@ export function App(): JSX.Element {
   ]);
   // The count for the CURRENT document only (a stale count from the previous
   // document — still within its debounce — resolves to `null`).
-  const activeMarkdownCharacterCount =
-    markdownCharacterCountDocumentKey !== null &&
-    markdownCharacterCount?.documentKey === markdownCharacterCountDocumentKey
-      ? markdownCharacterCount.count
-      : null;
+  const activeMarkdownCharacterCount = currentCharacterCount(
+    markdownCharacterCount,
+    markdownCharacterCountDocumentKey
+  );
   const documentMetricsCharacterCount = documentMetricsWantsCharacterCount
     ? activeMarkdownCharacterCount
     : null;

@@ -279,13 +279,16 @@ describe("editor header character count runtime wiring (#721)", () => {
 
     expect(start).toBeGreaterThan(-1);
     expect(block).not.toContain("statusBar");
-    expect(block).toContain("markdownCharacterCountEditorIsActive");
+    // #727: the countable source (Markdown / Plain Text / Glossary
+    // Description) is resolved in one place, which returns null for special
+    // tabs; the plain-text branch lives in characterCountSource.ts.
+    expect(block).toContain("characterCountSource !== null");
     expect(appSource).toContain(
-      '!isEditorAreaSpecialTabActive && currentEditor?.kind === "markdown"'
+      "resolveCharacterCountSource(\n    currentEditor,\n    isEditorAreaSpecialTabActive\n  )"
     );
-    expect(appSource).toContain(
-      "!isMarkdownCurrentDocument(currentEditor.document)"
-    );
+    expect(
+      readFileSync("src/renderer/characterCountSource.ts", "utf8")
+    ).toContain("isMarkdownCurrentDocument(editor.document)");
   });
 
   it("App.tsx computes ONE Markdown character count shared by the Editor Header and Document Metrics (#360)", () => {
