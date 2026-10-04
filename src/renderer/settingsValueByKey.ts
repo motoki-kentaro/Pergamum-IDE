@@ -137,6 +137,10 @@ export function readSettingValue(
       return settings.preview.syncScrollPreviewToEditor;
     case "preview.doubleClickJumpToEditor":
       return settings.preview.doubleClickJumpToEditor;
+    case "preview.glossaryAnnotations":
+      return settings.preview.glossaryAnnotations;
+    case "preview.glossaryHighlightOpacity":
+      return settings.preview.glossaryHighlightOpacity;
     case "documentMap.dialogueDelimiterPairs":
       return settings.documentMap.dialogueDelimiterPairs;
     case "imageAttachment.saveDirectory":

@@ -85,6 +85,7 @@ export type SettingValidationFailure =
   | "typeMismatch"
   | "enumValue"
   | "numericRange"
+  | "granularity"
   | "integer"
   | "maxLength"
   | "disallowedCharacters"
@@ -142,6 +143,8 @@ export interface SettingNumericRange {
   readonly min: number;
   readonly max: number;
   readonly integer?: boolean;
+  /** Valid values are whole multiples of this (e.g. `0.05`), tolerant of float error. */
+  readonly granularity?: number;
 }
 
 export interface NumberSettingEntry<TKey extends string = string>
@@ -335,6 +338,14 @@ function validateNumberValue(
 
   if (value < entry.numericRange.min || value > entry.numericRange.max) {
     return { ok: false, failure: "numericRange" };
+  }
+
+  const granularity = entry.numericRange.granularity;
+  if (granularity !== undefined) {
+    const steps = value / granularity;
+    if (Math.abs(steps - Math.round(steps)) > 1e-9) {
+      return { ok: false, failure: "granularity" };
+    }
   }
 
   if (
@@ -1086,6 +1097,29 @@ export const settingsCatalog = defineSettingsCatalog({
     defaultValue: defaultFontFamilyListSettings,
     labelKey: "settings.preview.fontFamilyList.label",
     descriptionKey: "settings.preview.fontFamilyList.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  // #731: master switch for Preview glossary annotation — both the matched-term
+  // decoration and its hover card. applicationOnly, default OFF, applied live.
+  "preview.glossaryAnnotations": defineBooleanSetting({
+    key: "preview.glossaryAnnotations",
+    scope: "applicationOnly",
+    defaultValue: false,
+    labelKey: "settings.preview.glossaryAnnotations.label",
+    descriptionKey: "settings.preview.glossaryAnnotations.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  // #731: background alpha of the Preview glossary decoration. Kept when the
+  // annotations switch above is OFF. 0 = fully transparent, 1 = opaque.
+  "preview.glossaryHighlightOpacity": defineNumberSetting({
+    key: "preview.glossaryHighlightOpacity",
+    scope: "applicationOnly",
+    defaultValue: 0.35,
+    labelKey: "settings.preview.glossaryHighlightOpacity.label",
+    descriptionKey: "settings.preview.glossaryHighlightOpacity.description",
+    numericRange: { min: 0, max: 1, granularity: 0.05 },
     deprecatedAliases: [],
     migrationNotes: []
   }),

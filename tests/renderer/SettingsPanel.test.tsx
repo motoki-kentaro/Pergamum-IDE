@@ -1921,7 +1921,9 @@ describe("SettingsPanelView preview.updateDelayMs (#250 follow-up)", () => {
         updateDelayMs: 10000,
         syncScrollEditorToPreview: true,
         syncScrollPreviewToEditor: true,
-        doubleClickJumpToEditor: true
+        doubleClickJumpToEditor: true,
+        glossaryAnnotations: false,
+        glossaryHighlightOpacity: 0.35
       }
     };
     const element = settingsPanelViewElement("en", {
@@ -2154,6 +2156,7 @@ describe("Settings number control right-alignment (common style)", () => {
         "commandPalette.footerDetail.marquee.speed",
         "commandPalette.launchAnimation.durationMs",
         "editor.undoHistoryMinDepth",
+        "preview.glossaryHighlightOpacity",
         "preview.updateDelayMs",
         "search.nearby.characterDistance",
         "search.nearby.paragraphDistance",
@@ -2165,7 +2168,12 @@ describe("Settings number control right-alignment (common style)", () => {
   });
 
   it("renders every number control with the shared settingsNumberInput class (no per-key styling)", () => {
-    for (const key of numberKeys.filter((key) => !key.startsWith("textCursor."))) {
+    for (const key of numberKeys.filter(
+      (key) =>
+        !key.startsWith("textCursor.") &&
+        // Slider + number control: covered by SliderNumberControl tests.
+        key !== "preview.glossaryHighlightOpacity"
+    )) {
       // Caret controls retain invalid drafts; covered by the DOM integration tests.
       const control = controlElement(
         settingsPanelViewElement("en", { searchQuery: isolate(key) }),

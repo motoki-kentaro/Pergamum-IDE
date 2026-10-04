@@ -3804,6 +3804,17 @@ label.settingsItemHeader {
   gap: 8px;
 }
 
+.settingsSliderNumberGroup {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 10px;
+}
+
+.settingsSlider {
+  width: 160px;
+}
+
 .settingsUnit {
   color: var(--pg-color-surface-muted);
   font-size: 13px;
@@ -9259,15 +9270,62 @@ body > .mermaidTooltip {
 }
 
 /*
- * #375 PoC: body-text matches are still marked so readers can see which
- * surfaces resolve to a glossary entry, but there is no hover card / tooltip
- * — the sidebar and occurrence navigation are the only glossary affordances
- * on the reading surface.
+ * Body-text glossary matches are marked only while `preview.glossaryAnnotations`
+ * (#731) is ON. A tagged entry's span carries its primary tag's stored colour
+ * as inline variables (background channels + foreground); an untagged one takes
+ * the Document Map fallback pair the decorator sets on the preview container.
+ * The background alpha is `preview.glossaryHighlightOpacity`; the foreground
+ * never gets alpha. No border or underline.
  */
 .glossarySurfaceDecoration {
-  border-bottom: 1px dotted #326da8;
-  background: rgba(50, 109, 168, 0.08);
+  --glossary-decoration-rgb: var(--glossary-decoration-fallback-rgb);
+  background-color: rgb(
+    var(--glossary-decoration-rgb) / var(--glossary-highlight-opacity)
+  );
+  color: var(--glossary-decoration-fallback-foreground);
 }
+
+/* #731: hover card — out of flow (fixed), pointer-transparent, theme tokens. */
+.glossaryHoverCardLayer {
+  position: fixed;
+  z-index: 30;
+  width: min(320px, calc(100vw - 16px));
+  pointer-events: none;
+}
+
+.glossaryHoverCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(360px, calc(100vh - 16px));
+  overflow: hidden;
+  padding: 10px 12px;
+  border: 1px solid var(--pg-color-editor-tooltip-border);
+  border-radius: 6px;
+  background: var(--pg-color-editor-tooltip-background);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  color: var(--pg-color-editor-tooltip-foreground);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.glossaryHoverCardEntry + .glossaryHoverCardEntry {
+  padding-top: 8px;
+  border-top: 1px solid var(--pg-color-editor-tooltip-border);
+}
+
+.glossaryHoverCardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.glossaryHoverCardAtoms,
+.glossaryHoverCardTags {
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
 
 .glossaryEditorSection {
   margin-bottom: 24px;

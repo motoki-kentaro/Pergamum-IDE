@@ -46,6 +46,7 @@ import { normalizeCommandPaletteLaunchAnimationDurationMs } from "../shared/comm
 import { resolveCatalogValue, validateCatalogValue } from "../shared/settingsCatalog";
 import { CaretSettingsSection, CaretNumberControl } from "./components/CaretSettingsSection";
 import { workspaceCommandIds } from "../shared/commandIds";
+import { SliderNumberControl } from "./components/SliderNumberControl";
 import { SettingsCollapsibleGroup } from "./components/SettingsCollapsibleGroup";
 import {
   buildSettingsItemEntries,
@@ -613,6 +614,24 @@ function buildNextSettings(
           doubleClickJumpToEditor: Boolean(rawValue)
         }
       });
+    case "preview.glossaryAnnotations":
+      return saveRequest(settings, {
+        preview: {
+          ...settings.preview,
+          glossaryAnnotations: Boolean(rawValue)
+        }
+      });
+    case "preview.glossaryHighlightOpacity":
+      if (
+        typeof rawValue !== "number" ||
+        !validateCatalogValue(key, rawValue).ok
+      ) {
+        return null;
+      }
+
+      return saveRequest(settings, {
+        preview: { ...settings.preview, glossaryHighlightOpacity: rawValue }
+      });
     case "documentMap.dialogueDelimiterPairs":
       if (!Array.isArray(rawValue)) {
         return null;
@@ -822,6 +841,13 @@ function isSettingDisabled(
     return true;
   }
 
+  // #731: the opacity value is kept while the switch is OFF; only the control is disabled.
+  if (
+    item.key === "preview.glossaryHighlightOpacity" &&
+    !settings.preview.glossaryAnnotations
+  ) {
+    return true;
+  }
   if (item.key === "textCursor.color" && settings.textCursor.colorMode === "theme") return true;
   if (item.key === "textCursor.autoCursorTextColor" && settings.textCursor.style === "line") return true;
   if (item.key === "textCursor.cursorTextColor" && (settings.textCursor.style === "line" || settings.textCursor.autoCursorTextColor)) return true;
@@ -1045,6 +1071,22 @@ function SettingControlInput({
         />
       );
     case "number": {
+      if (control.slider) {
+        return (
+          <SliderNumberControl
+            id={controlId}
+            labelId={labelId}
+            value={typeof value === "number" ? value : 0}
+            min={control.min ?? 0}
+            max={control.max ?? 1}
+            sliderStep={control.slider.step}
+            spinStep={control.slider.spinStep}
+            disabled={disabled}
+            isValid={(candidate) => validateCatalogValue(item.key, candidate).ok}
+            onChange={onChange}
+          />
+        );
+      }
       if (item.key === "textCursor.width" || item.key === "textCursor.blink") {
         return <CaretNumberControl field={item.key === "textCursor.width" ? "width" : "blink"}
           value={Number(value)} disabled={disabled} translate={translate}

@@ -98,6 +98,9 @@ export interface ApplicationPreviewSettings {
   syncScrollEditorToPreview: boolean;
   syncScrollPreviewToEditor: boolean;
   doubleClickJumpToEditor: boolean;
+  /** #731: applicationOnly, default OFF, applied live. */
+  glossaryAnnotations: boolean;
+  glossaryHighlightOpacity: number;
 }
 
 export interface WorkbenchStatusBarSettings {
@@ -566,6 +569,8 @@ export interface EffectivePreviewSettings {
   syncScrollEditorToPreview: boolean;
   syncScrollPreviewToEditor: boolean;
   doubleClickJumpToEditor: boolean;
+  glossaryAnnotations: boolean;
+  glossaryHighlightOpacity: number;
 }
 
 export interface EffectiveNotificationSettings {
@@ -691,6 +696,10 @@ export const builtInDefaultSettings: EffectiveSettings = {
     ),
     doubleClickJumpToEditor: getCatalogDefaultValue(
       "preview.doubleClickJumpToEditor"
+    ),
+    glossaryAnnotations: getCatalogDefaultValue("preview.glossaryAnnotations"),
+    glossaryHighlightOpacity: getCatalogDefaultValue(
+      "preview.glossaryHighlightOpacity"
     )
   },
   notification: {
@@ -854,7 +863,10 @@ export const defaultApplicationSettings: ApplicationSettings = {
     syncScrollPreviewToEditor:
       builtInDefaultSettings.preview.syncScrollPreviewToEditor,
     doubleClickJumpToEditor:
-      builtInDefaultSettings.preview.doubleClickJumpToEditor
+      builtInDefaultSettings.preview.doubleClickJumpToEditor,
+    glossaryAnnotations: builtInDefaultSettings.preview.glossaryAnnotations,
+    glossaryHighlightOpacity:
+      builtInDefaultSettings.preview.glossaryHighlightOpacity
   },
   workbench: {
     language: builtInDefaultSettings.workbench.language,
@@ -975,7 +987,11 @@ export function createDefaultApplicationSettings(): ApplicationSettings {
       syncScrollPreviewToEditor:
         defaultApplicationSettings.preview.syncScrollPreviewToEditor,
       doubleClickJumpToEditor:
-        defaultApplicationSettings.preview.doubleClickJumpToEditor
+        defaultApplicationSettings.preview.doubleClickJumpToEditor,
+      glossaryAnnotations:
+        defaultApplicationSettings.preview.glossaryAnnotations,
+      glossaryHighlightOpacity:
+        defaultApplicationSettings.preview.glossaryHighlightOpacity
     },
     workbench: {
       language: defaultApplicationSettings.workbench.language,
@@ -1127,7 +1143,10 @@ export function resolveEffectiveSettings(
       syncScrollPreviewToEditor:
         applicationSettings.preview.syncScrollPreviewToEditor,
       doubleClickJumpToEditor:
-        applicationSettings.preview.doubleClickJumpToEditor
+        applicationSettings.preview.doubleClickJumpToEditor,
+      glossaryAnnotations: applicationSettings.preview.glossaryAnnotations,
+      glossaryHighlightOpacity:
+        applicationSettings.preview.glossaryHighlightOpacity
     },
     notification: {
       output: {

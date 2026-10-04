@@ -1852,6 +1852,7 @@ export const enTranslations = {
   "settings.documentMap.viewportLensOpacity.invalid":
     "Enter a value between 0.1 and 0.9.",
   "settings.documentMap.narrationColor.label": "Narration color",
+  "settings.documentMap.glossaryFallbackColor.description": "The color used for untagged glossary entries in the Document Map and in the Preview glossary hover-card decoration.",
   "settings.documentMap.glossaryFallbackColor.label": "Untagged glossary color",
   "settings.documentMap.adjustTagColorsForVisibility.label":
     "Adjust tag colors for Document Map visibility",
@@ -2070,6 +2071,12 @@ export const enTranslations = {
   "settings.preview.syncScrollPreviewToEditor.label": "Sync scroll: preview → editor",
   "settings.preview.doubleClickJumpToEditor.description": "Double-clicking the preview jumps the editor to the corresponding line.",
   "settings.preview.doubleClickJumpToEditor.label": "Double-click jump to editor",
+  "settings.preview.glossaryAnnotations.description": "Highlights registered glossary terms in the preview and shows their terms and tags on hover.",
+  "settings.preview.glossaryAnnotations.label": "Enable glossary hover cards",
+  "settings.preview.glossaryHighlightOpacity.description": "Opacity applied to the background color of the glossary hover-card highlight. 0 is fully transparent, 1 is fully opaque. The text color is not affected.",
+  "settings.preview.glossaryHighlightOpacity.label": "Hover card highlight opacity",
+  "preview.glossaryHoverCard.listSeparator": ", ",
+  "preview.glossaryHoverCard.tags": "Tags: {tags}",
   "settings.markdownFiles.lineEnding.option.lf.label": "LF",
   "settings.markdownFiles.lineEnding.option.crlf.label": "CRLF",
   "settings.markdownFiles.encoding.option.utf8.label": "UTF-8",

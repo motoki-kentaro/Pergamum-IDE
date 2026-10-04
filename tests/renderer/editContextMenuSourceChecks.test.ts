@@ -204,6 +204,9 @@ const onKeyDownExemptFileNames = new Set([
   "PreviewRendererDropdown.tsx",
   "CalloutInsertDropdown.tsx",
   "ColorThemeSettingControl.tsx",
+  // #731: ArrowUp/ArrowDown on the focused opacity number input only (spin by
+  // 0.1); local widget interaction, not a shortcut system.
+  "SliderNumberControl.tsx",
   "JapaneseLintSettingsSection.tsx",
   "editorTabShortcuts.ts",
   "editorFindShortcuts.ts",

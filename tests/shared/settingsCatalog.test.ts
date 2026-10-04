@@ -721,6 +721,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "editor.undoHistoryMinDepth",
         "search.nearby.characterDistance",
         "search.nearby.paragraphDistance",
+        "preview.glossaryHighlightOpacity",
         "preview.updateDelayMs",
         "workbench.notification.durationMs",
         "textCursor.width",
@@ -848,6 +849,32 @@ describe("Settings Catalog Foundation (#150)", () => {
       expect(
         validateCatalogValue("commandPalette.launchAnimation.durationMs", 150.5)
       ).toEqual({ ok: false, failure: "integer" });
+    });
+
+    it("#731: preview.glossaryHighlightOpacity is an applicationOnly number: default 0.35, 0..1, 0.05 granularity", () => {
+      const entry = getCatalogEntry("preview.glossaryHighlightOpacity");
+      expect(entry.type).toBe("number");
+      expect(entry.scope).toBe("applicationOnly");
+      expect(entry.defaultValue).toBe(0.35);
+      expect(entry.numericRange).toEqual({ min: 0, max: 1, granularity: 0.05 });
+      for (const ok of [0, 0.05, 0.1, 0.35, 0.45, 0.95, 1]) {
+        expect(validateCatalogValue("preview.glossaryHighlightOpacity", ok)).toEqual({ ok: true });
+      }
+      expect(validateCatalogValue("preview.glossaryHighlightOpacity", 0.33)).toEqual({ ok: false, failure: "granularity" });
+      expect(validateCatalogValue("preview.glossaryHighlightOpacity", -0.05)).toEqual({ ok: false, failure: "numericRange" });
+      expect(validateCatalogValue("preview.glossaryHighlightOpacity", 1.05)).toEqual({ ok: false, failure: "numericRange" });
+      expect(validateCatalogValue("preview.glossaryHighlightOpacity", "0.5")).toEqual({ ok: false, failure: "typeMismatch" });
+      expect(resolveCatalogValue("preview.glossaryHighlightOpacity", 0.33)).toMatchObject({ value: 0.35 });
+    });
+
+    it("#731: preview.glossaryAnnotations is an applicationOnly boolean defaulting to OFF (no project override)", () => {
+      const entry = getCatalogEntry("preview.glossaryAnnotations");
+      expect(entry.type).toBe("boolean");
+      expect(entry.scope).toBe("applicationOnly");
+      expect(entry.defaultValue).toBe(false);
+      expect(resolveCatalogValue("preview.glossaryAnnotations", undefined)).toMatchObject({ ok: true, value: false });
+      expect(resolveCatalogValue("preview.glossaryAnnotations", true)).toMatchObject({ ok: true, value: true });
+      expect(resolveCatalogValue("preview.glossaryAnnotations", "yes").ok).toBe(false);
     });
 
     it("#505 Phase 1: the 3 preview scroll-sync / jump settings are applicationOnly booleans, all defaulting to true", () => {
@@ -1031,6 +1058,7 @@ describe("Settings Catalog Foundation (#150)", () => {
         "editor.characterCount.exclude.markdownSyntax",
         "editor.characterCount.exclude.markdownComments",
         "textFiles.enablePlainTextDocuments",
+        "preview.glossaryAnnotations",
         "preview.syncScrollEditorToPreview",
         "preview.syncScrollPreviewToEditor",
         "preview.doubleClickJumpToEditor",
@@ -1377,6 +1405,8 @@ describe("Settings Catalog Foundation (#150)", () => {
           "imageAttachment.saveDirectory",
           "preview.doubleClickJumpToEditor",
           "preview.fontFamilyList",
+          "preview.glossaryAnnotations",
+          "preview.glossaryHighlightOpacity",
           "preview.renderer",
           "preview.syncScrollEditorToPreview",
           "preview.syncScrollPreviewToEditor",
