@@ -84,6 +84,9 @@ export const enTranslations = {
   "command.editor.markdown.insertCallout": "Insert Callout",
   "command.editor.markdown.insertCallout.description":
     "Insert a callout block at the cursor.",
+  "command.editor.markdown.insertPageBreak": "Insert Page Break",
+  "command.editor.markdown.insertPageBreak.description":
+    "Insert a page break (<!-- pagebreak -->) on its own line at the cursor. PDF export starts a new page there.",
   "command.editor.markdown.insertRuby": "Insert Ruby...",
   "command.editor.markdown.insertRuby.description":
     "Insert ruby annotations on the selected text.",
@@ -2398,6 +2401,7 @@ export const enTranslations = {
   "toolbar.insertTable": "Insert table",
   "toolbar.callout": "Callout",
   "toolbar.callout.tooltip": "Insert a colored, icon-labeled callout quote block.",
+  "toolbar.insertPageBreak": "Insert Page Break",
   "toolbar.italic": "Italic",
   "toolbar.openProject": "Open Project",
   "toolbar.orderedList": "Ordered list",

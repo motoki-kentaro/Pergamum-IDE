@@ -17,6 +17,7 @@ CC0 does not require attribution as a license condition, but Pergamum records th
 | `indent.svg` | Indent | `https://www.svgrepo.com/svg/389250/indent` | MIT License |
 | `outdent.svg` | Outdent | `https://www.svgrepo.com/svg/389332/outdent` | MIT License |
 | `recovery.svg` | Recovery | `https://www.svgrepo.com/svg/497447/recovery-convert` | MIT License |
+| `page-break.svg` | Page-break | `https://www.svgrepo.com/svg/309552/document-page-break` | MIT License |
 
 ## Modifications
 

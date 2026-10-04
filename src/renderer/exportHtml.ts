@@ -28,6 +28,12 @@ import {
   markdownItCallout,
   type MarkdownCalloutLabels
 } from "./preview/markdownCallout";
+import {
+  PAGE_BREAK_ELEMENT_HTML,
+  isPageBreakDirectiveContent,
+  markdownPageBreakExportCss,
+  standaloneCommentContent
+} from "./preview/markdownComment";
 import { markdownTableExportCss } from "./preview/markdownTableCss";
 import { renderMarkdownStaticExport } from "./export/markdownStaticExportRenderer";
 import { codeHighlightExportCss } from "./preview/codeHighlight";
@@ -294,15 +300,39 @@ function convertProseToHtmlParagraphs(
   const normalized = normalizeLineEndings(text);
   const paragraphs = normalized.split(/\n{2,}/u);
 
-  return paragraphs
-    .map((paragraph) => {
-      const lines = paragraph.split("\n");
-      const htmlLines = lines.map((line) =>
-        parseRubyAndEmphasisToHtml(line, options)
-      );
-      return `<p>${htmlLines.join("<br>")}</p>`;
-    })
-    .join("\n");
+  const blocks: string[] = [];
+
+  for (const paragraph of paragraphs) {
+    // #733: a standalone `<!-- ... -->` line is a Pergamum comment here too
+    // (same recognition as the Markdown pipeline): dropped, or — for
+    // `<!-- pagebreak -->` — the page-break element. The text lines around it
+    // keep forming their own paragraphs.
+    let htmlLines: string[] = [];
+    const flushParagraph = () => {
+      if (htmlLines.length > 0) {
+        blocks.push(`<p>${htmlLines.join("<br>")}</p>`);
+        htmlLines = [];
+      }
+    };
+
+    for (const line of paragraph.split("\n")) {
+      const comment = standaloneCommentContent(line);
+
+      if (comment === null) {
+        htmlLines.push(parseRubyAndEmphasisToHtml(line, options));
+        continue;
+      }
+
+      flushParagraph();
+      if (isPageBreakDirectiveContent(comment)) {
+        blocks.push(PAGE_BREAK_ELEMENT_HTML);
+      }
+    }
+
+    flushParagraph();
+  }
+
+  return blocks.join("\n");
 }
 
 export function collectProjectLocalImagesForDocument(
@@ -694,6 +724,7 @@ export async function generateCombinedHtml(
         `      max-width: 100%;`,
         `      height: auto;`,
         `    }`,
+        markdownPageBreakExportCss,
         markdownTableExportCss,
         markdownCalloutExportCss,
         ...(assembly.bodyNotation === "markdown" ? [codeHighlightExportCss] : []),
@@ -718,6 +749,7 @@ export async function generateCombinedHtml(
         `      text-emphasis-style: sesame;`,
         `      -webkit-text-emphasis-style: sesame;`,
         `    }`,
+        markdownPageBreakExportCss,
         markdownTableExportCss,
         markdownCalloutExportCss,
         ...(assembly.bodyNotation === "markdown" ? [codeHighlightExportCss] : []),

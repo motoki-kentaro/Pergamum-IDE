@@ -2,6 +2,8 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { enTranslations } from "../../src/shared/i18n/en";
 import { jaTranslations } from "../../src/shared/i18n/ja";
 import {
   EditorToolbar,
@@ -239,6 +241,7 @@ const BUTTON_ORDER = [
   "引用を挿入",
   "画像を挿入",
   "表を挿入",
+  "改ページを挿入",
   "ルビ",
   "傍点",
   "Markdown構文チェック",
@@ -326,7 +329,7 @@ describe("EditorToolbar", () => {
     renderToolbar();
 
     const toolbar = container.querySelector(".editorToolbar")!;
-    const previewButton = toolbarButtons()[20];
+    const previewButton = toolbarButtons()[21];
     const trigger = previewRendererTrigger();
     const previewGroup = previewButton.closest(".editorToolbarGroup")!;
     const groupItems = Array.from(previewGroup.children) as HTMLElement[];
@@ -433,7 +436,7 @@ describe("EditorToolbar", () => {
     expect(trigger.disabled).toBe(true);
     expect(trigger.textContent).toContain("Markdown");
 
-    const previewToggleBtn = toolbarButtons()[20];
+    const previewToggleBtn = toolbarButtons()[21];
     expect(previewToggleBtn.disabled).toBe(false);
     act(() => previewToggleBtn.click());
     expect(props.onTogglePreview).toHaveBeenCalledOnce();
@@ -847,6 +850,7 @@ describe("EditorToolbar", () => {
       blockquote,
       image,
       table,
+      ,
       ruby,
       emphasis
     ] = buttons;
@@ -874,8 +878,8 @@ describe("EditorToolbar", () => {
     const buttons = toolbarButtons();
     const outdent = buttons[8];
     const indent = buttons[9];
-    const ruby = buttons[16];
-    const emphasis = buttons[17];
+    const ruby = buttons[17];
+    const emphasis = buttons[18];
     expect(outdent.disabled).toBe(true);
     expect(indent.disabled).toBe(true);
     expect(ruby.disabled).toBe(true);
@@ -992,7 +996,7 @@ describe("EditorToolbar", () => {
   it("Ruby button calls onOpenRubyDialog with the button element", () => {
     const props = renderToolbar();
     const buttons = toolbarButtons();
-    const ruby = buttons[16];
+    const ruby = buttons[17];
 
     act(() => ruby.click());
     expect(props.onOpenRubyDialog).toHaveBeenCalledWith(ruby);
@@ -1001,7 +1005,7 @@ describe("EditorToolbar", () => {
   it("Emphasis button calls onOpenEmphasisDialog with the button element", () => {
     const props = renderToolbar();
     const buttons = toolbarButtons();
-    const emphasis = buttons[17];
+    const emphasis = buttons[18];
 
     act(() => emphasis.click());
     expect(props.onOpenEmphasisDialog).toHaveBeenCalledWith(emphasis);
@@ -1010,7 +1014,7 @@ describe("EditorToolbar", () => {
   it("Preview button calls onTogglePreview when clicked", () => {
     const props = renderToolbar();
     const buttons = toolbarButtons();
-    const preview = buttons[20];
+    const preview = buttons[21];
 
     act(() => preview.click());
     expect(props.onTogglePreview).toHaveBeenCalledOnce();
@@ -1018,16 +1022,16 @@ describe("EditorToolbar", () => {
 
   it("Preview button reflects isPreviewVisible via aria-pressed", () => {
     renderToolbar({ isPreviewVisible: true });
-    expect(toolbarButtons()[20].getAttribute("aria-pressed")).toBe("true");
+    expect(toolbarButtons()[21].getAttribute("aria-pressed")).toBe("true");
 
     renderToolbar({ isPreviewVisible: false });
-    expect(toolbarButtons()[20].getAttribute("aria-pressed")).toBe("false");
+    expect(toolbarButtons()[21].getAttribute("aria-pressed")).toBe("false");
   });
 
   it("Preview button is disabled when canTogglePreview is false, independent of other gates", () => {
     renderToolbar({ canTogglePreview: false });
     const buttons = toolbarButtons();
-    expect(buttons[20].disabled).toBe(true);
+    expect(buttons[21].disabled).toBe(true);
     // Other commands stay enabled (still passed as true here).
     expect(buttons[1].disabled).toBe(false);
   });
@@ -1324,5 +1328,72 @@ describe("EditorToolbar callout dropdown (#570)", () => {
       act(() => clickWithPointer(button));
       expect(onToggleFullscreen).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+describe("EditorToolbar page break button (#733)", () => {
+  const pageBreakButton = (): HTMLButtonElement =>
+    toolbarButtons().find(
+      (b) => b.getAttribute("aria-label") === "改ページを挿入"
+    )!;
+
+  it("sits immediately right of the Callout button, which follows Table", () => {
+    renderToolbar({ canInsertPageBreak: true });
+
+    const items = Array.from(container.querySelectorAll(".editorToolbarItem"));
+    const indexOfItem = (selector: string) =>
+      items.findIndex((item) => item.querySelector(selector) !== null);
+    const tableIndex = indexOfItem('button[aria-label="表を挿入"]');
+    const calloutIndex = indexOfItem(".calloutInsertDropdownTrigger");
+    const pageBreakIndex = items.findIndex((item) =>
+      item.contains(pageBreakButton())
+    );
+
+    expect(tableIndex).toBeGreaterThan(-1);
+    expect(calloutIndex).toBe(tableIndex + 1);
+    expect(pageBreakIndex).toBe(calloutIndex + 1);
+  });
+
+  it("uses the page-break.svg icon and is icon-only", () => {
+    renderToolbar({ canInsertPageBreak: true });
+    const svg = readFileSync("assets/icons/svgrepo/toolbar/page-break.svg", "utf8");
+    const firstPath = /<path d="([^"]+)"/.exec(svg)![1];
+    const icon = pageBreakButton().querySelector(".editorToolbarButtonIcon")!;
+
+    expect(icon.innerHTML).toContain("<svg");
+    expect(icon.innerHTML).toContain(firstPath);
+    expect(pageBreakButton().textContent?.trim()).toBe("");
+  });
+
+  it("has the aria-label / tooltip without a shortcut suffix, in JA and EN", () => {
+    renderToolbar({ canInsertPageBreak: true });
+
+    expect(pageBreakButton().getAttribute("aria-label")).toBe("改ページを挿入");
+    expect(pageBreakButton().getAttribute("title")).toBe("改ページを挿入");
+    expect(enTranslations["toolbar.insertPageBreak"]).toBe("Insert Page Break");
+  });
+
+  it("is enabled only when canInsertPageBreak is true, and runs the handler on click", () => {
+    const onInsertPageBreak = vi.fn();
+    renderToolbar({ canInsertPageBreak: false, onInsertPageBreak });
+    expect(pageBreakButton().disabled).toBe(true);
+
+    renderToolbar({ canInsertPageBreak: true, onInsertPageBreak });
+    expect(pageBreakButton().disabled).toBe(false);
+    act(() => pageBreakButton().click());
+    expect(onInsertPageBreak).toHaveBeenCalledTimes(1);
+  });
+
+  it("is gated separately from the other Markdown commands (e.g. a Glossary Description)", () => {
+    renderToolbar({
+      canUseMarkdownToolbarCommands: true,
+      canInsertPageBreak: false
+    });
+
+    expect(pageBreakButton().disabled).toBe(true);
+    expect(
+      toolbarButtons().find((b) => b.getAttribute("aria-label") === "水平線")!
+        .disabled
+    ).toBe(false);
   });
 });
