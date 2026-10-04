@@ -821,6 +821,20 @@ function isSettingDisabled(
   if (item.key === "textCursor.cursorTextColor" && (settings.textCursor.style === "line" || settings.textCursor.autoCursorTextColor)) return true;
   if (item.key === "textCursor.width" && settings.textCursor.style === "block") return true;
 
+  const currentNearbyUnit = settings.search?.nearby?.unit ?? "paragraphs";
+  if (
+    item.key === "search.nearby.characterDistance" &&
+    currentNearbyUnit !== "characters"
+  ) {
+    return true;
+  }
+  if (
+    item.key === "search.nearby.paragraphDistance" &&
+    currentNearbyUnit !== "paragraphs"
+  ) {
+    return true;
+  }
+
   if (unwiredKeys.has(item.key)) {
     return true;
   }

@@ -2114,11 +2114,11 @@ export const enTranslations = {
   "settings.search.nearby.characterDistance.label":
     "Nearby search character distance",
   "settings.search.nearby.characterDistance.description":
-    "Sets the range used to consider selected glossary terms near each other, in characters.",
+    "Sets the range used to consider selected glossary terms near each other, in characters (50 to 10000 characters, default 500).",
   "settings.search.nearby.paragraphDistance.label":
     "Nearby search paragraph distance",
   "settings.search.nearby.paragraphDistance.description":
-    "Sets the range used to consider selected glossary terms near each other, in paragraphs. 0 means the same paragraph only.",
+    "Sets the range used to consider selected glossary terms near each other, in paragraphs (0 to 20 paragraphs, default 2; 0 means the same paragraph only).",
   "settings.category.preview.label": "Preview",
   "settings.category.documentMap.label": "Document Map",
   "settings.category.markdownFiles.label": "Markdown Files",

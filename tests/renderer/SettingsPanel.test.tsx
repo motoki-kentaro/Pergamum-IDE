@@ -1431,6 +1431,77 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
     );
   });
 
+  it("renders JA options as '文字' and '段落' and EN options as 'Characters' and 'Paragraphs'", () => {
+    const jaView = renderSettingsPanelView("ja", {
+      settings: defaultApplicationSettings,
+      selectedCategoryId: "searchReplace"
+    });
+    expect(jaView).toContain("文字");
+    expect(jaView).toContain("段落");
+    expect(jaView).not.toContain("パラグラフ");
+
+    const enView = renderSettingsPanelView("en", {
+      settings: defaultApplicationSettings,
+      selectedCategoryId: "searchReplace"
+    });
+    expect(enView).toContain("Characters");
+    expect(enView).toContain("Paragraphs");
+  });
+
+  it("enables paragraphDistance and disables characterDistance when unit is paragraphs, preserving values", () => {
+    const paragraphSettings: ApplicationSettings = {
+      ...defaultApplicationSettings,
+      search: {
+        nearby: {
+          unit: "paragraphs",
+          characterDistance: 800,
+          paragraphDistance: 5
+        }
+      }
+    };
+
+    const view = settingsPanelViewElement("ja", {
+      settings: paragraphSettings,
+      selectedCategoryId: "searchReplace"
+    });
+
+    const charInput = controlElement(view, "search.nearby.characterDistance");
+    const paraInput = controlElement(view, "search.nearby.paragraphDistance");
+
+    expect(charInput.props.disabled).toBe(true);
+    expect(charInput.props.value).toBe(800);
+
+    expect(paraInput.props.disabled).toBe(false);
+    expect(paraInput.props.value).toBe(5);
+  });
+
+  it("enables characterDistance and disables paragraphDistance when unit is characters, preserving values", () => {
+    const characterSettings: ApplicationSettings = {
+      ...defaultApplicationSettings,
+      search: {
+        nearby: {
+          unit: "characters",
+          characterDistance: 800,
+          paragraphDistance: 5
+        }
+      }
+    };
+
+    const view = settingsPanelViewElement("ja", {
+      settings: characterSettings,
+      selectedCategoryId: "searchReplace"
+    });
+
+    const charInput = controlElement(view, "search.nearby.characterDistance");
+    const paraInput = controlElement(view, "search.nearby.paragraphDistance");
+
+    expect(charInput.props.disabled).toBe(false);
+    expect(charInput.props.value).toBe(800);
+
+    expect(paraInput.props.disabled).toBe(true);
+    expect(paraInput.props.value).toBe(5);
+  });
+
   it("preserves the save-failure display: the error prop still renders as a settingsError message", () => {
     const markup = renderSettingsPanelView("en", {
       error: "Settings save failed: disk full"

@@ -998,7 +998,7 @@ export const jaTranslations = {
   "editor.find.glossaryRelation.all": "全て",
   "editor.find.glossaryRelation.nearby": "近傍",
   "editor.find.glossaryRelationSummary.characters": "近傍: {distance}文字以内",
-  "editor.find.glossaryRelationSummary.paragraphs": "近傍: 前後{distance}パラグラフ",
+  "editor.find.glossaryRelationSummary.paragraphs": "近傍: 前後{distance}段落",
   "editor.find.glossaryRemoveTerm": "「{value}」を外す",
   "editor.find.replaceAll": "全置換",
   "editor.find.replaceAllTooltip": "すべての一致を置換",
@@ -2110,14 +2110,14 @@ export const jaTranslations = {
   "settings.search.nearby.unit.label": "近傍検索の単位",
   "settings.search.nearby.unit.description":
     "語彙の近傍検索で、選択した語彙同士を近いとみなす範囲の単位を指定します。",
-  "settings.search.nearby.unit.option.characters.label": "文字数",
-  "settings.search.nearby.unit.option.paragraphs.label": "パラグラフ",
+  "settings.search.nearby.unit.option.characters.label": "文字",
+  "settings.search.nearby.unit.option.paragraphs.label": "段落",
   "settings.search.nearby.characterDistance.label": "近傍検索の文字数距離",
   "settings.search.nearby.characterDistance.description":
-    "語彙の近傍検索で、選択した語彙同士を近いとみなす範囲を文字数で指定します。",
-  "settings.search.nearby.paragraphDistance.label": "近傍検索のパラグラフ距離",
+    "語彙の近傍検索で、選択した語彙同士を近いとみなす範囲を50〜10000文字（初期値 500）で指定します。",
+  "settings.search.nearby.paragraphDistance.label": "近傍検索の段落距離",
   "settings.search.nearby.paragraphDistance.description":
-    "語彙の近傍検索で、選択した語彙同士を近いとみなす範囲をパラグラフ数で指定します。0 は同一パラグラフ内のみを意味します。",
+    "語彙の近傍検索で、選択した語彙同士を近いとみなす範囲を0〜20段落（初期値 2、0 は同一段落内のみ）で指定します。",
   "settings.category.preview.label": "プレビュー",
   "settings.category.documentMap.label": "文書マップ",
   "settings.category.markdownFiles.label": "マークダウンファイル",

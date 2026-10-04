@@ -822,81 +822,93 @@ export function ProjectSettingsPanelView({
               {items.map(
                 ({ item, isModified, displayValue, effectiveValue }) => {
                   const labelId = `${item.key.replace(/\./g, "-")}-label`;
+                  const nearbyUnitItem = items.find(
+                    (i) => i.item.key === "search.nearby.unit"
+                  );
+                  const effectiveNearbyUnit = String(
+                    nearbyUnitItem?.effectiveValue ?? "paragraphs"
+                  );
+                  const isNearbyDisabled =
+                    (item.key === "search.nearby.characterDistance" &&
+                      effectiveNearbyUnit !== "characters") ||
+                    (item.key === "search.nearby.paragraphDistance" &&
+                      effectiveNearbyUnit !== "paragraphs");
+                  const disabled = isReadOnly || isSaving || isNearbyDisabled;
 
-                  let controlElement: JSX.Element | null = null;
-                  if (item.control.kind === "text") {
-                    controlElement = (
-                      <input
-                        type="text"
-                        className="settingsTextInput"
-                        value={displayValue}
-                        disabled={isReadOnly || isSaving}
-                        onChange={(e) => {
-                          onTextChange?.(item.key, e.target.value);
-                        }}
-                        onFocus={() => {
-                          onTextFocus?.(item.key);
-                        }}
-                        onBlur={() => {
-                          onTextBlur?.(item.key);
-                        }}
-                        aria-labelledby={labelId}
-                      />
-                    );
-                  } else if (item.control.kind === "select") {
-                    controlElement = (
-                      <select
-                        className="settingsSelect"
-                        value={displayValue}
-                        disabled={isReadOnly || isSaving}
-                        onChange={(e) => {
-                          onSelectChange?.(item.key, e.target.value);
-                        }}
-                        aria-labelledby={labelId}
-                      >
-                        {item.control.options.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {translateI18nKey(translate, option.labelKey)}
-                          </option>
-                        ))}
-                      </select>
-                    );
-                  } else if (item.control.kind === "number") {
-                    const unitKey = item.control.unitKey;
-                    controlElement = (
-                      <div className="settingsNumberInputGroup">
+                    let controlElement: JSX.Element | null = null;
+                    if (item.control.kind === "text") {
+                      controlElement = (
                         <input
-                          type="number"
-                          className="settingsNumberInput"
+                          type="text"
+                          className="settingsTextInput"
                           value={displayValue}
-                          min={item.control.min}
-                          max={item.control.max}
-                          step={item.control.step}
-                          disabled={isReadOnly || isSaving}
+                          disabled={disabled}
                           onChange={(e) => {
-                            const next = e.target.valueAsNumber;
-                            if (Number.isFinite(next)) {
-                              onNumberChange?.(item.key, next);
-                            }
+                            onTextChange?.(item.key, e.target.value);
+                          }}
+                          onFocus={() => {
+                            onTextFocus?.(item.key);
+                          }}
+                          onBlur={() => {
+                            onTextBlur?.(item.key);
                           }}
                           aria-labelledby={labelId}
                         />
-                        {unitKey ? (
-                          <span className="settingsUnit">
-                            {translateI18nKey(translate, unitKey)}
-                          </span>
-                        ) : null}
-                      </div>
-                    );
-                  } else if (item.control.kind === "switch") {
-                    controlElement = (
-                      <div className="settingsItemControl">
-                        <input
-                          id={`settingControl-${item.key}`}
-                          type="checkbox"
-                          className="settingsSwitchInput"
-                          checked={displayValue === "true"}
-                          disabled={isReadOnly || isSaving}
+                      );
+                    } else if (item.control.kind === "select") {
+                      controlElement = (
+                        <select
+                          className="settingsSelect"
+                          value={displayValue}
+                          disabled={disabled}
+                          onChange={(e) => {
+                            onSelectChange?.(item.key, e.target.value);
+                          }}
+                          aria-labelledby={labelId}
+                        >
+                          {item.control.options.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {translateI18nKey(translate, option.labelKey)}
+                            </option>
+                          ))}
+                        </select>
+                      );
+                    } else if (item.control.kind === "number") {
+                      const unitKey = item.control.unitKey;
+                      controlElement = (
+                        <div className="settingsNumberInputGroup">
+                          <input
+                            type="number"
+                            className="settingsNumberInput"
+                            value={displayValue}
+                            min={item.control.min}
+                            max={item.control.max}
+                            step={item.control.step}
+                            disabled={disabled}
+                            onChange={(e) => {
+                              const next = e.target.valueAsNumber;
+                              if (Number.isFinite(next)) {
+                                onNumberChange?.(item.key, next);
+                              }
+                            }}
+                            aria-labelledby={labelId}
+                          />
+                          {unitKey ? (
+                            <span className="settingsUnit">
+                              {translateI18nKey(translate, unitKey)}
+                            </span>
+                          ) : null}
+                        </div>
+                      );
+                    } else if (item.control.kind === "switch") {
+                      controlElement = (
+                        <div className="settingsItemControl">
+                          <input
+                            id={`settingControl-${item.key}`}
+                            type="checkbox"
+                            className="settingsSwitchInput"
+                            checked={displayValue === "true"}
+                            disabled={disabled}
                           onChange={(e) => {
                             onSwitchChange?.(item.key, e.target.checked);
                           }}
