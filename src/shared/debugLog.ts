@@ -317,6 +317,7 @@ export type DebugLogApplicationMenuTrigger =
  */
 export const debugLogCommandExecutionSources = [
   "activityBar",
+  "settingsPanel",
   "applicationMenu",
   "commandPalette",
   "contextMenu",

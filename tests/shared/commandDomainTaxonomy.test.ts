@@ -209,6 +209,7 @@ function buildCoreCommandRegistry(): CommandRegistry {
     {
       focusSidebarMode: () => undefined,
       openApplicationSettings: () => undefined,
+      exportApplicationSettingsJson: () => undefined,
       openKeyboardShortcuts: () => undefined,
       showResumeHub: () => undefined,
       canShowResumeHub: () => true
@@ -225,6 +226,8 @@ function buildCoreCommandRegistry(): CommandRegistry {
       focusDocumentMetrics: "Focus Document Metrics",
       focusDocumentMetricsDescription: "Focus Document Metrics",
       openApplicationSettings: "Open Application Settings",
+      exportApplicationSettingsJson: "Export Application Settings as JSON",
+      exportApplicationSettingsJsonDescription: "",
       openKeyboardShortcuts: "Open Keyboard Shortcuts",
       openKeyboardShortcutsDescription: "Open Keyboard Shortcuts",
       openApplicationSettingsDescription: "Open Application Settings",
@@ -325,10 +328,15 @@ function buildCoreCommandRegistry(): CommandRegistry {
   );
   registerProjectSettingsCommands(
     registry,
-    { openProjectSettings: () => undefined },
+    {
+      openProjectSettings: () => undefined,
+      exportProjectSettingsJson: () => undefined
+    },
     {
       open: "Open Project Settings",
-      openDescription: "Open Project Settings"
+      openDescription: "Open Project Settings",
+      exportJson: "Export Project Settings as JSON",
+      exportJsonDescription: "Export Project Settings as JSON"
     }
   );
   registerProjectSearchSelectionShortcutCommands(

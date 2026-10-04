@@ -26,6 +26,9 @@ export const workspaceCommandIds = {
   focusDocumentMap: defineCommandId("workspace.documentMap.focus"),
   focusDocumentMetrics: defineCommandId("workspace.documentMetrics.focus"),
   openApplicationSettings: defineCommandId("workspace.applicationSettings.open"),
+  exportApplicationSettingsJson: defineCommandId(
+    "workspace.applicationSettings.exportJson"
+  ),
   openKeyboardShortcuts: defineCommandId("workspace.keyboardShortcuts.open"),
   showResumeHub: defineCommandId("workbench.showResumeHub")
 } as const;
@@ -73,7 +76,8 @@ export const glossaryTabCommandIds = {
 } as const;
 
 export const projectSettingsCommandIds = {
-  open: defineCommandId("project.settings.open")
+  open: defineCommandId("project.settings.open"),
+  exportJson: defineCommandId("project.settings.exportJson")
 } as const;
 
 /**

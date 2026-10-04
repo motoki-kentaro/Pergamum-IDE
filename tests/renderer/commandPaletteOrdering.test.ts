@@ -176,6 +176,7 @@ function buildFullCommandRegistry(): CommandRegistry {
     {
       focusSidebarMode: () => undefined,
       openApplicationSettings: () => undefined,
+      exportApplicationSettingsJson: () => undefined,
       openKeyboardShortcuts: () => undefined,
       showResumeHub: () => undefined,
       canShowResumeHub: () => true
@@ -192,6 +193,8 @@ function buildFullCommandRegistry(): CommandRegistry {
       focusDocumentMetrics: "Focus Document Metrics",
       focusDocumentMetricsDescription: "",
       openApplicationSettings: "Open Application Settings",
+      exportApplicationSettingsJson: "Export Application Settings as JSON",
+      exportApplicationSettingsJsonDescription: "",
       openKeyboardShortcuts: "Open Keyboard Shortcuts",
       openKeyboardShortcutsDescription: "Open Keyboard Shortcuts",
       openApplicationSettingsDescription: "",
@@ -218,8 +221,16 @@ function buildFullCommandRegistry(): CommandRegistry {
 
   registerProjectSettingsCommands(
     registry,
-    { openProjectSettings: () => undefined },
-    { open: "Open Project Settings", openDescription: "" }
+    {
+      openProjectSettings: () => undefined,
+      exportProjectSettingsJson: () => undefined
+    },
+    {
+        open: "Open Project Settings",
+        openDescription: "",
+        exportJson: "Export Project Settings as JSON",
+        exportJsonDescription: ""
+      }
   );
 
   registerAssistCommands(

@@ -86,6 +86,7 @@ describe("debug log catalog", () => {
   it("defines a closed source catalog shared by command.blocked and command.invoked", () => {
     expect([...debugLogCommandExecutionSources]).toEqual([
       "activityBar",
+      "settingsPanel",
       "applicationMenu",
       "commandPalette",
       "contextMenu",

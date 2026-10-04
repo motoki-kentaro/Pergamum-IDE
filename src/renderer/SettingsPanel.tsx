@@ -45,6 +45,7 @@ import type { FontFamilySetting, FontSlot } from "../shared/fontSettings";
 import { normalizeCommandPaletteLaunchAnimationDurationMs } from "../shared/commandPaletteLaunchAnimationSettings";
 import { resolveCatalogValue, validateCatalogValue } from "../shared/settingsCatalog";
 import { CaretSettingsSection, CaretNumberControl } from "./components/CaretSettingsSection";
+import { workspaceCommandIds } from "../shared/commandIds";
 import { SettingsCollapsibleGroup } from "./components/SettingsCollapsibleGroup";
 import {
   buildSettingsItemEntries,
@@ -951,6 +952,9 @@ function SettingsExportSection({
         <p className="settingsDescription">
           {translate("settings.export.action.description")}
         </p>
+        <code className="settingsItemKey">
+          {workspaceCommandIds.exportApplicationSettingsJson}
+        </code>
       </div>
     </div>
   );
@@ -1225,7 +1229,24 @@ export function SettingsPanelView({
       category.id === "export" ||
       settingCatalogItems.some((item) => item.category === category.id)
   );
-  const isSearching = normalizeSearchQuery(searchQuery).length > 0;
+  const normalizedSearch = normalizeSearchQuery(searchQuery);
+  const isSearching = normalizedSearch.length > 0;
+  // #721: the special Export row is not a catalog item, so it gets the same
+  // search match as Project Settings (label / description / command id).
+  const matchesExportSearch =
+    isSearching &&
+    ("export".includes(normalizedSearch) ||
+      "json".includes(normalizedSearch) ||
+      "エクスポート".includes(normalizedSearch) ||
+      translate("settings.export.action.label")
+        .toLowerCase()
+        .includes(normalizedSearch) ||
+      translate("settings.export.action.description")
+        .toLowerCase()
+        .includes(normalizedSearch) ||
+      workspaceCommandIds.exportApplicationSettingsJson
+        .toLowerCase()
+        .includes(normalizedSearch));
   const visibleItems = getVisibleSettingCatalogItems(
     searchQuery,
     selectedCategoryId,
@@ -1403,7 +1424,7 @@ export function SettingsPanelView({
               onChangeSettings={onChangeSettings}
             />
           ) : visibleItems.length === 0 ? (
-            isSearching ? (
+            isSearching && !matchesExportSearch ? (
               <p className="settingsSearchEmpty">
                 {translate("settings.search.empty")}
               </p>
@@ -1446,7 +1467,7 @@ export function SettingsPanelView({
               onChangeSettings={onChangeSettings}
             />
           ) : null}
-          {!isSearching && selectedCategoryId === "export" ? (
+          {(isSearching ? matchesExportSearch : selectedCategoryId === "export") ? (
             <SettingsExportSection
               translate={translate}
               disabled={isLoading}

@@ -9,6 +9,7 @@ import type {
   UpdateProjectNameResult,
   UpdateProjectSettingsRequest
 } from "../shared/api";
+import { projectSettingsCommandIds } from "../shared/commandIds";
 import { validateProjectName } from "../shared/projectName";
 import type { Language, Translate } from "../shared/i18n";
 import type { SaveApplicationSettingsRequest } from "../shared/settings";
@@ -648,6 +649,9 @@ export function ProjectSettingsPanelView({
     ("export".includes(normalizedSearch) ||
       "json".includes(normalizedSearch) ||
       "エクスポート".toLowerCase().includes(normalizedSearch) ||
+      projectSettingsCommandIds.exportJson
+        .toLowerCase()
+        .includes(normalizedSearch) ||
       translate("settings.export.action.label")
         .toLowerCase()
         .includes(normalizedSearch) ||
@@ -1016,6 +1020,9 @@ export function ProjectSettingsPanelView({
                   <p className="settingsDescription">
                     {translate("settings.export.action.description")}
                   </p>
+                  <code className="settingsItemKey">
+                    {projectSettingsCommandIds.exportJson}
+                  </code>
                 </div>
               ) : null}
             </div>

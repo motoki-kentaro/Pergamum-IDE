@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ActivityBar } from "../../src/renderer/ActivityBar";
 import {
   createProjectSettingsCommands,
@@ -131,7 +131,7 @@ describe("Project Settings command registration & gating (#396)", () => {
     const titles = createProjectSettingsCommandTitles(translate);
     registerProjectSettingsCommands(
       registry,
-      { openProjectSettings: () => { opened = true; } },
+      { openProjectSettings: () => { opened = true; }, exportProjectSettingsJson: () => undefined },
       titles
     );
 
@@ -161,6 +161,123 @@ describe("Project Settings command registration & gating (#396)", () => {
     expect(opened).toBe(true);
   });
 });
+
+describe("Project Settings export command (#721)", () => {
+  it("registers project.settings.exportJson gated by project.isOpen and runs the shared export action", async () => {
+    const registry = new CommandRegistry();
+    const exportProjectSettingsJson = vi.fn();
+    registerProjectSettingsCommands(
+      registry,
+      { openProjectSettings: () => undefined, exportProjectSettingsJson },
+      createProjectSettingsCommandTitles(translate)
+    );
+
+    const command = registry.get(projectSettingsCommandIds.exportJson);
+    expect(command?.id).toBe("project.settings.exportJson");
+    expect(command?.title).toBe(
+      jaTranslations["command.project.settings.exportJson"]
+    );
+    expect(command?.description).toBe(
+      jaTranslations["command.project.settings.exportJson.description"]
+    );
+    expect(command?.when).toEqual({ key: "project.isOpen" });
+    expect(
+      evaluateCommandEnablement(command?.when, { "project.isOpen": false })
+    ).toBe(false);
+
+    registry.setCommandContextProvider(() => ({ "project.isOpen": true }));
+    await registry.execute(projectSettingsCommandIds.exportJson, {
+      source: "commandPalette"
+    });
+    expect(exportProjectSettingsJson).toHaveBeenCalledTimes(1);
+
+    registry.setCommandContextProvider(() => ({ "project.isOpen": false }));
+    await expect(
+      registry.execute(projectSettingsCommandIds.exportJson, {
+        source: "commandPalette"
+      })
+    ).rejects.toThrow();
+    expect(exportProjectSettingsJson).toHaveBeenCalledTimes(1);
+  });
+
+  it("App routes both Settings export buttons and both commands through one export handler each", () => {
+    const source = appSource();
+
+    expect(source).toContain(
+      "exportApplicationSettingsJson: () =>\n          exportApplicationSettingsCommandRef.current()"
+    );
+    expect(source).toContain(
+      "exportProjectSettingsJson: () =>\n          exportProjectSettingsCommandRef.current()"
+    );
+    expect(source).toContain(
+      "workspaceCommandIds.exportApplicationSettingsJson,\n                          { source: \"settingsPanel\" }"
+    );
+    expect(source).toContain("projectSettingsCommandIds.exportJson, {");
+    // The panels no longer call the handlers directly.
+    expect(source).not.toContain("onExportSettings={handleExportApplicationSettings}");
+    expect(source).not.toContain("onExportSettings={handleExportProjectSettings}");
+    // Exactly one definition per export implementation.
+    expect(source.match(/async function handleExportApplicationSettings\(/g)).toHaveLength(1);
+    expect(source.match(/async function handleExportProjectSettings\(/g)).toHaveLength(1);
+    expect(source.match(/settings\?\.exportJson/g)).toHaveLength(2);
+  });
+});
+
+describe("Settings export row command id & theme-aware button (#721)", () => {
+  it("shows the command id on the Application and Project export rows", () => {
+    const panelSource = readFileSync("src/renderer/SettingsPanel.tsx", "utf8");
+    const projectSource = readFileSync(
+      "src/renderer/ProjectSettingsPanel.tsx",
+      "utf8"
+    );
+
+    expect(panelSource).toContain(
+      "{workspaceCommandIds.exportApplicationSettingsJson}"
+    );
+    expect(projectSource).toContain("{projectSettingsCommandIds.exportJson}");
+    expect(workspaceCommandIdsText()).toContain(
+      "workspace.applicationSettings.exportJson"
+    );
+  });
+
+  it("styles the export button from theme tokens, not a fixed blue", () => {
+    const css = readFileSync("src/renderer/styles.css", "utf8");
+    const start = css.indexOf(".settingsExportButton {");
+    const end = css.indexOf(".settingsExportButton:disabled");
+    const block = css.slice(start, end).replace(/\/\*[\s\S]*?\*\//g, "");
+
+    expect(start).toBeGreaterThan(-1);
+    expect(block).toContain("var(--pg-color-accent-interactive)");
+    expect(block).toContain("var(--pg-color-accent-foreground)");
+    expect(block).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+  });
+
+  it("has JA and EN command titles and descriptions, and keeps the UI export strings", () => {
+    for (const key of [
+      "command.workspace.applicationSettings.exportJson",
+      "command.workspace.applicationSettings.exportJson.description",
+      "command.project.settings.exportJson",
+      "command.project.settings.exportJson.description"
+    ] as const) {
+      expect(jaTranslations[key]).toBeTruthy();
+      expect(enTranslations[key]).toBeTruthy();
+    }
+    expect(jaTranslations["command.workspace.applicationSettings.exportJson"]).toBe(
+      "アプリケーション設定をJSONとしてエクスポート"
+    );
+    expect(jaTranslations["command.project.settings.exportJson"]).toBe(
+      "プロジェクト設定をJSONとしてエクスポート"
+    );
+    expect(jaTranslations["settings.export.action.label"]).toBe(
+      "設定をJSONとしてエクスポート"
+    );
+    expect(enTranslations["settings.export.button"]).toBe("Export");
+  });
+});
+
+function workspaceCommandIdsText(): string {
+  return readFileSync("src/shared/commandIds.ts", "utf8");
+}
 
 describe("Project Settings panel (#396 Slice 3)", () => {
   it("renders header, description, and structured font list controls", () => {

@@ -1857,6 +1857,12 @@ export function App(): JSX.Element {
   const canSaveAllDocumentsCommandRef = useRef<() => boolean>(() => false);
   const goToLineCommandRef = useRef<(line: number) => void>(() => undefined);
   const showResumeHubCommandRef = useRef<() => void>(() => undefined);
+  const exportApplicationSettingsCommandRef = useRef<() => Promise<void>>(
+    () => Promise.resolve()
+  );
+  const exportProjectSettingsCommandRef = useRef<() => Promise<void>>(
+    () => Promise.resolve()
+  );
   const canShowResumeHubCommandRef = useRef<() => boolean>(() => false);
   const showLineEndingDistributionCommandRef = useRef<() => void>(
     () => undefined
@@ -4365,6 +4371,10 @@ export function App(): JSX.Element {
         openApplicationSettings: () => {
           openSettingsTab();
         },
+        // #721: the Settings screen button and the Command Palette share this
+        // one export path.
+        exportApplicationSettingsJson: () =>
+          exportApplicationSettingsCommandRef.current(),
         openKeyboardShortcuts: () => {
           openKeyboardShortcutsTab();
         },
@@ -4416,7 +4426,9 @@ export function App(): JSX.Element {
       {
         openProjectSettings: () => {
           openProjectSettingsTab();
-        }
+        },
+        exportProjectSettingsJson: () =>
+          exportProjectSettingsCommandRef.current()
       },
       createProjectSettingsCommandTitles(translate)
     );
@@ -10467,6 +10479,9 @@ export function App(): JSX.Element {
   showRecoveryDocumentsCommandRef.current = () => {
     void openRecoveryCandidateDialog();
   };
+  exportApplicationSettingsCommandRef.current = () =>
+    handleExportApplicationSettings();
+  exportProjectSettingsCommandRef.current = () => handleExportProjectSettings();
   canShowResumeHubCommandRef.current = () => Boolean(project);
   showResumeHubCommandRef.current = () => {
     if (!project) {
@@ -13952,7 +13967,12 @@ export function App(): JSX.Element {
                       displayLanguage={displayLanguage}
                       confirmDialog={confirmDialog}
                       onChangeSettings={handleSettingsChangeRequest}
-                      onExportSettings={handleExportApplicationSettings}
+                      onExportSettings={() =>
+                        executeUiCommand(
+                          workspaceCommandIds.exportApplicationSettingsJson,
+                          { source: "settingsPanel" }
+                        )
+                      }
                       onSettingFieldFocus={handleSettingsFieldFocus}
                       onSettingFieldBlur={() => {
                         void handleSettingsFieldBlur();
@@ -13969,7 +13989,11 @@ export function App(): JSX.Element {
                       isReadOnly={project?.accessMode?.kind === "readOnly"}
                       onSaveSettings={handleSaveProjectSettings}
                       onUpdateProjectName={handleUpdateProjectName}
-                      onExportSettings={handleExportProjectSettings}
+                      onExportSettings={() =>
+                        executeUiCommand(projectSettingsCommandIds.exportJson, {
+                          source: "settingsPanel"
+                        })
+                      }
                     />
                   ) : isDebugLogTabActive ? (
                     <section className="debugLogTab">

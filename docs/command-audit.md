@@ -34,7 +34,9 @@
 | **File** | `editor.saveAs` | 名前を付けて保存... | Save As... | `Mod+Shift+S`, `F12` | Main Menu / Command Registry | Markdown Document | `editor.hasDocument` && `editor.kind.markdown` | Yes | Registered | `F12` は Main Menu 隠しアクセラレータ |
 | **File** | `editor.close` | 現在の文書を閉じる | Close Current Tab | `Mod+W` | Main Menu / Command Registry | Workspace | `canCloseEditor()` | Yes | Registered | 引数に `editorId` を受け取り可能 |
 | **File** | `project.settings.open` | プロジェクト設定を開く | Open Project Settings | - | Main Menu / Command Registry | All | `project.isOpen` | Yes | Registered |  |
+| **File** | `project.settings.exportJson` | プロジェクト設定をJSONとしてエクスポート | Export Project Settings as JSON | - | Command Registry / Settings 画面ボタン | All | `project.isOpen` | Yes | Registered |  |
 | **File** | `workspace.applicationSettings.open` | アプリケーション設定を開く | Open Application Settings | `Mod+,` | Main Menu / Command Registry | All | Always | Yes | Registered | `Mod+,` は Main Menu 隠しアクセラレータ |
+| **File** | `workspace.applicationSettings.exportJson` | アプリケーション設定をJSONとしてエクスポート | Export Application Settings as JSON | - | Command Registry / Settings 画面ボタン | All | Always | Yes | Registered |  |
 | **File** | `app.quit` | Pergamumを終了 | Quit Pergamum | `Mod+Q` | Main Menu / Command Registry | All | Always | Yes | Registered | macOS の場合は `Command+Q` |
 | **Edit** | `editor.selection.cut` | 切り取り | Cut | `Mod+X` | Main Menu / Command Registry | Editor | `canDelegateNativeEditCommand` | Yes | Registered |  |
 | **Edit** | `editor.selection.copy` | コピー | Copy | `Mod+C` | Main Menu / Command Registry | Editor | `canDelegateNativeEditCommand` | Yes | Registered |  |

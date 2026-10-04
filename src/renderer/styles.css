@@ -3681,9 +3681,9 @@ label.settingsItemHeader {
 
 .settingsExportButton {
   flex-shrink: 0;
-  border: 1px solid #2f6f9f;
+  border: 1px solid var(--pg-color-accent-interactive);
   border-radius: 4px;
-  background: #2f6f9f;
+  background: var(--pg-color-accent-interactive);
   color: var(--pg-color-accent-foreground);
   font: inherit;
   font-size: 13px;
@@ -3692,9 +3692,14 @@ label.settingsItemHeader {
   cursor: pointer;
 }
 
+/* #721: theme-aware primary action — hover darkens the current theme's accent
+   instead of switching to a fixed colour. */
 .settingsExportButton:hover:not(:disabled) {
-  background: #24577d;
-  border-color: #24577d;
+  filter: brightness(0.9);
+}
+
+.settingsExportButton:active:not(:disabled) {
+  filter: brightness(0.8);
 }
 
 .settingsExportButton:focus-visible {

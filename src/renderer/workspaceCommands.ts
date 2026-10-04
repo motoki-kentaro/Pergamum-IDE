@@ -19,6 +19,7 @@ export type WorkspaceFocusCommandId =
 export interface WorkspaceCommandController {
   focusSidebarMode(mode: SidebarMode): void;
   openApplicationSettings(): void;
+  exportApplicationSettingsJson(): void | Promise<void>;
   openKeyboardShortcuts(): void;
   showResumeHub(): void;
   canShowResumeHub(): boolean;
@@ -37,6 +38,8 @@ export interface WorkspaceCommandTitles {
   focusDocumentMetricsDescription: string;
   openApplicationSettings: string;
   openApplicationSettingsDescription: string;
+  exportApplicationSettingsJson: string;
+  exportApplicationSettingsJsonDescription: string;
   openKeyboardShortcuts: string;
   openKeyboardShortcutsDescription: string;
   showResumeHub: string;
@@ -74,6 +77,12 @@ export function createWorkspaceCommandTitles(
     ),
     openApplicationSettingsDescription: translate(
       "command.workspace.applicationSettings.open.description"
+    ),
+    exportApplicationSettingsJson: translate(
+      "command.workspace.applicationSettings.exportJson"
+    ),
+    exportApplicationSettingsJsonDescription: translate(
+      "command.workspace.applicationSettings.exportJson.description"
     ),
     openKeyboardShortcuts: translate("command.workspace.keyboardShortcuts.open"),
     openKeyboardShortcutsDescription: translate(
@@ -167,6 +176,14 @@ export function createWorkspaceCommands(
       execute: () => {
         controller.openApplicationSettings();
       }
+    },
+    {
+      id: workspaceCommandIds.exportApplicationSettingsJson,
+      title: titles.exportApplicationSettingsJson,
+      description: titles.exportApplicationSettingsJsonDescription,
+      category: "file",
+      paletteOrder: 111,
+      execute: () => controller.exportApplicationSettingsJson()
     },
     {
       id: workspaceCommandIds.openKeyboardShortcuts,

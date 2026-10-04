@@ -267,6 +267,51 @@ describe("SettingsPanelView catalog-driven rendering (#230)", () => {
     expect(onExportSettings).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ["en", "Export settings as JSON"],
+    ["ja", "設定をJSONとしてエクスポート"],
+    ["ja", "JSON ファイルとして保存"],
+    ["en", "workspace.applicationSettings.exportJson"],
+    ["en", "applicationSettings.exportjson"]
+  ] as const)(
+    "shows the Export row (and runs export) when searching %s '%s' (#721)",
+    (language, query) => {
+      const onExportSettings = vi.fn();
+      const element = settingsPanelViewElement(language, {
+        selectedCategoryId: "application",
+        searchQuery: query,
+        onExportSettings
+      });
+      const markup = renderToStaticMarkup(element);
+
+      expect(markup).toContain("workspace.applicationSettings.exportJson</code>");
+      expect(markup).not.toContain("settingsSearchEmpty");
+
+      const exportButton = collectElements(
+        element,
+        (child) =>
+          child.type === "button" &&
+          typeof child.props.className === "string" &&
+          child.props.className.includes("settingsExportButton")
+      )[0];
+      expect(exportButton).toBeDefined();
+      (exportButton.props.onClick as () => void)();
+      expect(onExportSettings).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it("does not show the Export row for an unrelated search, and still shows it in the Export category (#721)", () => {
+    const unrelated = renderSettingsPanelView("en", {
+      searchQuery: "zzzz-no-such-setting"
+    });
+    expect(unrelated).not.toContain("settingsExportButton");
+    expect(unrelated).toContain("No settings match your search.");
+
+    expect(
+      renderSettingsPanelView("en", { selectedCategoryId: "export" })
+    ).toContain("settingsExportButton");
+  });
+
   it("shows the '文書マップ' heading only once in the pane body (no duplicate section heading) (#375 fix)", () => {
     const markup = renderSettingsPanelView("ja", {
       selectedCategoryId: "documentMap"
