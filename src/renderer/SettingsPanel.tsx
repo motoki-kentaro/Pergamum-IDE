@@ -41,6 +41,8 @@ import { FontFamilyListSettingControl } from "./FontFamilyListSettingControl";
 import { FontPickerDialog } from "./dialog/FontPickerDialog";
 import type { FontFamilySetting, FontSlot } from "../shared/fontSettings";
 import { normalizeCommandPaletteLaunchAnimationDurationMs } from "../shared/commandPaletteLaunchAnimationSettings";
+import { validateCatalogValue } from "../shared/settingsCatalog";
+import { CaretSettingsSection, CaretNumberControl } from "./components/CaretSettingsSection";
 
 import type {
   AppConfirmDialogOptions,
@@ -136,7 +138,9 @@ const numberUnitKeyByKey: Partial<Record<SettingKey, TranslationKey>> = {
   "commandPalette.footerDetail.marquee.speed": "settings.unit.pxPerSecond",
   "commandPalette.launchAnimation.durationMs": "settings.unit.ms",
   "preview.updateDelayMs": "settings.unit.ms",
-  "workbench.notification.durationMs": "settings.unit.ms"
+  "workbench.notification.durationMs": "settings.unit.ms",
+  "textCursor.width": "settings.unit.px",
+  "textCursor.blink": "settings.unit.ms"
 };
 
 function fontFamilyValue(value: string): string | undefined {
@@ -173,6 +177,7 @@ function saveRequest(
     markdownFiles: overrides.markdownFiles ?? settings.markdownFiles,
     textFiles: overrides.textFiles ?? settings.textFiles,
     imageAttachment: overrides.imageAttachment ?? settings.imageAttachment,
+    textCursor: overrides.textCursor ?? settings.textCursor,
     documentMap: overrides.documentMap ?? settings.documentMap
   };
   const notification = overrides.notification ?? settings.notification;
@@ -760,6 +765,26 @@ function buildNextSettings(
           fontFamilyList: rawValue as any
         }
       });
+    case "textCursor.width":
+      if (typeof rawValue !== "number" || !validateCatalogValue(key, rawValue).ok) {
+        return null;
+      }
+      return saveRequest(settings, {
+        textCursor: {
+          ...settings.textCursor,
+          width: rawValue
+        }
+      });
+    case "textCursor.blink":
+      if (typeof rawValue !== "number" || !validateCatalogValue(key, rawValue).ok) {
+        return null;
+      }
+      return saveRequest(settings, {
+        textCursor: {
+          ...settings.textCursor,
+          blink: rawValue
+        }
+      });
   }
 
   const exhaustiveCheck: never = key;
@@ -985,6 +1010,11 @@ function SettingControlInput({
         />
       );
     case "number": {
+      if (item.key === "textCursor.width" || item.key === "textCursor.blink") {
+        return <CaretNumberControl field={item.key === "textCursor.width" ? "width" : "blink"}
+          value={Number(value)} disabled={disabled} translate={translate}
+          onChange={onChange} showSlider={false} numberId={controlId} />;
+      }
       const unitKey = numberUnitKeyByKey[item.key];
 
       return (
@@ -1304,7 +1334,16 @@ export function SettingsPanelView({
                 )}
           </h2>
 
-          {visibleItems.length === 0 ? (
+          {/* #719: Text cursor settings dedicated category */}
+          {!isSearching && selectedCategoryId === "textCursor" ? (
+            <CaretSettingsSection
+              settings={settings}
+              isLoading={isLoading}
+              displayLanguage={displayLanguage}
+              translate={translate}
+              onChangeSettings={onChangeSettings}
+            />
+          ) : visibleItems.length === 0 ? (
             isSearching ? (
               <p className="settingsSearchEmpty">
                 {translate("settings.search.empty")}

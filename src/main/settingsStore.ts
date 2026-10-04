@@ -11,6 +11,7 @@ import {
 } from "../shared/japaneseLintRules";
 import {
   createDefaultApplicationSettings,
+  defaultTextCursorSettings,
   type ApplicationSettings,
   type RecordRecentProjectInput,
   type RecentProject,
@@ -717,6 +718,29 @@ function readSearchSettings(
   };
 }
 
+// #719: Text cursor settings. Tolerant on read — missing or invalid values
+// fall back to catalog defaults.
+function readTextCursorSettings(
+  value: unknown
+): ApplicationSettings["textCursor"] {
+  if (!isObject(value)) {
+    return {
+      width: resolveCatalogValue("textCursor.width", undefined).value,
+      blink: resolveCatalogValue("textCursor.blink", undefined).value
+    };
+  }
+
+  const widthResolution = resolveCatalogValue("textCursor.width", value.width);
+  const blinkResolution = resolveCatalogValue("textCursor.blink", value.blink);
+
+  const textCursor: ApplicationSettings["textCursor"] = {
+    width: widthResolution.value,
+    blink: blinkResolution.value
+  };
+
+  return textCursor;
+}
+
 function readSettingsValue(value: unknown): ApplicationSettings {
   if (!isObject(value)) {
     return createDefaultApplicationSettings();
@@ -741,6 +765,7 @@ function readSettingsValue(value: unknown): ApplicationSettings {
     markdownFiles: readMarkdownFilesSettings(value.markdownFiles),
     textFiles: readTextFilesSettings(value.textFiles),
     imageAttachment: readImageAttachmentSettings(value.imageAttachment),
+    textCursor: readTextCursorSettings(value.textCursor),
     documentMap: readDocumentMapSettings(value.documentMap),
     recentProjects: readRecentProjects(value.recentProjects)
   };
@@ -800,6 +825,40 @@ function parseRecentProjectsForSave(value: unknown): RecentProject[] {
   return recentProjects;
 }
 
+// #719: strict write parser for textCursor settings.
+function parseTextCursorSettingsForWrite(
+  value: unknown
+): ApplicationSettings["textCursor"] {
+  if (!isObject(value)) {
+    throw new Error("Invalid application settings.");
+  }
+
+  const keys = Object.keys(value);
+  const expectedKeyCount = 2;
+
+  if (
+    keys.length !== expectedKeyCount ||
+    !keys.includes("width") ||
+    !keys.includes("blink")
+  ) {
+    throw new Error("Invalid application settings.");
+  }
+
+  const widthResolution = resolveCatalogValue("textCursor.width", value.width);
+  const blinkResolution = resolveCatalogValue("textCursor.blink", value.blink);
+
+  if (!widthResolution.ok || !blinkResolution.ok) {
+    throw new Error("Invalid application settings.");
+  }
+
+  const textCursor: ApplicationSettings["textCursor"] = {
+    width: widthResolution.value,
+    blink: blinkResolution.value
+  };
+
+  return textCursor;
+}
+
 export function parseSaveApplicationSettingsRequest(
   value: unknown
 ): SaveApplicationSettingsRequest {
@@ -810,8 +869,12 @@ export function parseSaveApplicationSettingsRequest(
   const keys = Object.keys(value);
   const hasNotification = keys.includes("notification");
   const hasJapaneseLint = keys.includes("japaneseLint");
+  const hasTextCursor = keys.includes("textCursor");
   const expectedKeyCount =
-    9 + (hasNotification ? 1 : 0) + (hasJapaneseLint ? 1 : 0);
+    9 +
+    (hasNotification ? 1 : 0) +
+    (hasJapaneseLint ? 1 : 0) +
+    (hasTextCursor ? 1 : 0);
 
   if (
     keys.length !== expectedKeyCount ||
@@ -846,6 +909,9 @@ export function parseSaveApplicationSettingsRequest(
     imageAttachment: parseImageAttachmentSettingsForWrite(
       value.imageAttachment
     ),
+    ...(hasTextCursor
+      ? { textCursor: parseTextCursorSettingsForWrite(value.textCursor) }
+      : { textCursor: defaultTextCursorSettings }),
     documentMap: parseDocumentMapSettingsForWriteStore(value.documentMap),
     ...(hasJapaneseLint
       ? { japaneseLint: parseJapaneseLintSettingsForWriteStore(value.japaneseLint) }
@@ -1924,7 +1990,7 @@ function parseApplicationSettingsForWrite(value: unknown): ApplicationSettings {
   const hasNotification = keys.includes("notification");
   const hasJapaneseLint = keys.includes("japaneseLint");
   const expectedKeyCount =
-    10 + (hasNotification ? 1 : 0) + (hasJapaneseLint ? 1 : 0);
+    11 + (hasNotification ? 1 : 0) + (hasJapaneseLint ? 1 : 0);
 
   if (
     keys.length !== expectedKeyCount ||
@@ -1936,6 +2002,7 @@ function parseApplicationSettingsForWrite(value: unknown): ApplicationSettings {
     !keys.includes("markdownFiles") ||
     !keys.includes("textFiles") ||
     !keys.includes("imageAttachment") ||
+    !keys.includes("textCursor") ||
     !keys.includes("documentMap") ||
     !keys.includes("recentProjects")
   ) {
@@ -1960,6 +2027,7 @@ function parseApplicationSettingsForWrite(value: unknown): ApplicationSettings {
     imageAttachment: parseImageAttachmentSettingsForWrite(
       value.imageAttachment
     ),
+    textCursor: parseTextCursorSettingsForWrite(value.textCursor),
     documentMap: parseDocumentMapSettingsForWriteStore(value.documentMap),
     ...(hasJapaneseLint
       ? { japaneseLint: parseJapaneseLintSettingsForWriteStore(value.japaneseLint) }
@@ -2038,6 +2106,12 @@ export async function saveApplicationSettings(
   // the loaded value rather than clobbering it with `undefined`.
   if (settingsRequest.imageAttachment !== undefined) {
     nextSettings.imageAttachment = settingsRequest.imageAttachment;
+  }
+
+  // #719: write-through for textCursor settings. Tolerate an omitting request
+  // by keeping the loaded value.
+  if (settingsRequest.textCursor !== undefined) {
+    nextSettings.textCursor = settingsRequest.textCursor;
   }
 
   // #375: the Document Map settings are write-through — a save request always

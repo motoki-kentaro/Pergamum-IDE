@@ -151,6 +151,7 @@ import {
   applyWorkbenchUiFontFamilyList
 } from "./workbenchFontFamily";
 import { applyColorThemeById } from "./colorTheme";
+import { applyTextCursorSettingsToDom } from "./caretSettingsCodeMirror";
 import { resolveColorTheme } from "../shared/colorTheme";
 import { notifyStartupVisualReady } from "./startupVisualReady";
 import { decideJapaneseLintToggle } from "../shared/japaneseLint";
@@ -3074,6 +3075,9 @@ export function App(): JSX.Element {
   useEffect(() => {
     applyPreviewFontFamilyList(effectiveSettings.preview.fontFamilyList);
   }, [effectiveSettings.preview.fontFamilyList]);
+  useEffect(() => {
+    applyTextCursorSettingsToDom(effectiveSettings.textCursor);
+  }, [effectiveSettings.textCursor]);
   // #659: Main keeps the window hidden until this fires. It MUST stay after
   // the visual-settings effects above: effects of one commit run in
   // declaration order, so by the time Application Settings have finished
@@ -14044,6 +14048,7 @@ export function App(): JSX.Element {
                         whitespaceSettings={
                           effectiveSettings.editor.whitespace
                         }
+                        textCursorSettings={effectiveSettings.textCursor}
                         captureTabInEditor={
                           effectiveSettings.editor.captureTabInEditor
                         }

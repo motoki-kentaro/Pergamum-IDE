@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createSettingsFieldRestartTracker } from "../../src/renderer/settingsFieldRestartTracker";
-import type {
-  ApplicationSettings,
-  SaveApplicationSettingsRequest
+import {
+  defaultTextCursorSettings,
+  type ApplicationSettings,
+  type SaveApplicationSettingsRequest
 } from "../../src/shared/settings";
 import { defaultDocumentMapSettings } from "../../src/shared/documentMapSettings";
 import { getCatalogDefaultValue } from "../../src/shared/settingsCatalog";
@@ -134,6 +135,7 @@ function baseApplicationSettings(
       saveDirectory: getCatalogDefaultValue("imageAttachment.saveDirectory")
     },
     documentMap: defaultDocumentMapSettings(),
+    textCursor: defaultTextCursorSettings,
     recentProjects: [],
     ...overrides
   };

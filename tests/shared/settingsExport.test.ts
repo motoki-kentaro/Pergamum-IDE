@@ -62,6 +62,7 @@ describe("settings JSON export helpers (#521)", () => {
       notification: settings.notification,
       preview: settings.preview,
       search: settings.search,
+      textCursor: settings.textCursor,
       textFiles: settings.textFiles,
       workbench: settings.workbench
     };

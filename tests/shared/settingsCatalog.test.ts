@@ -722,7 +722,9 @@ describe("Settings Catalog Foundation (#150)", () => {
         "search.nearby.characterDistance",
         "search.nearby.paragraphDistance",
         "preview.updateDelayMs",
-        "workbench.notification.durationMs"
+        "workbench.notification.durationMs",
+        "textCursor.width",
+        "textCursor.blink"
       ]);
       expect(
         getCatalogEntries().some((entry) => entry.key === "workbench.fontSize")
@@ -1380,6 +1382,8 @@ describe("Settings Catalog Foundation (#150)", () => {
           "search.nearby.unit",
           "search.nearby.characterDistance",
           "search.nearby.paragraphDistance",
+          "textCursor.width",
+          "textCursor.blink",
           "workbench.colorTheme",
           "workbench.fontFamily",
           "workbench.uiFontFamilyList",

@@ -21,6 +21,7 @@
  * and data they will read.
  */
 
+import { CARET_WIDTH, CARET_BLINK } from "./caretSettings";
 import {
   getCatalogDefaultValue,
   getCatalogEntry,
@@ -54,6 +55,7 @@ export type SettingCategory =
   | "application"
   | "appearance"
   | "editor"
+  | "textCursor"
   | "searchReplace"
   | "imageAttachment"
   | "preview"
@@ -114,6 +116,12 @@ export const settingCategoryCatalog = defineSettingCategoryCatalog([
     id: "editor",
     order: 300,
     labelKey: "settings.category.editor.label"
+  },
+  {
+    // #719: Text cursor category (preview, width, blink interval).
+    id: "textCursor",
+    order: 320,
+    labelKey: "settings.category.textCursor.label"
   },
   {
     // #424 Slice 7: Search & Replace sits after Editor — a document-authoring
@@ -1285,6 +1293,34 @@ export const settingCatalogItems = defineSettingCatalog([
     defaultValue: getCatalogDefaultValue(
       "commandPalette.launchAnimation.durationMs"
     )
+  },
+  {
+    key: "textCursor.width",
+    category: "textCursor",
+    order: 200,
+    labelKey: "settings.textCursor.width.label",
+    descriptionKey: "settings.textCursor.width.description",
+    control: {
+      kind: "number",
+      min: CARET_WIDTH.min,
+      max: CARET_WIDTH.max,
+      step: CARET_WIDTH.step
+    },
+    defaultValue: getCatalogDefaultValue("textCursor.width")
+  },
+  {
+    key: "textCursor.blink",
+    category: "textCursor",
+    order: 300,
+    labelKey: "settings.textCursor.blink.label",
+    descriptionKey: "settings.textCursor.blink.description",
+    control: {
+      kind: "number",
+      min: CARET_BLINK.min,
+      max: CARET_BLINK.max,
+      step: CARET_BLINK.step
+    },
+    defaultValue: getCatalogDefaultValue("textCursor.blink")
   }
 ] satisfies readonly SettingCatalogItem[]);
 

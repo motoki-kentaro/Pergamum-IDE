@@ -35,6 +35,7 @@ function saveRequestWithDocumentMap(
     markdownFiles: settings.markdownFiles,
     textFiles: settings.textFiles,
     imageAttachment: settings.imageAttachment,
+    textCursor: settings.textCursor,
     documentMap
   };
   if (settings.notification !== undefined) {

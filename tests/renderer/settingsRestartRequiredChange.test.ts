@@ -5,9 +5,10 @@ import {
   hasRestartRequiredSettingChange,
   promptRestartIfRequired
 } from "../../src/renderer/settingsRestartRequiredChange";
-import type {
-  ApplicationSettings,
-  SaveApplicationSettingsRequest
+import {
+  defaultTextCursorSettings,
+  type ApplicationSettings,
+  type SaveApplicationSettingsRequest
 } from "../../src/shared/settings";
 import { defaultDocumentMapSettings } from "../../src/shared/documentMapSettings";
 import { getCatalogDefaultValue } from "../../src/shared/settingsCatalog";
@@ -138,6 +139,7 @@ function baseApplicationSettings(
       saveDirectory: getCatalogDefaultValue("imageAttachment.saveDirectory")
     },
     documentMap: defaultDocumentMapSettings(),
+    textCursor: defaultTextCursorSettings,
     recentProjects: [],
     ...overrides
   };
