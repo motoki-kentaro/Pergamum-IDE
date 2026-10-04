@@ -17,6 +17,7 @@ vi.mock("electron", () => ({
 }));
 
 import { registerAppInfoIpc } from "../../src/main/appInfoIpc";
+import { MANUAL_URLS } from "../../src/shared/manualUrl";
 
 // The renderer classifies links too, but main re-validates independently.
 describe("appInfo:openExternalUrl (main-side validation)", () => {
@@ -39,6 +40,14 @@ describe("appInfo:openExternalUrl (main-side validation)", () => {
 
     expect(openExternal).toHaveBeenNthCalledWith(1, "https://example.com/");
     expect(openExternal).toHaveBeenNthCalledWith(2, "http://example.com/a");
+  });
+
+  it("opens each UI language's manual URL unchanged (#737)", async () => {
+    for (const url of Object.values(MANUAL_URLS)) {
+      await handler({}, url);
+      expect(openExternal).toHaveBeenLastCalledWith(url);
+    }
+    expect(openExternal).toHaveBeenCalledTimes(Object.keys(MANUAL_URLS).length);
   });
 
   it.each([

@@ -1,4 +1,6 @@
 import type { AppDialogMessage } from "./appDialogTypes";
+import { MaskedIcon } from "../MaskedIcon";
+import linkExternalIconUrl from "../../../assets/icons/codicons/dialog/link-external.svg?url";
 
 export interface DialogMessageProps {
   readonly id: string;
@@ -14,6 +16,21 @@ export function DialogMessage({
       <p id={id} className="appDialogMessage">
         {message.text}
       </p>
+    );
+  }
+
+  if (message.kind === "plainTextWithUrlRow") {
+    // #737: the URL and its icon are DISPLAY ONLY — no anchor, no button, no
+    // handler — so the only way to open the browser is the dialog's confirm
+    // button. The icon is decorative (MaskedIcon hides it from assistive tech).
+    return (
+      <div id={id} className="appDialogMessage appDialogMessage-blocks">
+        <p className="appDialogMessageText">{message.beforeText}</p>
+        <div className="appDialogUrlRow" data-testid="appDialogUrlRow">
+          <span className="appDialogUrlText">{message.url}</span>
+          <MaskedIcon url={linkExternalIconUrl} className="appDialogUrlIcon" />
+        </div>
+      </div>
     );
   }
 

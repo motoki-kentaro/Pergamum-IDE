@@ -22,6 +22,7 @@ function buildFullCommandRegistry(): CommandRegistry {
     {
       openAbout: () => undefined,
       openUsageTour: () => undefined,
+      openManual: () => undefined,
       openMarkdownCheatSheet: () => undefined,
       quitApplication: () => undefined,
       createProject: () => undefined,
@@ -37,6 +38,8 @@ function buildFullCommandRegistry(): CommandRegistry {
       openAboutDescription: "",
       openUsageTour: "Usage Tour",
       openUsageTourDescription: "",
+      openManual: "Manual",
+      openManualDescription: "Open the manual.",
       openMarkdownCheatSheet: "Markdown Cheat Sheet",
       openMarkdownCheatSheetDescription: "",
       quitApplication: "Quit Pergamum",

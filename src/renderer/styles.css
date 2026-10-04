@@ -11333,6 +11333,32 @@ body > .mermaidTooltip {
   font: inherit;
 }
 
+/* #737: display-only URL row (text + decorative icon), same box as the path block. */
+.appDialogUrlRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--app-dialog-border);
+  border-radius: 4px;
+  background: var(--pg-color-app-background);
+  color: var(--app-dialog-foreground);
+}
+
+.appDialogUrlText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.appDialogUrlIcon {
+  flex: 0 0 auto;
+  inline-size: 14px;
+  block-size: 14px;
+}
+
 .appDialogPathBlockValue {
   min-width: 0;
   padding: 8px 10px;

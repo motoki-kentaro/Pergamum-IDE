@@ -141,6 +141,7 @@ import {
 } from "./applicationCommands";
 import { subscribeApplicationMenuCommands } from "./applicationMenuBridge";
 import { canInsertPageBreakInEditor } from "./pageBreakApplicability";
+import { openManualWithConfirmation } from "./manualOpen";
 import {
   currentCharacterCount,
   resolveCharacterCountSource
@@ -1794,6 +1795,9 @@ export function App(): JSX.Element {
   const [isUsageTourOpen, setIsUsageTourOpen] = useState(false);
   const [isUsageTourManual, setIsUsageTourManual] = useState(false);
   const openUsageTourCommandRef = useRef<() => void>(() => undefined);
+  const openManualCommandRef = useRef<() => void | Promise<void>>(
+    () => undefined
+  );
   const openMarkdownCheatSheetCommandRef = useRef<() => void>(
     () => undefined
   );
@@ -4234,6 +4238,7 @@ export function App(): JSX.Element {
       {
         openAbout: () => openAboutDialogCommandRef.current(),
         openUsageTour: () => openUsageTourCommandRef.current(),
+        openManual: () => openManualCommandRef.current(),
         openMarkdownCheatSheet: () => openMarkdownCheatSheetCommandRef.current(),
         quitApplication: () => quitApplicationCommandRef.current(),
         createProject: () => createProjectCommandRef.current(),
@@ -10354,6 +10359,13 @@ export function App(): JSX.Element {
   quitApplicationCommandRef.current = quitApplication;
   openAboutDialogCommandRef.current = openAboutDialog;
   openMarkdownCheatSheetCommandRef.current = openMarkdownCheatSheetTab;
+  openManualCommandRef.current = () =>
+    openManualWithConfirmation({
+      language: displayLanguage,
+      translate,
+      confirmDialog,
+      openExternalUrl: (url) => window.pergamum.appInfo.openExternalUrl(url)
+    });
   openUsageTourCommandRef.current = () => {
     // Manual replay: use the current screen when it already shows a usable
     // Editor and Preview; otherwise (no project / document / Preview) show

@@ -48,6 +48,12 @@ export type AppDialogMessage =
       readonly beforeText: string;
       readonly pathBlock: AppDialogPathBlock;
       readonly afterText: string;
+    }
+  | {
+      /** #737: explanatory text, then a display-only URL row (never a link). */
+      readonly kind: "plainTextWithUrlRow";
+      readonly beforeText: string;
+      readonly url: string;
     };
 
 // ---------------------------------------------------------------------------

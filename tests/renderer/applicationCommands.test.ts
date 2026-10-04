@@ -14,6 +14,8 @@ const titles = {
     "Show Pergamum version, license, and repository information.",
   openUsageTour: "Usage Tour",
   openUsageTourDescription: "Show the usage tour.",
+  openManual: "Manual",
+  openManualDescription: "Open the manual.",
   openMarkdownCheatSheet: "Markdown Cheat Sheet",
   openMarkdownCheatSheetDescription: "",
   quitApplication: "Quit Pergamum",
@@ -48,6 +50,7 @@ describe("application commands", () => {
       {
         openAbout: () => undefined,
         openUsageTour: () => undefined,
+        openManual: () => undefined,
         openMarkdownCheatSheet: () => undefined,
         quitApplication: () => undefined,
         createProject: () => undefined,
@@ -64,6 +67,7 @@ describe("application commands", () => {
     expect(registry.list().map((command) => command.id)).toEqual([
       "app.about.open",
       "help.usageTour",
+      "help.manual",
       "help.markdownCheatSheet",
       "app.quit",
       "workspace.project.create",
@@ -95,6 +99,7 @@ describe("application commands", () => {
       {
         openAbout,
         openUsageTour,
+        openManual: vi.fn(),
         openMarkdownCheatSheet: vi.fn(),
         quitApplication,
         createProject,
@@ -151,6 +156,7 @@ describe("application commands", () => {
       {
         openAbout: () => undefined,
         openUsageTour: () => undefined,
+        openManual: () => undefined,
         openMarkdownCheatSheet: () => undefined,
         quitApplication: () => undefined,
         createProject: () => undefined,
@@ -193,6 +199,7 @@ describe("application commands", () => {
       {
         openAbout: () => undefined,
         openUsageTour: () => undefined,
+        openManual: () => undefined,
         openMarkdownCheatSheet: () => undefined,
         quitApplication: () => undefined,
         createProject: () => undefined,
@@ -221,6 +228,8 @@ describe("application commands", () => {
       openAboutDescription: "translated:command.app.about.open.description",
       openUsageTour: "translated:command.help.usageTour",
       openUsageTourDescription: "translated:command.help.usageTour.description",
+      openManual: "translated:command.help.manual",
+      openManualDescription: "translated:command.help.manual.description",
       openMarkdownCheatSheet: "translated:command.help.markdownCheatSheet",
       openMarkdownCheatSheetDescription:
         "translated:command.help.markdownCheatSheet.description",
