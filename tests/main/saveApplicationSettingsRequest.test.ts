@@ -110,24 +110,24 @@ describe("toSaveApplicationSettingsRequest", () => {
 
     const validCursor = {
       ...baseRequest,
-      textCursor: {
+      textCursor: { style: "line",
         width: 2,
         blink: 600
       }
     };
-    expect(parseSaveApplicationSettingsRequest(validCursor).textCursor).toEqual({
+    expect(parseSaveApplicationSettingsRequest(validCursor).textCursor).toEqual({ style: "line",
       width: 2,
       blink: 600
     });
 
     const validWithoutColor = {
       ...baseRequest,
-      textCursor: {
+      textCursor: { style: "line",
         width: 4,
         blink: 0
       }
     };
-    expect(parseSaveApplicationSettingsRequest(validWithoutColor).textCursor).toEqual({
+    expect(parseSaveApplicationSettingsRequest(validWithoutColor).textCursor).toEqual({ style: "line",
       width: 4,
       blink: 0
     });
@@ -135,7 +135,7 @@ describe("toSaveApplicationSettingsRequest", () => {
     expect(() =>
       parseSaveApplicationSettingsRequest({
         ...baseRequest,
-        textCursor: {
+        textCursor: { style: "line",
           color: "invalid-color",
           width: 1,
           blink: 800
@@ -146,7 +146,7 @@ describe("toSaveApplicationSettingsRequest", () => {
     expect(() =>
       parseSaveApplicationSettingsRequest({
         ...baseRequest,
-        textCursor: {
+        textCursor: { style: "line",
           width: 0,
           blink: 800
         }
@@ -156,7 +156,7 @@ describe("toSaveApplicationSettingsRequest", () => {
     expect(() =>
       parseSaveApplicationSettingsRequest({
         ...baseRequest,
-        textCursor: {
+        textCursor: { style: "line",
           width: 1,
           blink: -100
         }

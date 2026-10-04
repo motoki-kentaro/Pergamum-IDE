@@ -1295,6 +1295,18 @@ export const settingCatalogItems = defineSettingCatalog([
     )
   },
   {
+    key: "textCursor.style",
+    category: "textCursor",
+    order: 100,
+    labelKey: "settings.textCursor.style.label",
+    descriptionKey: "settings.textCursor.style.description",
+    control: { kind: "select", options: [
+      { value: "line", labelKey: "settings.textCursor.style.line" },
+      { value: "block", labelKey: "settings.textCursor.style.block" }
+    ] },
+    defaultValue: getCatalogDefaultValue("textCursor.style")
+  },
+  {
     key: "textCursor.width",
     category: "textCursor",
     order: 200,

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { builtInThemes } from "../../src/shared/colorTheme";
+import { isLightByYiq } from "../../src/shared/colorYiq";
 import {
   contrastRatio,
   parseColor,
@@ -108,6 +109,7 @@ const requiredPairs: readonly ContrastPair[] = [
   ),
   pair("editor text", "editor-foreground", "editor-background", text),
   pair("editor caret", "editor-caret", "editor-background", ui),
+  pair("Block caret text", "editor-background", "editor-caret", text),
   pair("editor gutter text", "editor-gutter-foreground", "editor-gutter-background", 3.5),
   pair(
     "editor gutter marker",
@@ -337,5 +339,25 @@ describe("Ginza Night high contrast properties (#703)", () => {
     expect(
       contrastRatio(tokens.get("--pg-color-focus-ring") ?? "", surfaceBg)
     ).toBeGreaterThanOrEqual(WCAG_AAA_NORMAL_TEXT);
+  });
+});
+
+describe("#722 background tendency and static caret palette", () => {
+  const originalDropColors = ["#000000", "#ffffff", "#ffffff", "#00d4ff", "#0f1b29", "#0d1a10", "#1b170c", "#1a0d11", "#1a1126", "#0b222c", "#19190e"];
+  it("preserves every theme's original drop cursor color", () => {
+    expect(builtInThemes).toHaveLength(originalDropColors.length);
+    builtInThemes.forEach((theme, index) => {
+      expect(themeTokens(theme.cssClassName).get("--pg-color-editor-drop-cursor")).toBe(originalDropColors[index]);
+    });
+  });
+  it.each(builtInThemes)("checks $id", theme => {
+    const tokens = themeTokens(theme.cssClassName);
+    const background = tokens.get("--pg-color-editor-background")!;
+    const caret = tokens.get("--pg-color-editor-caret")!;
+    expect(parseColor(background)).not.toBeNull();
+    expect(parseColor(caret)).not.toBeNull();
+    expect(isLightByYiq(parseColor(background)!)).toBe(theme.kind === "light");
+    expect(contrastRatio(caret, background)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(background, caret)).toBeGreaterThanOrEqual(4.5);
   });
 });

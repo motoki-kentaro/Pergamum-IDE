@@ -4,6 +4,7 @@ import { CARET_BLINK, CARET_WIDTH } from "../../src/shared/caretSettings";
 import { defaultApplicationSettings, resolveEffectiveSettings } from "../../src/shared/settings";
 import { getCatalogEntry, validateCatalogValue, isSettingKey } from "../../src/shared/settingsCatalog";
 import { settingCatalogItems } from "../../src/shared/settingsUiCatalog";
+import { exportableApplicationSettings } from "../../src/shared/settingsExport";
 
 describe("#719 caret setting contract", () => {
   it("matches the current document and preview font geometry", () => {
@@ -22,8 +23,8 @@ describe("#719 caret setting contract", () => {
       expect(settingCatalogItems.find((item) => item.key === key)?.control)
         .toEqual({ kind: "number", min: range.min, max: range.max, step: range.step });
     }
-    expect(defaultApplicationSettings.textCursor).toEqual({ width: 1, blink: 1200 });
-    expect(resolveEffectiveSettings(defaultApplicationSettings, null).textCursor).toEqual({ width: 1, blink: 1200 });
+    expect(defaultApplicationSettings.textCursor).toEqual({ style: "line", width: 1, blink: 1200 });
+    expect(resolveEffectiveSettings(defaultApplicationSettings, null).textCursor).toEqual({ style: "line", width: 1, blink: 1200 });
     expect(isSettingKey("textCursor.color")).toBe(false);
   });
   it.each(Array.from({ length: 11 }, (_, i) => i * 200))("accepts blink %s", (value) => {
@@ -34,5 +35,21 @@ describe("#719 caret setting contract", () => {
   });
   it.each([0, 16, 100, 1.5, NaN, Infinity])("rejects width %s", (value) => {
     expect(validateCatalogValue("textCursor.width", value).ok).toBe(false);
+  });
+});
+
+describe("#722 caret style contract", () => {
+  it("defaults to Line and exports the application-only style", () => {
+    expect(getCatalogEntry("textCursor.style").scope).toBe("applicationOnly");
+    expect(defaultApplicationSettings.textCursor.style).toBe("line");
+    expect(exportableApplicationSettings({ ...defaultApplicationSettings,
+      textCursor: { ...defaultApplicationSettings.textCursor, style: "block" }
+    }).textCursor?.style).toBe("block");
+  });
+  it.each(["line", "block"])("accepts %s", style => {
+    expect(validateCatalogValue("textCursor.style", style).ok).toBe(true);
+  });
+  it.each(["bar", "Block", "", null, 1, true])("rejects %s", style => {
+    expect(validateCatalogValue("textCursor.style", style).ok).toBe(false);
   });
 });

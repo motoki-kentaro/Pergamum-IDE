@@ -112,7 +112,7 @@ describe("Text cursor settings (#719)", () => {
     });
 
     it("applies CSS variables to documentElement via applyTextCursorSettingsToDom", () => {
-      applyTextCursorSettingsToDom({ width: 3, blink: 600 });
+      applyTextCursorSettingsToDom({ style: "line", width: 3, blink: 600 });
       expect(document.documentElement.style.getPropertyValue("--pergamum-text-cursor-width")).toBe("3px");
       expect(document.documentElement.style.getPropertyValue("--pergamum-text-cursor-color")).toBe("");
 
@@ -280,7 +280,7 @@ describe("Text cursor settings (#719)", () => {
       expect(source).not.toContain("--pergamum-text-cursor-color");
       expect(source).toContain('caretColor: "var(--pg-color-editor-caret)"');
       const dropRule = source.split('".cm-dropCursor": {')[1]?.split("}")[0];
-      expect(dropRule).toContain("--pg-color-editor-caret");
+      expect(dropRule).toContain("--pg-color-editor-drop-cursor");
       expect(dropRule).not.toContain("width");
       expect(source).not.toContain('".cm-cursor, .cm-dropCursor"');
     });
@@ -318,7 +318,7 @@ describe("Text cursor settings (#719)", () => {
     it("live updates preview speed and zero without replacing its state", async () => {
       function render(blink: number): void {
         act(() => root?.render(<CaretSettingsSection
-          settings={{ ...defaultApplicationSettings, textCursor: { width: 1, blink } }}
+          settings={{ ...defaultApplicationSettings, textCursor: { style: "line", width: 1, blink } }}
           isLoading={false} displayLanguage="ja" translate={(key) => jaTranslations[key]}
           onChangeSettings={() => undefined} />));
       }
@@ -342,6 +342,105 @@ describe("Text cursor settings (#719)", () => {
   });
 
   describe("SettingsPanelView integration", () => {
+    it("shows all three command paths consistently in the dedicated section", () => {
+      act(() => root?.render(<CaretSettingsSection settings={defaultApplicationSettings}
+        isLoading={false} displayLanguage="ja" translate={key => jaTranslations[key]}
+        onChangeSettings={() => undefined} />));
+      const rows = [...container.querySelectorAll(".caretSettingRow")];
+      expect(rows).toHaveLength(3);
+      expect(rows.map(row => row.querySelector("code.settingsItemKey")?.textContent))
+        .toEqual(["textCursor.style", "textCursor.width", "textCursor.blink"]);
+      for (const row of rows) {
+        expect(row.lastElementChild?.className).toBe("settingsItemKey");
+        expect(row.querySelector("select, .caretSettingInputGroup")).not.toBeNull();
+      }
+      expect(container.querySelectorAll(".caretSettingSlider")).toHaveLength(2);
+      expect(container.querySelector(".caretPreviewEditorHost .cm-editor")).not.toBeNull();
+    });
+
+    it.each(["width", "blink"] as const)("finds and edits textCursor.%s through its command path", field => {
+      const onChange = vi.fn();
+      act(() => root?.render(<SettingsPanelView settings={defaultApplicationSettings}
+        isLoading={false} error={null} translate={key => jaTranslations[key]}
+        onChangeSettings={onChange} selectedCategoryId="textCursor"
+        onSelectCategory={() => undefined} searchQuery={`textCursor.${field}`}
+        onSearchQueryChange={() => undefined} />));
+      expect([...container.querySelectorAll(".settingsItemKey")].map(path => path.textContent))
+        .toEqual([`textCursor.${field}`]);
+      const input = container.querySelector<HTMLInputElement>("input[type='number']")!;
+      expect(input.id).toBe(`settingControl-textCursor.${field}`);
+      const value = field === "width" ? 15 : 800;
+      act(() => changeInputValue(input, String(value)));
+      expect(onChange.mock.calls.at(-1)?.[0].textCursor[field]).toBe(value);
+    });
+
+    it.each(["", "textCursor.style", "スタイル"])("exposes the style label and command path via Settings (search=%s)", searchQuery => {
+      const onChange = vi.fn();
+      act(() => root?.render(<SettingsPanelView settings={defaultApplicationSettings}
+        isLoading={false} error={null} translate={key => jaTranslations[key]}
+        onChangeSettings={onChange} selectedCategoryId="textCursor"
+        onSelectCategory={() => undefined} searchQuery={searchQuery}
+        onSearchQueryChange={() => undefined} />));
+      const path = [...container.querySelectorAll(".settingsItemKey")]
+        .find(element => element.textContent === "textCursor.style");
+      expect(path).toBeDefined();
+      const row = path!.parentElement!;
+      expect(row.textContent).toContain("スタイル");
+      expect(row.textContent).toContain("テキストカーソルの表示スタイル");
+      expect(row.textContent).not.toContain("キャレット");
+      const select = row.querySelector<HTMLSelectElement>("select")!;
+      expect(select).not.toBeNull();
+      act(() => { select.value = "block"; select.dispatchEvent(new Event("change", { bubbles: true })); });
+      expect(onChange.mock.calls.at(-1)?.[0].textCursor.style).toBe("block");
+    });
+
+    it("uses consistent English style wording", () => {
+      expect(enTranslations["settings.textCursor.style.label"]).toBe("Style");
+      expect(enTranslations["settings.textCursor.style.description"]).toContain("text cursor");
+      expect(enTranslations["settings.textCursor.style.description"].toLowerCase()).not.toContain("caret");
+    });
+
+    it("live updates the real Block preview and preserves the saved Line width", () => {
+      const onChange = vi.fn();
+      function render(style: "line" | "block", blink: number): void {
+        act(() => root?.render(<CaretSettingsSection settings={{ ...defaultApplicationSettings,
+          textCursor: { style, width: 9, blink } }} isLoading={false} displayLanguage="en"
+          translate={key => enTranslations[key]} onChangeSettings={onChange} />));
+      }
+      render("line", 1200);
+      const view = EditorView.findFromDOM(container.querySelector(".cm-content")!)!;
+      const doc = view.state.doc;
+      for (const blink of [1200, 0, 400]) {
+        render("block", blink);
+        expect(EditorView.findFromDOM(container.querySelector(".cm-content")!)).toBe(view);
+        const mark = container.querySelector<HTMLElement>(".pg-block-caret-text")!;
+        expect(mark).not.toBeNull();
+        expect(mark.style.animationDuration).toBe(`${blink}ms`);
+        expect(mark.style.animationName === "none").toBe(blink === 0);
+        expect((container.querySelector("[data-testid='caretWidthSlider']") as HTMLInputElement).disabled).toBe(true);
+        expect((container.querySelector("[data-testid='caretBlinkSlider']") as HTMLInputElement).disabled).toBe(false);
+        expect(view.state.doc).toBe(doc);
+      }
+      render("line", 400);
+      expect(container.querySelector(".pg-block-caret-text")).toBeNull();
+      const width = container.querySelector<HTMLInputElement>("[data-testid='caretWidthNumberInput']")!;
+      expect(width.disabled).toBe(false); expect(width.value).toBe("9");
+      const select = container.querySelector<HTMLSelectElement>("#caretStyleSelect")!;
+      act(() => { select.value = "block"; select.dispatchEvent(new Event("change", { bubbles: true })); });
+      expect(onChange.mock.calls.at(-1)?.[0].textCursor).toEqual({ style: "block", width: 9, blink: 400 });
+    });
+
+    it("disables width in searched settings while retaining its value", () => {
+      act(() => root?.render(<SettingsPanelView settings={{ ...defaultApplicationSettings,
+        textCursor: { style: "block", width: 9, blink: 1200 } }} isLoading={false} error={null}
+        translate={key => enTranslations[key]} onChangeSettings={() => undefined}
+        selectedCategoryId="textCursor" onSelectCategory={() => undefined}
+        searchQuery="textCursor" onSearchQueryChange={() => undefined} />));
+      const width = container.querySelector<HTMLInputElement>("[data-testid='caretWidthNumberInput']")!;
+      expect(width.disabled).toBe(true); expect(width.value).toBe("9");
+      expect(container.querySelector("#settingControl-textCursor\\.style")).not.toBeNull();
+    });
+
     it("renders CaretSettingsSection when textCursor category is selected and not searching, without duplicating catalog item rows", () => {
       act(() => {
         root?.render(

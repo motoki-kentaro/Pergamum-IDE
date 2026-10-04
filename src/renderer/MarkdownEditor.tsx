@@ -42,6 +42,7 @@ import type {
   TextFilesIndentUnit,
   WorkbenchSoundSettings
 } from "../shared/settings";
+import { caretStyleCompartment, createCaretStyleExtension } from "./blockCaretExtension";
 import {
   DEFAULT_CARET_BLINK_RATE,
   caretBlinkCompartment,
@@ -1269,6 +1270,7 @@ export function MarkdownEditor({
       initialLineEndingBreaks: docInitialBreaks,
       undoHistoryMinDepth,
       caretBlinkRate: textCursorSettings?.blink ?? DEFAULT_CARET_BLINK_RATE,
+      caretStyle: textCursorSettings?.style ?? "line",
       newFileLineEndingFallbackRef,
       readOnlyCompartment,
       readOnlyRef,
@@ -1357,6 +1359,7 @@ export function MarkdownEditor({
     documentState: MarkdownEditorDocumentState
   ) {
     return [
+      caretStyleCompartment.reconfigure(createCaretStyleExtension(textCursorSettings?.style ?? "line")),
       caretBlinkCompartment.reconfigure(
         createCaretBlinkExtension(textCursorSettings?.blink ?? DEFAULT_CARET_BLINK_RATE)
       ),
@@ -2346,6 +2349,12 @@ export function MarkdownEditor({
     whitespaceSettings?.renderTab,
     whitespaceSettings?.renderOtherUnicodeSpace
   ]);
+
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: caretStyleCompartment.reconfigure(
+      createCaretStyleExtension(textCursorSettings?.style ?? "line")
+    ) });
+  }, [textCursorSettings?.style]);
 
   // #719: Live update caret blink rate without recreating EditorView
   useEffect(() => {

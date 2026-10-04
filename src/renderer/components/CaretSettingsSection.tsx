@@ -12,6 +12,7 @@ import {
   type ApplicationSettings,
   type SaveApplicationSettingsRequest
 } from "../../shared/settings";
+import { caretStyleCompartment, createCaretStyleExtension } from "../blockCaretExtension";
 import { createEditorThemeExtension, editorThemeModeCompartment } from "../editorThemeExtension";
 import {
   applyTextCursorSettingsToDom, caretBlinkCompartment,
@@ -108,6 +109,7 @@ export const CaretSettingsSection: FC<CaretSettingsSectionProps> = ({
         createEditorThemeExtension(),
         editorThemeModeCompartment.of(EditorView.darkTheme.of(theme.kind === "dark")),
         caretBlinkCompartment.of(createCaretBlinkExtension(textCursor.blink)),
+        caretStyleCompartment.of(createCaretStyleExtension(textCursor.style, true)),
         previewCaretCompartment.of(createPreviewUnfocusedCaretExtension(textCursor.blink))
       ] }),
       parent: editorContainerRef.current
@@ -134,6 +136,12 @@ export const CaretSettingsSection: FC<CaretSettingsSectionProps> = ({
     ] });
   }, [textCursor.blink, previewCaretCompartment, displayLanguage]);
 
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: caretStyleCompartment.reconfigure(
+      createCaretStyleExtension(textCursor.style, true)
+    ) });
+  }, [textCursor.style, displayLanguage]);
+
   function update(field: "width" | "blink", value: number): void {
     const next = { ...textCursor, [field]: value };
     applyTextCursorSettingsToDom(next);
@@ -145,14 +153,30 @@ export const CaretSettingsSection: FC<CaretSettingsSectionProps> = ({
       <div ref={editorContainerRef} className="caretPreviewEditorHost" data-testid="caretPreviewEditorHost" />
     </div>
     <div className="caretSettingsControls">
+      <div className="caretSettingRow">
+        <label htmlFor="caretStyleSelect">{translate("settings.textCursor.style.label")}</label>
+        <p className="caretSettingDescription">{translate("settings.textCursor.style.description")}</p>
+        <select id="caretStyleSelect" className="settingsSelect" value={textCursor.style}
+          disabled={isLoading} onChange={(event) => {
+            const style = event.target.value;
+            if (style === "line" || style === "block") {
+              onChangeSettings({ ...toSaveApplicationSettingsRequest(settings), textCursor: { ...textCursor, style } });
+            }
+          }}>
+          <option value="line">{translate("settings.textCursor.style.line")}</option>
+          <option value="block">{translate("settings.textCursor.style.block")}</option>
+        </select>
+        <code className="settingsItemKey">textCursor.style</code>
+      </div>
       {(["width", "blink"] as const).map((field) => <div key={field} className="caretSettingRow"
         data-testid={field === "width" ? "caretWidthRow" : "caretBlinkRow"}>
         <label className="caretSettingLabel" htmlFor={field === "width" ? "caretWidthRange" : "caretBlinkRange"}>
           {translate(`settings.textCursor.${field}.label`)}
         </label>
         <p className="caretSettingDescription">{translate(`settings.textCursor.${field}.description`)}</p>
-        <CaretNumberControl field={field} value={textCursor[field]} disabled={isLoading}
+        <CaretNumberControl field={field} value={textCursor[field]} disabled={isLoading || field === "width" && textCursor.style === "block"}
           translate={translate} onChange={(value) => update(field, value)} />
+        <code className="settingsItemKey">{`textCursor.${field}`}</code>
       </div>)}
     </div>
   </div>;

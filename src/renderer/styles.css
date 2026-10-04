@@ -91,7 +91,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #ffffff;
   --pg-color-editor-foreground: #1f2933;
-  --pg-color-editor-caret: #000000;
+  --pg-color-editor-caret: #2563a8;
+  --pg-color-editor-drop-cursor: #000000;
   --pg-color-editor-selection: #d7d4f0;
   --pg-color-editor-selection-inactive: #d9d9d9;
   --pg-color-editor-selection-match: rgba(92, 141, 190, 0.22);
@@ -479,7 +480,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #1a1e25;
   --pg-color-editor-foreground: #d7dde5;
-  --pg-color-editor-caret: #ffffff;
+  --pg-color-editor-caret: #5b9bd5;
+  --pg-color-editor-drop-cursor: #ffffff;
   --pg-color-editor-selection: #2f4f7a;
   --pg-color-editor-selection-inactive: #2b3340;
   --pg-color-editor-selection-match: rgba(91, 155, 213, 0.28);
@@ -752,7 +754,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #171d27;
   --pg-color-editor-foreground: #dce5ef;
-  --pg-color-editor-caret: #ffffff;
+  --pg-color-editor-caret: #5ea8f8;
+  --pg-color-editor-drop-cursor: #ffffff;
   --pg-color-editor-selection: #284772;
   --pg-color-editor-selection-inactive: #233044;
   --pg-color-editor-selection-match: rgba(94, 168, 248, 0.28);
@@ -1026,6 +1029,7 @@
   --pg-color-editor-background: #0d1015;
   --pg-color-editor-foreground: #f4f6fa;
   --pg-color-editor-caret: #00d4ff;
+  --pg-color-editor-drop-cursor: #00d4ff;
   --pg-color-editor-selection: #184068;
   --pg-color-editor-selection-inactive: #1b2a3c;
   --pg-color-editor-selection-match: rgba(0, 212, 255, 0.28);
@@ -1188,7 +1192,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #f5f8fc;
   --pg-color-editor-foreground: #162230;
-  --pg-color-editor-caret: #0f1b29;
+  --pg-color-editor-caret: #1b62b0;
+  --pg-color-editor-drop-cursor: #0f1b29;
   --pg-color-editor-selection: #cfe2ff;
   --pg-color-editor-selection-inactive: #dfebfb;
   --pg-color-editor-selection-match: rgba(27, 98, 176, 0.22);
@@ -1461,7 +1466,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #f4f8f5;
   --pg-color-editor-foreground: #19261d;
-  --pg-color-editor-caret: #0d1a10;
+  --pg-color-editor-caret: #23733e;
+  --pg-color-editor-drop-cursor: #0d1a10;
   --pg-color-editor-selection: #d0e7d5;
   --pg-color-editor-selection-inactive: #e0efe3;
   --pg-color-editor-selection-match: rgba(35, 115, 62, 0.22);
@@ -1732,7 +1738,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #fbf9f1;
   --pg-color-editor-foreground: #272318;
-  --pg-color-editor-caret: #1b170c;
+  --pg-color-editor-caret: #7a5600;
+  --pg-color-editor-drop-cursor: #1b170c;
   --pg-color-editor-selection: #f3e8c5;
   --pg-color-editor-selection-inactive: #f7f0d9;
   --pg-color-editor-selection-match: rgba(119, 98, 31, 0.22);
@@ -2003,7 +2010,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #faf2f4;
   --pg-color-editor-foreground: #26191d;
-  --pg-color-editor-caret: #1a0d11;
+  --pg-color-editor-caret: #a03a68;
+  --pg-color-editor-drop-cursor: #1a0d11;
   --pg-color-editor-selection: #eccbd5;
   --pg-color-editor-selection-inactive: #f2dde3;
   --pg-color-editor-selection-match: rgba(113, 38, 59, 0.22);
@@ -2274,7 +2282,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #fbf9fe;
   --pg-color-editor-foreground: #211a2d;
-  --pg-color-editor-caret: #1a1126;
+  --pg-color-editor-caret: #6b46a1;
+  --pg-color-editor-drop-cursor: #1a1126;
   --pg-color-editor-selection: #e4d5f3;
   --pg-color-editor-selection-inactive: #efe6f7;
   --pg-color-editor-selection-match: rgba(98, 59, 145, 0.22);
@@ -2545,7 +2554,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #f4fbfd;
   --pg-color-editor-foreground: #102a34;
-  --pg-color-editor-caret: #0b222c;
+  --pg-color-editor-caret: #007a94;
+  --pg-color-editor-drop-cursor: #0b222c;
   --pg-color-editor-selection: #c9edf6;
   --pg-color-editor-selection-inactive: #dff4f9;
   --pg-color-editor-selection-match: rgba(0, 111, 135, 0.22);
@@ -2816,7 +2826,8 @@
   /* ---- CodeMirror editor surface ---- */
   --pg-color-editor-background: #ececd6;
   --pg-color-editor-foreground: #1f1f16;
-  --pg-color-editor-caret: #19190e;
+  --pg-color-editor-caret: #6b4f2a;
+  --pg-color-editor-drop-cursor: #19190e;
   --pg-color-editor-selection: #d3d2a6;
   --pg-color-editor-selection-inactive: #e5e5c7;
   --pg-color-editor-selection-match: rgba(105, 105, 45, 0.22);

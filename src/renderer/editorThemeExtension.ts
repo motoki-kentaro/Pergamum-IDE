@@ -26,7 +26,7 @@ export function createEditorThemeExtension(): Extension {
       caretColor: "var(--pg-color-editor-caret)"
     },
     ".cm-dropCursor": {
-      borderLeftColor: "var(--pg-color-editor-caret)"
+      borderLeftColor: "var(--pg-color-editor-drop-cursor)"
     },
     ".cm-cursor": {
       borderLeftColor: "var(--pg-color-editor-caret)",

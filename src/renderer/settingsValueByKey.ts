@@ -182,6 +182,8 @@ export function readSettingValue(
         settings.preview.fontFamilyList ??
         getCatalogDefaultValue("preview.fontFamilyList")
       );
+    case "textCursor.style":
+      return settings.textCursor?.style ?? getCatalogDefaultValue("textCursor.style");
     case "textCursor.width":
       return (
         settings.textCursor?.width ??

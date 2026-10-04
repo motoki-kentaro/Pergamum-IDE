@@ -83,6 +83,8 @@ import {
   caretBlinkCompartment,
   createCaretBlinkExtension
 } from "./caretSettingsCodeMirror";
+import { caretStyleCompartment, createCaretStyleExtension } from "./blockCaretExtension";
+import type { CaretStyle } from "../shared/caretSettings";
 import { listCommonDefaultKeys } from "../shared/keybindings";
 import type { FencedCodeIndentUnit } from "../shared/settings";
 
@@ -144,6 +146,7 @@ export interface MarkdownEditorBaseSetupOptions {
   /** #719: Compartment for CodeMirror's caret blink rate. */
   readonly caretBlinkCompartment?: Compartment;
   readonly caretBlinkRate?: number;
+  readonly caretStyle?: CaretStyle;
 }
 
 export function createMarkdownEditorBaseSetup(
@@ -177,6 +180,7 @@ export function createMarkdownEditorBaseSetup(
         options.caretBlinkRate ?? DEFAULT_CARET_BLINK_RATE
       )
     ),
+    caretStyleCompartment.of(createCaretStyleExtension(options.caretStyle ?? "line")),
     dropCursor(),
     EditorState.allowMultipleSelections.of(true),
     indentOnInput(),

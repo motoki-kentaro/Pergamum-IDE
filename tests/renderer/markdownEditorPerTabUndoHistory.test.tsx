@@ -67,6 +67,7 @@ interface Harness {
 }
 
 interface HarnessRenderProps {
+  style?: "line" | "block";
   blink?: number;
   isMarkdownDocument?: boolean;
   documentKey: string;
@@ -90,7 +91,7 @@ function mount(
           expectedLineEnding: props.expectedLineEnding,
           markerGlyph: props.markerGlyph,
           documentStates,
-          textCursorSettings: { width: 1, blink: props.blink ?? 1200 },
+          textCursorSettings: { style: props.style ?? "line", width: 1, blink: props.blink ?? 1200 },
           isMarkdownDocument: props.isMarkdownDocument,
           onChange: () => undefined
         })
@@ -537,5 +538,32 @@ describe("MarkdownEditor EditorState cache survives unmount/remount (#392)", () 
     expect(
       harness.view().state.field(activeFindGutterMarkerField, false)?.size ?? 0
     ).toBe(2);
+  });
+});
+
+describe("#722 style reconciliation", () => {
+  it.each([true, false])("keeps current style on fresh/cached/remounted surfaces (Markdown=%s)", async isMarkdownDocument => {
+    const harness = mount({ documentKey: "caret:A", value: "Hello", style: "block", isMarkdownDocument });
+    const assertBlock = async () => {
+      act(() => harness.view().focus());
+      await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+      expect(harness.view().contentDOM.querySelector(".pg-block-caret-text")).not.toBeNull();
+    };
+    await assertBlock();
+    typeChange(harness.view(), 5, 5, "!");
+    act(() => harness.view().dispatch({ selection: { anchor: 1 } }));
+    const depth = undoDepth(harness.view().state);
+    harness.render({ documentKey: "caret:B", value: "Other", style: "line", isMarkdownDocument });
+    expect(harness.view().contentDOM.querySelector(".pg-block-caret-text")).toBeNull();
+    harness.render({ documentKey: "caret:A", value: "Hello!", style: "line", isMarkdownDocument });
+    expect(harness.view().contentDOM.querySelector(".pg-block-caret-text")).toBeNull();
+    expect(undoDepth(harness.view().state)).toBe(depth);
+    harness.render({ documentKey: "caret:A", value: "Hello!", style: "block", isMarkdownDocument });
+    await assertBlock();
+    harness.unmount();
+    harness.remount({ documentKey: "caret:A", value: "Hello!", style: "block", blink: 0, isMarkdownDocument });
+    await assertBlock();
+    expect(harness.view().contentDOM.querySelector<HTMLElement>(".pg-block-caret-text")!.style.animationName).toBe("none");
+    expect(undoDepth(harness.view().state)).toBe(depth);
   });
 });

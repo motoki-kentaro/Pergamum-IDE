@@ -1368,27 +1368,54 @@ describe("#719 caret persistence", () => {
     fsMock.readFile.mockReset(); fsMock.writeFile.mockReset(); fsMock.mkdir.mockReset();
   });
   it("loads defaults for missing and invalid values", async () => {
-    fsMock.readFile.mockResolvedValue(JSON.stringify({ textCursor: { width: 100, blink: 500 } }));
-    expect((await loadSettings()).textCursor).toEqual({ width: 1, blink: 1200 });
+    fsMock.readFile.mockResolvedValue(JSON.stringify({ textCursor: { style: "line", width: 100, blink: 500 } }));
+    expect((await loadSettings()).textCursor).toEqual({ style: "line", width: 1, blink: 1200 });
     fsMock.readFile.mockResolvedValue("{}");
-    expect((await loadSettings()).textCursor).toEqual({ width: 1, blink: 1200 });
+    expect((await loadSettings()).textCursor).toEqual({ style: "line", width: 1, blink: 1200 });
   });
   it("round-trips valid width and blink without color", async () => {
     fsMock.readFile.mockResolvedValue("{}");
     fsMock.writeFile.mockResolvedValue(undefined); fsMock.mkdir.mockResolvedValue(undefined);
-    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: { width: 15, blink: 0 } }));
-    expect(saved.textCursor).toEqual({ width: 15, blink: 0 });
+    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: { style: "line", width: 15, blink: 0 } }));
+    expect(saved.textCursor).toEqual({ style: "line", width: 15, blink: 0 });
     const written = fsMock.writeFile.mock.calls[0][1] as string;
-    expect(JSON.parse(written).textCursor).toEqual({ width: 15, blink: 0 });
+    expect(JSON.parse(written).textCursor).toEqual({ style: "line", width: 15, blink: 0 });
     fsMock.readFile.mockResolvedValue(written);
-    expect((await loadSettings()).textCursor).toEqual({ width: 15, blink: 0 });
+    expect((await loadSettings()).textCursor).toEqual({ style: "line", width: 15, blink: 0 });
   });
   it.each([500, -200, 2200, 200.5])("rejects blink %s on save", (blink) => {
-    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { width: 1, blink } }))).toThrow();
+    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { style: "line", width: 1, blink } }))).toThrow();
   });
   it("rejects width above MAX and removed color settings", () => {
-    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { width: 17, blink: 1200 } }))).toThrow();
+    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { style: "line", width: 17, blink: 1200 } }))).toThrow();
     const request = validSaveRequest();
-    expect(() => parseSaveApplicationSettingsRequest({ ...request, textCursor: { width: 1, blink: 1200, color: "#ffffff" } })).toThrow();
+    expect(() => parseSaveApplicationSettingsRequest({ ...request, textCursor: { style: "line", width: 1, blink: 1200, color: "#ffffff" } })).toThrow();
+  });
+});
+
+describe("#722 caret style persistence", () => {
+  beforeEach(() => {
+    fsMock.readFile.mockReset(); fsMock.writeFile.mockReset(); fsMock.mkdir.mockReset();
+  });
+  it("round-trips Block and keeps width for a return to Line", async () => {
+    fsMock.readFile.mockResolvedValue("{}");
+    fsMock.writeFile.mockResolvedValue(undefined); fsMock.mkdir.mockResolvedValue(undefined);
+    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: { style: "block", width: 9, blink: 400 } }));
+    expect(saved.textCursor).toEqual({ style: "block", width: 9, blink: 400 });
+    const written = fsMock.writeFile.mock.calls[0][1] as string;
+    fsMock.readFile.mockResolvedValue(written);
+    expect((await loadSettings()).textCursor).toEqual(saved.textCursor);
+  });
+  it.each([{}, {width: 3, blink: 400}, {style: "invalid", width: 3, blink: 400}])("resolves missing/invalid disk style to Line: %j", async textCursor => {
+    fsMock.readFile.mockResolvedValue(JSON.stringify({ textCursor }));
+    expect((await loadSettings()).textCursor.style).toBe("line");
+  });
+  it("accepts legacy save payloads without style", () => {
+    const request = validSaveRequest();
+    const legacy = { ...request, textCursor: { width: 3, blink: 400 } };
+    expect(parseSaveApplicationSettingsRequest(legacy).textCursor?.style).toBe("line");
+  });
+  it.each(["bar", null, 0, true])("rejects invalid style on save: %s", style => {
+    expect(() => parseSaveApplicationSettingsRequest({ ...validSaveRequest(), textCursor: { style, width: 1, blink: 1200 } })).toThrow();
   });
 });
