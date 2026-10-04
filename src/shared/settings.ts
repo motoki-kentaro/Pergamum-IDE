@@ -371,6 +371,18 @@ export interface ApplicationTextFilesSettings {
   indentUnit: TextFilesIndentUnit;
 }
 
+export interface ApplicationTextCursorSettings {
+  /** Width in pixels. Minimum 1, defaults to 1. */
+  width: number;
+  /** Blink interval in milliseconds. Minimum 0 (no blink), maximum 2000, step 200, defaults to 1200. */
+  blink: number;
+}
+
+export const defaultTextCursorSettings: ApplicationTextCursorSettings = {
+  width: getCatalogDefaultValue("textCursor.width"),
+  blink: getCatalogDefaultValue("textCursor.blink")
+};
+
 export interface ApplicationSettings {
   preview: ApplicationPreviewSettings;
   notification?: ApplicationNotificationSettings;
@@ -381,6 +393,8 @@ export interface ApplicationSettings {
   markdownFiles: ApplicationMarkdownFilesSettings;
   textFiles: ApplicationTextFilesSettings;
   imageAttachment: ApplicationImageAttachmentSettings;
+  // #719: Text cursor settings (width, blink interval). applicationOnly.
+  textCursor: ApplicationTextCursorSettings;
   // #375: Document Map draw colours + dialogue delimiter pairs.
   // applicationOnly, always concrete (never sparse).
   documentMap: DocumentMapSettings;
@@ -406,6 +420,7 @@ export interface SaveApplicationSettingsRequest {
   markdownFiles: ApplicationMarkdownFilesSettings;
   textFiles: ApplicationTextFilesSettings;
   imageAttachment: ApplicationImageAttachmentSettings;
+  textCursor?: ApplicationTextCursorSettings;
   documentMap: DocumentMapSettings;
   japaneseLint?: JapaneseLintSettings;
 }
@@ -433,6 +448,7 @@ export function toSaveApplicationSettingsRequest(
     markdownFiles: settings.markdownFiles,
     textFiles: settings.textFiles,
     imageAttachment: settings.imageAttachment,
+    textCursor: settings.textCursor,
     documentMap: settings.documentMap
   };
 
@@ -611,6 +627,8 @@ export interface EffectiveSettings {
   markdownFiles: EffectiveMarkdownFilesSettings;
   textFiles: EffectiveTextFilesSettings;
   imageAttachment: EffectiveImageAttachmentSettings;
+  // #719: applicationOnly text cursor settings.
+  textCursor: ApplicationTextCursorSettings;
   /** #375: applicationOnly, passes straight through (always concrete). */
   documentMap: DocumentMapSettings;
 }
@@ -806,6 +824,10 @@ export const builtInDefaultSettings: EffectiveSettings = {
   imageAttachment: {
     saveDirectory: getCatalogDefaultValue("imageAttachment.saveDirectory")
   },
+  textCursor: {
+    width: getCatalogDefaultValue("textCursor.width"),
+    blink: getCatalogDefaultValue("textCursor.blink")
+  },
   documentMap: defaultDocumentMapSettings()
 };
 
@@ -925,6 +947,10 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   imageAttachment: {
     saveDirectory: builtInDefaultSettings.imageAttachment.saveDirectory
+  },
+  textCursor: {
+    width: builtInDefaultSettings.textCursor.width,
+    blink: builtInDefaultSettings.textCursor.blink
   },
   documentMap: defaultDocumentMapSettings(),
   recentProjects: []
@@ -1047,6 +1073,10 @@ export function createDefaultApplicationSettings(): ApplicationSettings {
     imageAttachment: {
       saveDirectory:
         defaultApplicationSettings.imageAttachment.saveDirectory
+    },
+    textCursor: {
+      width: defaultApplicationSettings.textCursor.width,
+      blink: defaultApplicationSettings.textCursor.blink
     },
     documentMap: defaultDocumentMapSettings(),
     recentProjects: []
@@ -1287,6 +1317,15 @@ export function resolveEffectiveSettings(
         projectSettings?.imageAttachment?.saveDirectory ??
         applicationSettings.imageAttachment.saveDirectory ??
         builtInDefaultSettings.imageAttachment.saveDirectory
+    },
+    // #719: applicationOnly text cursor settings.
+    textCursor: {
+      width:
+        applicationSettings.textCursor?.width ??
+        builtInDefaultSettings.textCursor.width,
+      blink:
+        applicationSettings.textCursor?.blink ??
+        builtInDefaultSettings.textCursor.blink
     },
     // #375 / #396: dialogueDelimiterPairs supports whole-array Project override
     // (no element-level merge; Project array > Application array > default).

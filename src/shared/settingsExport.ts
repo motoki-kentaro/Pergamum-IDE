@@ -89,6 +89,7 @@ export function exportableApplicationSettings(
     markdownFiles: settings.markdownFiles,
     preview: settings.preview,
     search: settings.search,
+    textCursor: settings.textCursor,
     textFiles: settings.textFiles,
     workbench: settings.workbench
   };

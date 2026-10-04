@@ -23,6 +23,7 @@ import {
   isAozoraPreviewRenderer,
   isVerticalPreviewRenderer,
   type ApplicationEditorWhitespaceSettings,
+  type ApplicationTextCursorSettings,
   type ExpectedLineEnding,
   type FencedCodeIndentUnit,
   type LineEndingMarkerGlyph,
@@ -568,6 +569,8 @@ interface EditorSurfaceProps {
    * affects Save, dirty state, or selection.
    */
   whitespaceSettings: ApplicationEditorWhitespaceSettings;
+  /** #719: Text cursor settings (width, blink interval). */
+  textCursorSettings?: ApplicationTextCursorSettings;
   captureTabInEditor?: boolean;
   fencedCodeIndentUnit?: FencedCodeIndentUnit;
   /** #546 follow-up: `textFiles.indentUnit` for plain text (`.txt`) indent/outdent. */
@@ -771,6 +774,7 @@ function TextEditorSurface({
   selectionHighlightMode,
   findGutterMarkers,
   whitespaceSettings,
+  textCursorSettings,
   captureTabInEditor,
   fencedCodeIndentUnit,
   textFileIndentUnit,
@@ -915,6 +919,7 @@ function TextEditorSurface({
           selectionHighlightMode={selectionHighlightMode}
           findGutterMarkers={findGutterMarkers}
           whitespaceSettings={whitespaceSettings}
+          textCursorSettings={textCursorSettings}
           captureTabInEditor={captureTabInEditor}
           fencedCodeIndentUnit={fencedCodeIndentUnit}
           textFileIndentUnit={textFileIndentUnit}
@@ -1009,6 +1014,8 @@ interface MarkdownEditorSurfaceProps {
   selectionHighlightMode: SelectionHighlightMode;
   findGutterMarkers: boolean;
   whitespaceSettings: ApplicationEditorWhitespaceSettings;
+  /** #719: Text cursor settings (width, blink interval). */
+  textCursorSettings?: ApplicationTextCursorSettings;
   captureTabInEditor?: boolean;
   fencedCodeIndentUnit?: FencedCodeIndentUnit;
   /** #546 follow-up: `textFiles.indentUnit` for plain text (`.txt`) indent/outdent. */
@@ -1141,6 +1148,7 @@ function MarkdownEditorSurface({
   selectionHighlightMode,
   findGutterMarkers,
   whitespaceSettings,
+  textCursorSettings,
   captureTabInEditor,
   fencedCodeIndentUnit,
   textFileIndentUnit,
@@ -3588,6 +3596,7 @@ function MarkdownEditorSurface({
           selectionHighlightMode={selectionHighlightMode}
           findGutterMarkers={findGutterMarkers}
           whitespaceSettings={whitespaceSettings}
+          textCursorSettings={textCursorSettings}
           captureTabInEditor={captureTabInEditor}
           fencedCodeIndentUnit={fencedCodeIndentUnit}
           isMarkdownDocument={isMarkdown}

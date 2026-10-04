@@ -9,7 +9,7 @@ import {
   undoDepth,
   redoDepth
 } from "@codemirror/commands";
-import { EditorView } from "@codemirror/view";
+import { EditorView, getDrawSelectionConfig } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
 import { MarkdownEditor } from "../../src/renderer/MarkdownEditor";
 import {
@@ -67,6 +67,8 @@ interface Harness {
 }
 
 interface HarnessRenderProps {
+  blink?: number;
+  isMarkdownDocument?: boolean;
   documentKey: string;
   value: string;
   initialLineEndingBreaks?: ReturnType<typeof analyzeLineEndings>;
@@ -88,6 +90,8 @@ function mount(
           expectedLineEnding: props.expectedLineEnding,
           markerGlyph: props.markerGlyph,
           documentStates,
+          textCursorSettings: { width: 1, blink: props.blink ?? 1200 },
+          isMarkdownDocument: props.isMarkdownDocument,
           onChange: () => undefined
         })
       );
@@ -151,6 +155,33 @@ function unexpectedMarkerCount(): number {
 }
 
 describe("MarkdownEditor per-tab undo history (#387)", () => {
+  it.each([true, false])("keeps current blink on new documents and cache restore (Markdown=%s)", (isMarkdownDocument) => {
+    const harness = mount({ documentKey: "doc:A", value: "Hello", blink: 400, isMarkdownDocument });
+    typeChange(harness.view(), 5, 5, "!");
+    const view = harness.view();
+    const selection = view.state.selection;
+    const scrollTop = view.scrollDOM.scrollTop;
+    expect(getDrawSelectionConfig(view.state).cursorBlinkRate).toBe(400);
+    harness.render({ documentKey: "doc:A", value: "Hello!", blink: 0, isMarkdownDocument });
+    expect(harness.view()).toBe(view);
+    expect(view.state.doc.toString()).toBe("Hello!");
+    expect(view.state.selection.eq(selection)).toBe(true);
+    expect(undoDepth(view.state)).toBe(1);
+    expect(view.scrollDOM.scrollTop).toBe(scrollTop);
+    expect(getDrawSelectionConfig(view.state).cursorBlinkRate).toBe(0);
+    harness.render({ documentKey: "doc:B", value: "Other", blink: 0, isMarkdownDocument });
+    expect(harness.view()).toBe(view);
+    expect(getDrawSelectionConfig(view.state).cursorBlinkRate).toBe(0);
+    harness.render({ documentKey: "doc:B", value: "Other", blink: 600, isMarkdownDocument });
+    harness.render({ documentKey: "doc:A", value: "Hello!", blink: 600, isMarkdownDocument });
+    expect(getDrawSelectionConfig(view.state).cursorBlinkRate).toBe(600);
+    expect(undoDepth(view.state)).toBe(1);
+    expect(view.state.selection.eq(selection)).toBe(true);
+    harness.unmount();
+    harness.remount({ documentKey: "doc:A", value: "Hello!", blink: 2000, isMarkdownDocument });
+    expect(getDrawSelectionConfig(harness.view().state).cursorBlinkRate).toBe(2000);
+    expect(undoDepth(harness.view().state)).toBe(1);
+  });
   it("preserves a document's undo history across a switch away and back", () => {
     const harness = mount({ documentKey: "doc:A", value: "Hello" });
 

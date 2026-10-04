@@ -36,6 +36,7 @@ function saveRequestWithJapaneseLint(
     markdownFiles: settings.markdownFiles,
     textFiles: settings.textFiles,
     imageAttachment: settings.imageAttachment,
+    textCursor: settings.textCursor,
     documentMap: settings.documentMap,
     japaneseLint
   };

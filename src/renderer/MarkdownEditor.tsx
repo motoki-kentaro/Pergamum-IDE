@@ -33,6 +33,7 @@ import {
 import type { EditorScrollSyncAdapter } from "./previewScrollSync";
 import type {
   ApplicationEditorWhitespaceSettings,
+  ApplicationTextCursorSettings,
   ExpectedLineEnding,
   FencedCodeIndentUnit,
   LineEndingMarkerGlyph,
@@ -41,6 +42,11 @@ import type {
   TextFilesIndentUnit,
   WorkbenchSoundSettings
 } from "../shared/settings";
+import {
+  DEFAULT_CARET_BLINK_RATE,
+  caretBlinkCompartment,
+  createCaretBlinkExtension
+} from "./caretSettingsCodeMirror";
 import {
   canIndentEditorState,
   canOutdentEditorState,
@@ -319,6 +325,8 @@ interface MarkdownEditorProps {
    * render no whitespace markers at all.
    */
   whitespaceSettings?: ApplicationEditorWhitespaceSettings;
+  /** #719: Text cursor settings (width, blink interval). */
+  textCursorSettings?: ApplicationTextCursorSettings;
   pendingSelection?: MarkdownEditorPendingSelection | null;
   onPendingSelectionApplied?: () => void;
   contextSurface?: EditableContextSurface;
@@ -863,6 +871,7 @@ export function MarkdownEditor({
   japaneseLintDebounceMs,
   textFileIndentUnit = "tab",
   whitespaceSettings,
+  textCursorSettings,
   pendingSelection,
   onPendingSelectionApplied,
   contextSurface,
@@ -1259,6 +1268,7 @@ export function MarkdownEditor({
       doc: docContent,
       initialLineEndingBreaks: docInitialBreaks,
       undoHistoryMinDepth,
+      caretBlinkRate: textCursorSettings?.blink ?? DEFAULT_CARET_BLINK_RATE,
       newFileLineEndingFallbackRef,
       readOnlyCompartment,
       readOnlyRef,
@@ -1347,6 +1357,9 @@ export function MarkdownEditor({
     documentState: MarkdownEditorDocumentState
   ) {
     return [
+      caretBlinkCompartment.reconfigure(
+        createCaretBlinkExtension(textCursorSettings?.blink ?? DEFAULT_CARET_BLINK_RATE)
+      ),
       readOnlyCompartment.reconfigure(
         readOnlyCompartmentContent(readOnlyRef.current)
       ),
@@ -2333,6 +2346,20 @@ export function MarkdownEditor({
     whitespaceSettings?.renderTab,
     whitespaceSettings?.renderOtherUnicodeSpace
   ]);
+
+  // #719: Live update caret blink rate without recreating EditorView
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) {
+      return;
+    }
+    const blinkRate = textCursorSettings?.blink ?? DEFAULT_CARET_BLINK_RATE;
+    view.dispatch({
+      effects: caretBlinkCompartment.reconfigure(
+        createCaretBlinkExtension(blinkRate)
+      )
+    });
+  }, [textCursorSettings?.blink]);
 
   useEffect(() => {
     selectionHighlightModeRef.current = selectionHighlightMode;

@@ -33,6 +33,7 @@ import {
   getVisibleSettingCatalogItems
 } from "../../src/renderer/SettingsPanel";
 import { FontCacheControl } from "../../src/renderer/FontCacheControl";
+import { CaretSettingsSection, CaretNumberControl } from "../../src/renderer/components/CaretSettingsSection";
 
 type ElementProps = Record<string, unknown> & {
   children?: React.ReactNode;
@@ -122,7 +123,7 @@ function collectElements(
     // stateless, so a direct call is safe) and recurse into that output
     // instead of into their own (unrelated) children prop.
     if (typeof child.type === "function") {
-      if (child.type === FontCacheControl) {
+      if (child.type === FontCacheControl || child.type === CaretSettingsSection || child.type === CaretNumberControl) {
         if (predicate(child)) {
           elements.push(child);
         }
@@ -237,7 +238,9 @@ describe("SettingsPanelView catalog-driven rendering (#230)", () => {
     expect(labels).toContain("画像添付");
     // #424 Slice 7: "検索・置換" adds another with its own scalar catalog items.
     expect(labels).toContain("検索・置換");
-    expect(labels).toHaveLength(13);
+    // #719: "テキストカーソル" dedicated category.
+    expect(labels).toContain("テキストカーソル");
+    expect(labels).toHaveLength(14);
   });
 
   it("renders the Application Settings export category and invokes the export handler", () => {
@@ -386,6 +389,7 @@ describe("SettingsPanelView category behavior (#230)", () => {
       "Application",
       "Appearance",
       "Editor",
+      "Text cursor",
       "Search & Replace",
       "Image Attachment",
       "Japanese Style Check",
@@ -909,6 +913,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: defaultApplicationSettings.preview,
@@ -944,6 +949,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: defaultApplicationSettings.preview,
@@ -976,6 +982,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: defaultApplicationSettings.preview,
@@ -1006,6 +1013,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: defaultApplicationSettings.preview,
@@ -1046,6 +1054,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1080,6 +1089,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1111,6 +1121,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1183,6 +1194,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenLastCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1200,6 +1212,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenLastCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1240,6 +1253,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenLastCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1259,6 +1273,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenLastCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1293,6 +1308,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1333,6 +1349,7 @@ describe("SettingsPanelView edit/save behavior (#230)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: settings.preview,
@@ -1828,6 +1845,7 @@ describe("SettingsPanelView preview.updateDelayMs (#250 follow-up)", () => {
 
     expect(onChangeSettings).toHaveBeenCalledWith({
       documentMap: defaultApplicationSettings.documentMap,
+      textCursor: defaultApplicationSettings.textCursor,
       imageAttachment: defaultApplicationSettings.imageAttachment,
       search: defaultApplicationSettings.search,
       preview: { ...settings.preview, updateDelayMs: 10000 },
@@ -2030,13 +2048,16 @@ describe("Settings number control right-alignment (common style)", () => {
         "preview.updateDelayMs",
         "search.nearby.characterDistance",
         "search.nearby.paragraphDistance",
+        "textCursor.blink",
+        "textCursor.width",
         "workbench.notification.durationMs"
       ].sort()
     );
   });
 
   it("renders every number control with the shared settingsNumberInput class (no per-key styling)", () => {
-    for (const key of numberKeys) {
+    for (const key of numberKeys.filter((key) => !key.startsWith("textCursor."))) {
+      // Caret controls retain invalid drafts; covered by the DOM integration tests.
       const control = controlElement(
         settingsPanelViewElement("en", { searchQuery: isolate(key) }),
         key

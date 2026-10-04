@@ -25,7 +25,10 @@ import {
   parseSaveApplicationSettingsRequest,
   saveApplicationSettings
 } from "../../src/main/settingsStore";
-import type { SaveApplicationSettingsRequest } from "../../src/shared/settings";
+import {
+  defaultTextCursorSettings,
+  type SaveApplicationSettingsRequest
+} from "../../src/shared/settings";
 import { getCatalogDefaultValue } from "../../src/shared/settingsCatalog";
 import { defaultDocumentMapSettings } from "../../src/shared/documentMapSettings";
 
@@ -215,6 +218,7 @@ function validSaveRequest(
       saveDirectory: getCatalogDefaultValue("imageAttachment.saveDirectory")
     },
     documentMap: defaultDocumentMapSettings(),
+    textCursor: defaultTextCursorSettings,
     ...overrides
   };
 }
@@ -1355,5 +1359,36 @@ describe("settingsStore Application Settings core controls write path (#195)", (
       aozoraMark: "sesame",
       narouMarkText: "・"
     });
+  });
+});
+
+
+describe("#719 caret persistence", () => {
+  beforeEach(() => {
+    fsMock.readFile.mockReset(); fsMock.writeFile.mockReset(); fsMock.mkdir.mockReset();
+  });
+  it("loads defaults for missing and invalid values", async () => {
+    fsMock.readFile.mockResolvedValue(JSON.stringify({ textCursor: { width: 100, blink: 500 } }));
+    expect((await loadSettings()).textCursor).toEqual({ width: 1, blink: 1200 });
+    fsMock.readFile.mockResolvedValue("{}");
+    expect((await loadSettings()).textCursor).toEqual({ width: 1, blink: 1200 });
+  });
+  it("round-trips valid width and blink without color", async () => {
+    fsMock.readFile.mockResolvedValue("{}");
+    fsMock.writeFile.mockResolvedValue(undefined); fsMock.mkdir.mockResolvedValue(undefined);
+    const saved = await saveApplicationSettings(validSaveRequest({ textCursor: { width: 15, blink: 0 } }));
+    expect(saved.textCursor).toEqual({ width: 15, blink: 0 });
+    const written = fsMock.writeFile.mock.calls[0][1] as string;
+    expect(JSON.parse(written).textCursor).toEqual({ width: 15, blink: 0 });
+    fsMock.readFile.mockResolvedValue(written);
+    expect((await loadSettings()).textCursor).toEqual({ width: 15, blink: 0 });
+  });
+  it.each([500, -200, 2200, 200.5])("rejects blink %s on save", (blink) => {
+    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { width: 1, blink } }))).toThrow();
+  });
+  it("rejects width above MAX and removed color settings", () => {
+    expect(() => parseSaveApplicationSettingsRequest(validSaveRequest({ textCursor: { width: 17, blink: 1200 } }))).toThrow();
+    const request = validSaveRequest();
+    expect(() => parseSaveApplicationSettingsRequest({ ...request, textCursor: { width: 1, blink: 1200, color: "#ffffff" } })).toThrow();
   });
 });

@@ -128,6 +128,7 @@ export interface MarkdownEditorDocumentStateOptions {
    * this specific value (see createMarkdownEditorBaseSetup's doc comment).
    */
   readonly undoHistoryMinDepth: number;
+  readonly caretBlinkRate?: number;
   readonly newFileLineEndingFallbackRef: LiveRef<LineEndingKind>;
   readonly readOnlyCompartment: Compartment;
   readonly readOnlyRef: LiveRef<boolean>;
@@ -349,6 +350,7 @@ export function createMarkdownEditorDocumentState(
     extensions: [
       ...createMarkdownEditorBaseSetup({
         undoHistoryMinDepth: options.undoHistoryMinDepth,
+        caretBlinkRate: options.caretBlinkRate,
         fencedCodeIndentUnit: options.fencedCodeIndentUnitRef?.current,
         themeModeCompartment: options.themeModeCompartment,
         isDarkTheme: options.isDarkThemeRef?.current

@@ -53,7 +53,9 @@ export const settingAreas = [
   // #407: clipboard image attachment — save-directory + Markdown-link toggle.
   "imageAttachment",
   // #424 Slice 7: glossary nearby search range (+ future project-wide search).
-  "search"
+  "search",
+  // #719: text cursor settings (width, blink interval).
+  "textCursor"
 ] as const;
 
 export type SettingArea = (typeof settingAreas)[number];
@@ -179,6 +181,8 @@ export type SettingCatalogEntry =
 // ---------------------------------------------------------------------------
 // Cross-module type imports
 // ---------------------------------------------------------------------------
+
+import { CARET_WIDTH, CARET_BLINK } from "./caretSettings";
 
 import {
   defaultDocumentMapDialogueDelimiterPairs,
@@ -324,6 +328,13 @@ function validateNumberValue(
   }
 
   if (value < entry.numericRange.min || value > entry.numericRange.max) {
+    return { ok: false, failure: "numericRange" };
+  }
+
+  if (
+    entry.key === "textCursor.blink" &&
+    (value - CARET_BLINK.min) % CARET_BLINK.step !== 0
+  ) {
     return { ok: false, failure: "numericRange" };
   }
 
@@ -1227,6 +1238,26 @@ export const settingsCatalog = defineSettingsCatalog({
     defaultValue: "aozora",
     labelKey: "settings.editor.ruby.rule.label",
     descriptionKey: "settings.editor.ruby.rule.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  "textCursor.width": defineNumberSetting({
+    key: "textCursor.width",
+    scope: "applicationOnly",
+    defaultValue: CARET_WIDTH.default,
+    numericRange: { min: CARET_WIDTH.min, max: CARET_WIDTH.max, integer: true },
+    labelKey: "settings.textCursor.width.label",
+    descriptionKey: "settings.textCursor.width.description",
+    deprecatedAliases: [],
+    migrationNotes: []
+  }),
+  "textCursor.blink": defineNumberSetting({
+    key: "textCursor.blink",
+    scope: "applicationOnly",
+    defaultValue: CARET_BLINK.default,
+    numericRange: { min: CARET_BLINK.min, max: CARET_BLINK.max, integer: true },
+    labelKey: "settings.textCursor.blink.label",
+    descriptionKey: "settings.textCursor.blink.description",
     deprecatedAliases: [],
     migrationNotes: []
   })

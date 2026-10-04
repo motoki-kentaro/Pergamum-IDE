@@ -47,7 +47,6 @@
 
 import {
   crosshairCursor,
-  drawSelection,
   dropCursor,
   highlightActiveLine,
   highlightActiveLineGutter,
@@ -79,6 +78,11 @@ import {
   EDITOR_INDENT_COMMAND_IDS,
   fencedCodeIndentUnitFacet
 } from "./indentCommands";
+import {
+  DEFAULT_CARET_BLINK_RATE,
+  caretBlinkCompartment,
+  createCaretBlinkExtension
+} from "./caretSettingsCodeMirror";
 import { listCommonDefaultKeys } from "../shared/keybindings";
 import type { FencedCodeIndentUnit } from "../shared/settings";
 
@@ -137,6 +141,9 @@ export interface MarkdownEditorBaseSetupOptions {
   /** #708: Compartment for CodeMirror's `EditorView.darkTheme` facet. */
   readonly themeModeCompartment?: Compartment;
   readonly isDarkTheme?: boolean;
+  /** #719: Compartment for CodeMirror's caret blink rate. */
+  readonly caretBlinkCompartment?: Compartment;
+  readonly caretBlinkRate?: number;
 }
 
 export function createMarkdownEditorBaseSetup(
@@ -165,7 +172,11 @@ export function createMarkdownEditorBaseSetup(
     highlightActiveLineGutter(),
     highlightSpecialChars(),
     history({ minDepth: options.undoHistoryMinDepth }),
-    drawSelection(),
+    (options.caretBlinkCompartment ?? caretBlinkCompartment).of(
+      createCaretBlinkExtension(
+        options.caretBlinkRate ?? DEFAULT_CARET_BLINK_RATE
+      )
+    ),
     dropCursor(),
     EditorState.allowMultipleSelections.of(true),
     indentOnInput(),

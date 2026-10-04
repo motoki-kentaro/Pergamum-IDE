@@ -74,6 +74,7 @@ describe("Settings UI Catalog Schema (#226)", () => {
         "appearance",
         "project",
         "editor",
+        "textCursor",
         "searchReplace",
         "imageAttachment",
         "japaneseLint",
@@ -225,7 +226,9 @@ describe("Settings UI Catalog Schema (#226)", () => {
           "preview.updateDelayMs",
           "search.nearby.unit",
           "search.nearby.characterDistance",
-          "search.nearby.paragraphDistance"
+          "search.nearby.paragraphDistance",
+          "textCursor.width",
+          "textCursor.blink"
         ].sort()
       );
     });

@@ -43,6 +43,7 @@ describe("toSaveApplicationSettingsRequest", () => {
     expect(request.markdownFiles).toBe(settingsWithRecent.markdownFiles);
     expect(request.textFiles).toBe(settingsWithRecent.textFiles);
     expect(request.imageAttachment).toBe(settingsWithRecent.imageAttachment);
+    expect(request.textCursor).toBe(settingsWithRecent.textCursor);
     expect(request.documentMap).toBe(settingsWithRecent.documentMap);
   });
 
@@ -102,6 +103,65 @@ describe("toSaveApplicationSettingsRequest", () => {
     expect(parsed?.editor.captureTabInEditor).toBe(
       !settingsWithRecent.editor.captureTabInEditor
     );
+  });
+
+  it("validates textCursor settings strictly on save", () => {
+    const baseRequest = toSaveApplicationSettingsRequest(settingsWithRecent);
+
+    const validCursor = {
+      ...baseRequest,
+      textCursor: {
+        width: 2,
+        blink: 600
+      }
+    };
+    expect(parseSaveApplicationSettingsRequest(validCursor).textCursor).toEqual({
+      width: 2,
+      blink: 600
+    });
+
+    const validWithoutColor = {
+      ...baseRequest,
+      textCursor: {
+        width: 4,
+        blink: 0
+      }
+    };
+    expect(parseSaveApplicationSettingsRequest(validWithoutColor).textCursor).toEqual({
+      width: 4,
+      blink: 0
+    });
+
+    expect(() =>
+      parseSaveApplicationSettingsRequest({
+        ...baseRequest,
+        textCursor: {
+          color: "invalid-color",
+          width: 1,
+          blink: 800
+        }
+      })
+    ).toThrow("Invalid application settings.");
+
+    expect(() =>
+      parseSaveApplicationSettingsRequest({
+        ...baseRequest,
+        textCursor: {
+          width: 0,
+          blink: 800
+        }
+      })
+    ).toThrow("Invalid application settings.");
+
+    expect(() =>
+      parseSaveApplicationSettingsRequest({
+        ...baseRequest,
+        textCursor: {
+          width: 1,
+          blink: -100
+        }
+      })
+    ).toThrow("Invalid application settings.");
   });
 
   it("documents the original bug: spreading ApplicationSettings is rejected, strict validation stays", () => {

@@ -182,6 +182,16 @@ export function readSettingValue(
         settings.preview.fontFamilyList ??
         getCatalogDefaultValue("preview.fontFamilyList")
       );
+    case "textCursor.width":
+      return (
+        settings.textCursor?.width ??
+        getCatalogDefaultValue("textCursor.width")
+      );
+    case "textCursor.blink":
+      return (
+        settings.textCursor?.blink ??
+        getCatalogDefaultValue("textCursor.blink")
+      );
   }
 
   const exhaustiveCheck: never = key;
