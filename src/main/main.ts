@@ -1,3 +1,5 @@
+import { createRuntimeLaunchDispatcher } from "./runtimeLaunchDispatcher";
+import { createRuntimeLaunchIpc } from "./runtimeLaunchIpc";
 import {
   app,
   BrowserWindow,
@@ -49,6 +51,7 @@ import { installKeybindingCapture } from "./keybindingCapture";
 import type { ResolvedKeybinding } from "../shared/keybindings";
 import { nodePlatformToPergamumPlatform } from "./menuAccelerators";
 import {
+  currentProjectRootPath,
   currentActiveProjectFilePath,
   currentProjectId,
   defaultProjectWriteOwnershipManager,
@@ -563,6 +566,23 @@ app.whenReady().then(async () => {
   // (above); this attaches the handler now that `app` is ready.
   registerPergamumAssetProtocol();
   registerAppInfoIpc();
+
+  const runtimeLocalActions = createRuntimeLaunchIpc({
+    ipc: ipcMain,
+    getWebContents: () => mainWindow && !mainWindow.isDestroyed() ? mainWindow.webContents : null,
+  });
+  const runtimeDispatcher = createRuntimeLaunchDispatcher({
+    getContext: () => ({ projectId: currentProjectId(), rootPath: currentProjectRootPath(), projectFilePath: currentActiveProjectFilePath() }),
+    canDispatch: () => primaryRouterCoordinator?.current().kind === "primary" && runtimeLaunchQueue.current().state !== "stopping",
+    platform: process.platform === "win32" ? "windows" : process.platform === "darwin" ? "macos" : "linux",
+    dispatchLocal: runtimeLocalActions.send,
+    releaseLocal: runtimeLocalActions.release,
+    registerDocument: registerCurrentProjectDocumentPath,
+  });
+  // Slice 6 must connect all downstream ownership paths before marking ready.
+  // Keep the real dispatcher available without draining into a partial sink.
+  void runtimeDispatcher;
+  app.on("will-quit", () => runtimeLocalActions.dispose());
 
   ipcMain.handle(WINDOW_CHANNELS.toggleFullscreen, (event): boolean => {
     const window = BrowserWindow.fromWebContents(event.sender);

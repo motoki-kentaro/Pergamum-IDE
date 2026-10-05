@@ -1,3 +1,5 @@
+import { RUNTIME_LAUNCH_CHANNELS, isRuntimeLocalActionRequest } from "../shared/runtimeLaunchAction";
+import { isUuidv7 } from "../shared/uuidv7";
 import { contextBridge, ipcRenderer, webUtils } from "electron";
 import { nodePlatformToAppPlatform } from "./platform";
 import {
@@ -343,6 +345,23 @@ const pergamumApi: PergamumApi = {
         ipcRenderer.send(DEBUG_LOG_CHANNELS.unsubscribe);
       };
     }
+  },
+  runtimeLaunch: {
+    onAction: (callback) => {
+      const listener = (_event: Electron.IpcRendererEvent, request: unknown) => {
+        if (isRuntimeLocalActionRequest(request)) callback(request);
+      };
+      ipcRenderer.on(RUNTIME_LAUNCH_CHANNELS.action, listener);
+      return () => { ipcRenderer.off(RUNTIME_LAUNCH_CHANNELS.action, listener); };
+    },
+    respond: (response) => { ipcRenderer.send(RUNTIME_LAUNCH_CHANNELS.result, response); },
+    onRelease: (callback) => {
+      const listener = (_event: Electron.IpcRendererEvent, requestId: unknown) => {
+        if (isUuidv7(requestId)) callback(requestId);
+      };
+      ipcRenderer.on(RUNTIME_LAUNCH_CHANNELS.release, listener);
+      return () => { ipcRenderer.off(RUNTIME_LAUNCH_CHANNELS.release, listener); };
+    },
   },
   applicationMenu: {
     onCommand: (callback) => {

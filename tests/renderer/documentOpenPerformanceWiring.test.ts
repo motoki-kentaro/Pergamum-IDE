@@ -196,12 +196,13 @@ describe("document open performance instrumentation wiring (#140 / #152)", () =>
       const notFoundGuardIndex = body.indexOf(
         "!isProjectDocumentPath(relativePath,"
       );
-      const notFoundGuardEnd = body.indexOf("return;", notFoundGuardIndex);
+      const notFoundGuardEnd = body.indexOf("return false;", notFoundGuardIndex);
       const idGenerationIndex = body.indexOf(
         "const documentOpenId = nextDocumentOpenId();"
       );
 
       expect(notFoundGuardIndex).toBeGreaterThan(-1);
+      expect(notFoundGuardEnd).toBeGreaterThan(notFoundGuardIndex);
       expect(idGenerationIndex).toBeGreaterThan(notFoundGuardEnd);
     });
 

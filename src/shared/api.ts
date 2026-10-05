@@ -1,3 +1,4 @@
+import type { RuntimeLocalActionRequest, RuntimeLocalActionResponse } from "./runtimeLaunchAction";
 import type {
   ApplicationSettings,
   ProjectSettings,
@@ -1815,6 +1816,11 @@ export interface PergamumApi {
     logEvent: (request: RendererDebugLogRequest) => Promise<void>;
     getSnapshot: () => Promise<DebugLogSnapshot>;
     onEvent: (callback: (event: SanitizedDebugLogEvent) => void) => () => void;
+  };
+  runtimeLaunch?: {
+    onAction: (callback: (request: RuntimeLocalActionRequest) => void) => () => void;
+    respond: (response: RuntimeLocalActionResponse) => void;
+    onRelease: (callback: (requestId: string) => void) => () => void;
   };
   applicationMenu: {
     onCommand: (callback: (commandId: string) => void) => () => void;
