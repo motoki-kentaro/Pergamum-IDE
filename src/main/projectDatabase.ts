@@ -1,4 +1,4 @@
-import { promises as fs } from "node:fs";
+import { promises as fs, type Stats } from "node:fs";
 import path from "node:path";
 import Database, {
   type Database as BetterSqliteDatabase,
@@ -326,7 +326,7 @@ function isExistError(error: unknown): boolean {
 }
 
 function createdFileIdentityFromStats(
-  stats: Awaited<ReturnType<fs.FileHandle["stat"]>>
+  stats: Stats
 ): CreatedFileIdentity {
   return {
     dev: stats.dev,
