@@ -468,6 +468,8 @@ export const jaTranslations = {
   "dialog.runtimeMarkdownRejected.reason.urlLikeInput": "ローカルのファイルパスを指定してください。URL は開けません。",
   "dialog.runtimeMarkdownRejected.reason.discoveryFailed": "このファイルが属するプロジェクトを確認できませんでした。安全のため、開きませんでした。",
   "dialog.startupMarkdownRejected.title": "このファイルは起動時に開けません",
+  "dialog.externalLaunchRoutingUnconfirmed.message": "起動対象の配送を確認できませんでした。",
+  "dialog.externalLaunchRoutingUnconfirmed.detail": "重複して開くことを避けるため、このプロセスでは開きません。既存の Pergamum ウィンドウを確認してください。",
   "error.unknown": "不明なエラーです。",
   "explorer.empty": "ファイルはありません",
   "explorer.fileTree": "ファイルエクスプローラーツリー",

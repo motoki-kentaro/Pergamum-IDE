@@ -1,3 +1,5 @@
+import { externalLaunchRejectionDialog, routeExternalLaunchStartup, withColdStartOwnership } from "./externalLaunchStartup";
+import { t, type Language } from "../shared/i18n";
 import { createRuntimeLaunchSink } from "./runtimeLaunchSink";
 import { createRoutedChildRouter, spawnRoutedProcess } from "./routedChildRouter";
 import {
@@ -11,6 +13,7 @@ import { createRuntimeLaunchIpc } from "./runtimeLaunchIpc";
 import {
   app,
   BrowserWindow,
+  dialog,
   ipcMain,
   powerMonitor,
   protocol,
@@ -454,6 +457,46 @@ app.whenReady().then(async () => {
     throw new Error("Invalid internally routed launch.");
   }
 
+  const externalStartup = await routeExternalLaunchStartup({
+    launch: startupRuntimeLaunch,
+    router: async () => {
+      await primaryRouterInitialization;
+      return primaryRouterCoordinator;
+    },
+    enqueue: runtimeLaunchQueue.enqueue
+  });
+  if (externalStartup.kind === "handedOff") {
+    // No Project/Session/Recovery initialization or BrowserWindow in a courier.
+    app.quit();
+    return;
+  }
+  if (externalStartup.kind === "rejected") {
+    console.warn("External launch target rejected:", externalStartup.reason);
+    await dialog.showMessageBox(externalLaunchRejectionDialog(
+      externalStartup,
+      app.getLocale().startsWith("ja") ? "ja" : "en"
+    ));
+    app.quit();
+    return;
+  }
+  if (externalStartup.kind === "routingUnconfirmed") {
+    // Delivery may be uncertain. Own an explicit native failure presentation
+    // instead of racing into cold-start or creating a duplicate window.
+    console.warn("External launch routing unconfirmed:", externalStartup.reason);
+    const language: Language = app.getLocale().startsWith("ja") ? "ja" : "en";
+    await dialog.showMessageBox({
+      type: "error",
+      title: "Pergamum",
+      message: t(language, "dialog.externalLaunchRoutingUnconfirmed.message"),
+      detail: t(language, "dialog.externalLaunchRoutingUnconfirmed.detail"),
+      buttons: ["OK"],
+      defaultId: 0,
+      cancelId: 0
+    });
+    app.quit();
+    return;
+  }
+
   const startupProjectFilePath = extractStartupProjectFilePathFromArgv(
     process.argv,
     startupProjectArgvOptions
@@ -624,7 +667,7 @@ app.whenReady().then(async () => {
     releaseLocal: runtimeLocalActions.release,
     registerDocument: registerCurrentProjectDocumentPath,
   });
-  runtimeFullSink = createRuntimeLaunchSink({
+  const downstreamRuntimeSink = createRuntimeLaunchSink({
     dispatch: runtimeDispatcher.dispatch,
     routeChild: async (entry) => {
       const result = await routedChildRouter.route(entry);
@@ -632,6 +675,11 @@ app.whenReady().then(async () => {
       return result;
     },
     releaseChild: routedChildRouter.release,
+  });
+  runtimeFullSink = withColdStartOwnership({
+    initial: externalStartup.kind === "queuedColdStart" ? externalStartup : null,
+    coldStartOwned: () => runtimeInitialWindowReady && runtimeStartupSettled && coldStartPayload?.launchTarget !== null && coldStartPayload?.launchTarget !== undefined,
+    downstream: downstreamRuntimeSink
   });
   app.on("will-quit", () => runtimeLocalActions.dispose());
 

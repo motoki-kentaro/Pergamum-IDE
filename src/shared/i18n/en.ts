@@ -471,6 +471,8 @@ export const enTranslations = {
   "dialog.runtimeMarkdownRejected.reason.urlLikeInput": "Specify a local file path. URL targets cannot be opened.",
   "dialog.runtimeMarkdownRejected.reason.discoveryFailed": "Pergamum could not determine which project this file belongs to. For safety, it was not opened.",
   "dialog.startupMarkdownRejected.title": "This file cannot be opened at startup",
+  "dialog.externalLaunchRoutingUnconfirmed.message": "Launch target delivery could not be confirmed.",
+  "dialog.externalLaunchRoutingUnconfirmed.detail": "This process will not open the target to avoid a duplicate. Please check the existing Pergamum windows.",
   "error.unknown": "Unknown error.",
   "explorer.empty": "No files",
   "explorer.fileTree": "File Explorer tree",
