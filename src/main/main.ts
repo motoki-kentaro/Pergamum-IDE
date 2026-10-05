@@ -10,6 +10,7 @@ import started from "electron-squirrel-startup";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { createRuntimePrimaryRouter } from "./primaryRouterEndpoint";
+import { createRuntimeLaunchQueue } from "./runtimeLaunchQueue";
 import {
   installPrimaryRouterShutdown,
   type PrimaryRouterCoordinator
@@ -146,6 +147,21 @@ const instanceRunId = createUuidv7();
 const coordinationStartedAt = performance.timeOrigin;
 let primaryRouterCoordinator: PrimaryRouterCoordinator | null = null;
 let primaryRouterInitialization: Promise<void> | null = null;
+// The queue exists before the endpoint listens. It remains notReady until
+// startup/restore/modal settlement and a real downstream sink are available.
+const runtimeLaunchQueue = createRuntimeLaunchQueue({
+  now: () => performance.now(),
+  canDispatch: () => primaryRouterCoordinator?.current().kind === "primary"
+});
+// A cancelled close/quit never reaches this committed-quit boundary. No
+// extra async quit protocol: pending ownership stays here until process exit.
+app.on("will-quit", () => {
+  runtimeLaunchQueue.stop();
+  const pendingCount = runtimeLaunchQueue.current().pending.length;
+  if (pendingCount > 0) {
+    console.warn("Runtime launch queue stopping with untransferred requests:", pendingCount);
+  }
+});
 
 installPrimaryRouterShutdown(app, async () => {
   await primaryRouterInitialization;
@@ -376,14 +392,15 @@ function installDebugLogLifecycleHandlers(logger: DebugLogger): void {
 
 app.whenReady().then(async () => {
   // Election readiness is independent of Session/routing readiness. This
-  // starts only probe/discovery; no launch target is handed off or opened.
+  // Incoming handoffs may acquire queue ownership, but no routing/open starts.
   if (!started) {
     primaryRouterInitialization = createRuntimePrimaryRouter({
       userDataPath: app.getPath("userData"),
       mode: app.isPackaged ? "packaged" : "development",
       instanceRunId,
       pid: process.pid,
-      startedAt: coordinationStartedAt
+      startedAt: coordinationStartedAt,
+      handoffReceiver: runtimeLaunchQueue.receiver
     }).then(async (coordinator) => {
       primaryRouterCoordinator = coordinator;
       await coordinator.start();

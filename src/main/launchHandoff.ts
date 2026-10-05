@@ -71,7 +71,10 @@ export type LaunchHandoffReceiver = (
   | { readonly kind: "accepted" }
   | { readonly kind: "notReadyForHandoff" }
   | { readonly kind: "temporaryFailure" }
-  | { readonly kind: "rejected"; readonly reason: "handlerRejected" }
+  | {
+      readonly kind: "rejected";
+      readonly reason: "handlerRejected" | "requestIdConflict";
+    }
 >;
 function exact(
   value: Record<string, unknown>,

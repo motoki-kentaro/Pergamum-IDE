@@ -17,6 +17,7 @@ import {
 } from "../../src/main/primaryRouterCoordination";
 import { launchHandoffProof } from "../../src/main/launchHandoff";
 import { parseRuntimeLaunch } from "../../src/main/runtimeLaunchRouting";
+import { createRuntimeLaunchQueue } from "../../src/main/runtimeLaunchQueue";
 const cleanup: (() => Promise<unknown>)[] = [];
 afterEach(async () => {
   for (const close of cleanup.splice(0).reverse()) await close();
@@ -257,6 +258,101 @@ describe("authenticated endpoint handoff", () => {
       ).toEqual({ kind: "protocolError" });
     },
   );
+  it("production-shaped receiver owns queued targets before ACK, including retry after transport cache expiry", async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), "pg-queue-"));
+    cleanup.push(() => fs.rm(directory, { recursive: true, force: true }));
+    const queue = createRuntimeLaunchQueue({
+      now: () => 0,
+      policy: {
+        maxPendingLaunches: 1,
+        completedHistoryTtlMs: 1000,
+        maxCompletedHistory: 1,
+      },
+    });
+    const a = await createRuntimePrimaryRouter({
+      userDataPath: directory,
+      mode: "development",
+      instanceRunId: createUuidv7(),
+      pid: process.pid,
+      startedAt: 1,
+      policy,
+      handoffReceiver: queue.receiver,
+      handoffPolicy: {
+        timeoutMs: 500,
+        maxAttempts: 1,
+        retryDelayMs: 1,
+        maxTargetLength: 2048,
+        acceptedTtlMs: 1,
+        maxRequests: 16,
+      },
+    });
+    cleanup.push(() => a.stop());
+    await a.start();
+    for (let i = 0; i < 3; i++) {
+      await new Promise((r) => setTimeout(r, 15));
+      await a.refresh();
+    }
+    expect(a.current().kind).toBe("primary");
+    const records = path.join(
+      directory,
+      "runtime-launch-routing",
+      "development",
+      "v1",
+      "instances",
+    );
+    const [name] = await fs.readdir(records);
+    const record = JSON.parse(
+      await fs.readFile(path.join(records, name), "utf8"),
+    ) as RouterDiscoveryRecord;
+    const scopeDirectory = path.join(
+      os.tmpdir(),
+      "pg-launch-" + record.scope.slice(0, 20),
+    );
+    const address =
+      process.platform === "win32"
+        ? [
+            "",
+            "",
+            ".",
+            "pipe",
+            "pergamum-launch-v1-" +
+              record.scope.slice(0, 20) +
+              "-" +
+              record.instanceRunId,
+          ].join(String.fromCharCode(92))
+        : path.join(scopeDirectory, record.instanceRunId + ".sock");
+    const client = createRouterProbeEndpoint(record, () => address, policy);
+    cleanup.push(() => client.close());
+    const id = createUuidv7();
+    expect(await client.sendLaunchHandoff(record, id, "/book/a.md")).toEqual({
+      kind: "accepted",
+    });
+    expect(queue.current()).toMatchObject({
+      state: "notReady",
+      pending: [{ requestId: id, target: "/book/a.md" }],
+    });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(await client.sendLaunchHandoff(record, id, "/book/a.md")).toEqual({
+      kind: "accepted",
+    });
+    expect(queue.current().pending).toHaveLength(1);
+    expect(await client.sendLaunchHandoff(record, id, "/book/b.md")).toEqual({
+      kind: "rejected",
+      reason: "requestIdConflict",
+    });
+    expect(
+      await client.sendLaunchHandoff(record, createUuidv7(), "/book/b.md"),
+    ).toEqual({ kind: "notReadyForHandoff" });
+    expect(queue.current().pending).toHaveLength(1);
+    // Committed quit synchronously closes queue ownership, without touching
+    // Recovery/Session/Project locks or adding an async quit wait.
+    queue.stop();
+    expect(
+      await client.sendLaunchHandoff(record, createUuidv7(), "/book/c.md"),
+    ).toEqual({ kind: "notReadyForHandoff" });
+    expect(await client.probe(record)).toBe(true);
+    expect(queue.current().pending).toHaveLength(1);
+  });
   it("production adapter discovers Primary, delivers, and takes over without target wiring", async () => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "pg-router-"));
     cleanup.push(() => fs.rm(directory, { recursive: true, force: true }));
