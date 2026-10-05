@@ -24,6 +24,7 @@
     "make": "electron-forge make"
   },
   "build": {
+    "afterPack": "scripts/electronBuilderAfterPack.js",
     "directories": {
       "output": "dist-installer"
     },

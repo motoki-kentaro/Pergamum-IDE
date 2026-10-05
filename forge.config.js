@@ -1,6 +1,6 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
-const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 const path = require('node:path');
+const { pergamumFusePolicy } = require('./scripts/electronFusesPolicy');
 
 const appIcon = 'assets/icon';
 const packagedExternalDependencies = [
@@ -130,14 +130,6 @@ module.exports = {
     },
     // Fuses are used to enable/disable various Electron functionality
     // at package time, before code signing the application
-    new FusesPlugin({
-      version: FuseVersion.V1,
-      [FuseV1Options.RunAsNode]: false,
-      [FuseV1Options.EnableCookieEncryption]: true,
-      [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
-      [FuseV1Options.EnableNodeCliInspectArguments]: false,
-      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
-      [FuseV1Options.OnlyLoadAppFromAsar]: true,
-    }),
+    new FusesPlugin(pergamumFusePolicy),
   ],
 };

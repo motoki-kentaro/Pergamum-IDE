@@ -10,6 +10,8 @@ out/
 review-notes/
 scripts/*
 !scripts/generate-aozora-accent-table.mjs
+!scripts/electronFusesPolicy.js
+!scripts/electronBuilderAfterPack.js
 *.ps1
 /docs/handoff*.md
 review-logs/

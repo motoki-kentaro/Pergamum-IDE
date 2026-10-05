@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 type PackageJson = {
   build?: {
+    afterPack?: string;
     directories?: {
       output?: string;
     };
@@ -44,6 +45,29 @@ describe("Windows installer file association config", () => {
     expect(packageJson.build?.win?.target).toBe("nsis");
     expect(packageJson.build?.win?.icon).toBe("assets/icon.ico");
     expect(packageJson.build?.nsis?.perMachine).toBe(true);
+    expect(packageJson.build?.afterPack).toBe("scripts/electronBuilderAfterPack.js");
+  });
+
+  it("shares canonical Electron fuse hardening policy between Forge and electron-builder afterPack hook (#747)", () => {
+    const afterPackPath = path.join(process.cwd(), "scripts/electronBuilderAfterPack.js");
+    const fusePolicyPath = path.join(process.cwd(), "scripts/electronFusesPolicy.js");
+
+    expect(fs.existsSync(afterPackPath)).toBe(true);
+    expect(fs.existsSync(fusePolicyPath)).toBe(true);
+
+    const { pergamumFusePolicy } = require(fusePolicyPath);
+    const { FuseV1Options } = require("@electron/fuses");
+
+    expect(pergamumFusePolicy[FuseV1Options.RunAsNode]).toBe(false);
+    expect(pergamumFusePolicy[FuseV1Options.EnableCookieEncryption]).toBe(true);
+    expect(pergamumFusePolicy[FuseV1Options.EnableNodeOptionsEnvironmentVariable]).toBe(false);
+    expect(pergamumFusePolicy[FuseV1Options.EnableNodeCliInspectArguments]).toBe(false);
+    expect(pergamumFusePolicy[FuseV1Options.EnableEmbeddedAsarIntegrityValidation]).toBe(true);
+    expect(pergamumFusePolicy[FuseV1Options.OnlyLoadAppFromAsar]).toBe(true);
+
+    const forgeConfigContent = fs.readFileSync(path.join(process.cwd(), "forge.config.js"), "utf8");
+    expect(forgeConfigContent).toContain("require('./scripts/electronFusesPolicy')");
+    expect(forgeConfigContent).toContain("new FusesPlugin(pergamumFusePolicy)");
   });
 
   it("registers only .pergamum as a Windows file association", () => {
