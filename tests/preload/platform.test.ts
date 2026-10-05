@@ -2,9 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 import { nodePlatformToAppPlatform } from "../../src/preload/platform";
 import type { AppPlatform } from "../../src/shared/platform";
 
+// The preload calls exposeInMainWorld once, at import time below - before any
+// test runs - so what it exposed is recorded here rather than read back from
+// the mock's call history (which is cleared before every test).
 const electronMock = vi.hoisted(() => ({
+  exposedKey: undefined as string | undefined,
   exposedApi: undefined as { platform?: AppPlatform } | undefined,
-  exposeInMainWorld: vi.fn((_key: string, api: { platform?: AppPlatform }) => {
+  exposeInMainWorld: vi.fn((key: string, api: { platform?: AppPlatform }) => {
+    electronMock.exposedKey = key;
     electronMock.exposedApi = api;
   }),
   invoke: vi.fn(),
@@ -36,8 +41,8 @@ describe("preload exposes a renderer-safe platform value (#182)", () => {
       "other"
     ];
 
-    expect(electronMock.exposeInMainWorld).toHaveBeenCalledWith(
-      "pergamum",
+    expect(electronMock.exposedKey).toBe("pergamum");
+    expect(electronMock.exposedApi).toEqual(
       expect.objectContaining({ platform: expect.any(String) })
     );
     expect(appPlatforms).toContain(electronMock.exposedApi?.platform);

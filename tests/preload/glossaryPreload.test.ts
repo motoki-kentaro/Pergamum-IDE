@@ -11,9 +11,14 @@ import {
 } from "../../src/shared/api";
 import { editorCommandIds } from "../../src/shared/commandIds";
 
+// The preload calls exposeInMainWorld once, at import time below - before any
+// test runs - so what it exposed is recorded here rather than read back from
+// the mock's call history (which is cleared before every test).
 const electronMock = vi.hoisted(() => ({
+  exposedKey: undefined as string | undefined,
   exposedApi: undefined as PergamumApi | undefined,
   exposeInMainWorld: vi.fn((key: string, api: PergamumApi) => {
+    electronMock.exposedKey = key;
     electronMock.exposedApi = api;
   }),
   invoke: vi.fn(),
@@ -254,8 +259,8 @@ describe("glossary preload API", () => {
   });
 
   it("exposes glossary entry + tag operations through the Pergamum API", () => {
-    expect(electronMock.exposeInMainWorld).toHaveBeenCalledWith(
-      "pergamum",
+    expect(electronMock.exposedKey).toBe("pergamum");
+    expect(electronMock.exposedApi).toEqual(
       expect.objectContaining({
         glossary: expect.objectContaining({
           create: expect.any(Function),
