@@ -1,5 +1,7 @@
+// @vitest-environment happy-dom
 import { readFileSync } from "node:fs";
-import React from "react";
+import React, { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { GlossaryEntry } from "../../src/shared/glossary";
@@ -222,22 +224,44 @@ function collectElements(
   return elements;
 }
 
+let activityBarRoot: Root | null = null;
+let activityBarContainer: HTMLDivElement | null = null;
+
+afterEach(() => {
+  if (activityBarRoot) {
+    act(() => activityBarRoot!.unmount());
+    activityBarRoot = null;
+  }
+  activityBarContainer?.remove();
+  activityBarContainer = null;
+});
+
+// ActivityBar reads the live keybinding store through hooks, so it is
+// rendered for real rather than called as a plain function.
+function renderActivityBar(
+  props: React.ComponentProps<typeof ActivityBar>
+): HTMLButtonElement[] {
+  activityBarContainer = document.createElement("div");
+  document.body.appendChild(activityBarContainer);
+  activityBarRoot = createRoot(activityBarContainer);
+  act(() => {
+    activityBarRoot!.render(React.createElement(ActivityBar, props));
+  });
+
+  return Array.from(activityBarContainer.querySelectorAll("button"));
+}
+
 function activityBarButtons(
   activeMode: SidebarMode,
   onSelectMode: (mode: SidebarMode) => void
-): React.ReactElement<ElementProps>[] {
-  const element = ActivityBar({
+): HTMLButtonElement[] {
+  return renderActivityBar({
     activeMode,
     isApplicationSettingsActive: false,
     translate,
     onSelectMode,
     onOpenApplicationSettings: () => undefined
   });
-
-  return collectElements(
-    element,
-    (child) => child.type === "button"
-  );
 }
 
 function stubGlossaryApi(
@@ -339,14 +363,12 @@ describe("workspace navigation", () => {
 
     for (const [label, mode] of modeLabels) {
       const button = buttons.find(
-        (candidate) => candidate.props["aria-label"] === label
+        (candidate) => candidate.getAttribute("aria-label") === label
       );
       expect(button).toBeDefined();
-      expect(button?.props.disabled).toBeUndefined();
+      expect(button?.disabled).toBe(false);
 
-      const onClick = button?.props.onClick;
-      expect(typeof onClick).toBe("function");
-      (onClick as () => void)();
+      act(() => button!.click());
       expect(onSelectMode).toHaveBeenLastCalledWith(mode);
     }
   });
@@ -392,7 +414,7 @@ describe("workspace navigation", () => {
       }
     );
 
-    const element = ActivityBar({
+    const buttons = renderActivityBar({
       activeMode: "files",
       isApplicationSettingsActive: didOpenApplicationSettings,
       translate,
@@ -407,21 +429,18 @@ describe("workspace navigation", () => {
         });
       }
     });
-    const buttons = collectElements(
-      element,
-      (child) => child.type === "button"
-    );
     const searchButton = buttons.find(
-      (button) => button.props["aria-label"] === "activity.search"
+      (button) => button.getAttribute("aria-label") === "activity.search"
     );
     const filesButton = buttons.find(
-      (button) => button.props["aria-label"] === "activity.files"
+      (button) => button.getAttribute("aria-label") === "activity.files"
     );
     const glossaryButton = buttons.find(
-      (button) => button.props["aria-label"] === "activity.glossary"
+      (button) => button.getAttribute("aria-label") === "activity.glossary"
     );
     const settingsButton = buttons.find(
-      (button) => button.props["aria-label"] === "activity.applicationSettings"
+      (button) =>
+        button.getAttribute("aria-label") === "activity.applicationSettings"
     );
 
     expect(filesButton).toBeDefined();
@@ -429,14 +448,14 @@ describe("workspace navigation", () => {
     expect(glossaryButton).toBeDefined();
     expect(settingsButton).toBeDefined();
 
-    (filesButton?.props.onClick as () => void)();
-    (searchButton?.props.onClick as () => void)();
-    (glossaryButton?.props.onClick as () => void)();
+    act(() => filesButton!.click());
+    act(() => searchButton!.click());
+    act(() => glossaryButton!.click());
     await Promise.resolve();
 
     expect(selectedModes).toEqual(["files", "search", "glossary"]);
 
-    (settingsButton?.props.onClick as () => void)();
+    act(() => settingsButton!.click());
     await Promise.resolve();
 
     expect(didOpenApplicationSettings).toBe(true);

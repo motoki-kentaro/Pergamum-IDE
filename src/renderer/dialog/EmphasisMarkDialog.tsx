@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent, type JSX } from "react";
 import type { AozoraEmphasisMark, EmphasisMarkRule } from "../../shared/settings";
 import type { Translate } from "../../shared/i18n";
 import {

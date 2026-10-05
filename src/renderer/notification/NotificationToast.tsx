@@ -14,7 +14,7 @@
  * appearing must not move focus away from the editor (#266 §3 / §12).
  */
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, JSX } from "react";
 import pergamumIconUrl from "../../../assets/icons/file-associations/pergamum/pergamum-scroll-file-icon.svg?url";
 import checkSquareIconUrl from "../../../assets/icons/feather/dialog/check-square.svg?url";
 import helpCircleIconUrl from "../../../assets/icons/feather/dialog/help-circle.svg?url";

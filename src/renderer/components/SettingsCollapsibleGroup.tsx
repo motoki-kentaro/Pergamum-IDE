@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, type JSX } from "react";
 import chevronDownIcon from "../../../assets/icons/codicons/general/chevron-down.svg?raw";
 import chevronRightIcon from "../../../assets/icons/codicons/general/chevron-right.svg?raw";
 

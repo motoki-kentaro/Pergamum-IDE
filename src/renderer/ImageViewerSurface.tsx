@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties, type JSX } from "react";
 import type { Translate } from "../shared/i18n";
 import { buildPergamumAssetUrl } from "../shared/pergamumAssetUrl";
 

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -2762,8 +2762,10 @@ describe("ProjectSettingsPanel Slice 7 - Remaining Project Settings scope wiring
         ".dialogueDelimiterPairDialogInput"
       );
       expect(inputs).toHaveLength(2);
-      changeInputValue(inputs[0], "『");
-      changeInputValue(inputs[1], "』");
+      act(() => {
+        changeInputValue(inputs[0], "『");
+        changeInputValue(inputs[1], "』");
+      });
 
       await act(async () => {
         container

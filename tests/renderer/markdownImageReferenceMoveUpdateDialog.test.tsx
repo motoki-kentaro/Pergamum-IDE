@@ -5,7 +5,7 @@
 // wording when >1 image or >1 document; a permanent Glossary-exclusion note.
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { t, type Translate } from "../../src/shared/i18n";
 import { MarkdownImageReferenceMoveUpdateDialog } from "../../src/renderer/dialog/MarkdownImageReferenceMoveUpdateDialog";

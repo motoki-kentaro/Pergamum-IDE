@@ -1,4 +1,4 @@
-import { useState, type DragEvent } from "react";
+import { useState, type DragEvent, type JSX } from "react";
 import gripperIconRaw from "../../assets/icons/codicons/dialog/gripper.svg?raw";
 import type { GlossaryTag } from "../shared/glossary";
 import type { Translate } from "../shared/i18n";

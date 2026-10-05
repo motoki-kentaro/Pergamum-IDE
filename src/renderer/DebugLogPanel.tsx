@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import type { DebugLogSnapshot } from "../shared/debugLog";
 import type { Translate } from "../shared/i18n";
 import {

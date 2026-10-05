@@ -1,7 +1,7 @@
 import { SettingsColorInput } from "../SettingsColorInput";
 import { CaretContrastWarning } from "../CaretContrastWarning";
 /** #719: application caret controls and a live CodeMirror preview. */
-import { useEffect, useRef, useState, type FC } from "react";
+import { useEffect, useRef, useState, type FC, type JSX } from "react";
 import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";

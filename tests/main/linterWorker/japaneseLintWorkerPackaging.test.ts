@@ -27,7 +27,7 @@ interface ForgeConfig {
 const forge = require("../../../forge.config.js") as ForgeConfig;
 
 describe("Linter Worker packaging (#625 P1a)", () => {
-  it("builds the Worker as its own bundle next to main.js", () => {
+  it("builds the Worker as its own bundle next to main.cjs", () => {
     const viteBuilds =
       forge.plugins.find((plugin) => plugin.name === "@electron-forge/plugin-vite")
         ?.config?.build ?? [];
@@ -46,7 +46,7 @@ describe("Linter Worker packaging (#625 P1a)", () => {
 
   it("the Worker's bundle name is what the Host forks", () => {
     expect(resolveJapaneseLintWorkerEntry(path.join("x", ".vite", "build"))).toBe(
-      path.join("x", ".vite", "build", "japaneseLintWorker.js")
+      path.join("x", ".vite", "build", "japaneseLintWorker.cjs")
     );
   });
 
@@ -79,7 +79,7 @@ describe("Linter Worker packaging (#625 P1a)", () => {
     expect(ignored("/node_modules/kuromoji/dict/base.dat.gz")).toBe(false);
     expect(ignored("/node_modules/kuromoji/dict/unk_pos.dat.gz")).toBe(false);
     expect(ignored("/node_modules/kuromoji/src/kuromoji.js")).toBe(true);
-    expect(ignored("/.vite/build/japaneseLintWorker.js")).toBe(false);
+    expect(ignored("/.vite/build/japaneseLintWorker.cjs")).toBe(false);
   });
 });
 

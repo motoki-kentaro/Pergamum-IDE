@@ -29,6 +29,7 @@
  *     destination path.
  */
 
+import type { JSX } from "react";
 import {
   useCallback,
   useEffect,

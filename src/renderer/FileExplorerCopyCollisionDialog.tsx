@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { Translate } from "../shared/i18n";
 import type {
   CopyEntriesExecutionResult,

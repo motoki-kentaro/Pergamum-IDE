@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { DocumentMapSettings } from "../shared/documentMapSettings";
 import type { GlossaryEntry, GlossaryTag } from "../shared/glossary";
 import type { Translate } from "../shared/i18n";

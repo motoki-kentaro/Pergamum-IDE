@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type DragEvent as ReactDragEvent } from "react";
+import { useEffect, useId, useState, type DragEvent as ReactDragEvent, type JSX } from "react";
 import type {
   FontFamilySetting,
   FontSlot

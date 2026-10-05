@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import deleteIcon from "../../assets/icons/feather/glossary/delete.svg?raw";
 import gripperIconRaw from "../../assets/icons/codicons/dialog/gripper.svg?raw";
 import type { GlossaryTag } from "../shared/glossary";

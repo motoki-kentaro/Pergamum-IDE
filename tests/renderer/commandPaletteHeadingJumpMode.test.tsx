@@ -9,7 +9,7 @@
 import { readFileSync } from "node:fs";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EditorId } from "../../src/shared/editorId";
 import { CommandRegistry, defineCommandId } from "../../src/shared/commandRegistry";

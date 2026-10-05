@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type JSX } from "react";
 import type {
   GetKeyboardShortcutItemsResult
 } from "../shared/api";

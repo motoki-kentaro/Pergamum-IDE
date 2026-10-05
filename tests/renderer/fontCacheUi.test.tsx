@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { FontCacheControl } from "../../src/renderer/FontCacheControl";
 import { FontFamilyListSettingControl } from "../../src/renderer/FontFamilyListSettingControl";
 import type { Translate, TranslationKey } from "../../src/shared/i18n";

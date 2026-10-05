@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, JSX } from "react";
 
 /**
  * #352: a collapsible section for stacking a secondary pane (the Markdown

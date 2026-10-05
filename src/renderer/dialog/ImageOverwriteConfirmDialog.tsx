@@ -5,6 +5,7 @@
  * (no partial copy, no partial Markdown insertion).
  */
 
+import type { JSX } from "react";
 import type { Translate } from "../../shared/i18n";
 import { InfoDialog } from "./InfoDialog";
 

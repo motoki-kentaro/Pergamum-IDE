@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent, type JSX } from "react";
 import type { Translate } from "../../shared/i18n";
 import { InfoDialog } from "./InfoDialog";
 

@@ -1,3 +1,5 @@
+import type { JSX } from "react";
+
 /**
  * #360 UI polish & Final chart refinement:
  * A standard SVG pie chart (sector paths, no donut hole) for the Document

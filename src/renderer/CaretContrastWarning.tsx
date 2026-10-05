@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 import type { ApplicationSettings } from "../shared/settings";
 import type { Translate } from "../shared/i18n";
 import { effectiveCaretColors } from "../shared/caretColors";

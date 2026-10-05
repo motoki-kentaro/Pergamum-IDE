@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useState, type JSX } from "react";
 import chevronsDownIcon from "../../assets/icons/feather/glossary/chevrons-down.svg?raw";
 import chevronsRightIcon from "../../assets/icons/feather/glossary/chevrons-right.svg?raw";
 import {

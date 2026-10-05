@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, JSX } from "react";
 import type { Translate } from "../shared/i18n";
 import type {
   MarkdownOutlineItem,

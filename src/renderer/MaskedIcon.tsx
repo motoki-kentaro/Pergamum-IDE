@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, JSX } from "react";
 
 export type MaskedIconProps = {
   /** Bundled SVG asset URL (a Vite `?url` import). */

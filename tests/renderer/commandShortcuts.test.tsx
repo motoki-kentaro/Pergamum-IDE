@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";

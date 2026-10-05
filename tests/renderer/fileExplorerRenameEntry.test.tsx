@@ -5,7 +5,7 @@
 // subtree relocation that reuses the #338/#340 plural relocation pathway.
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   FileExplorerEntry,
@@ -235,6 +235,9 @@ describe("File Explorer Rename entry points (#362)", () => {
       clickEntry("Drafts");
       openMenu("Drafts");
       expect(menuItem("rename")?.disabled).toBe(false);
+
+      // Clicking a folder started loading its children; settle it inside act().
+      await flush();
     });
 
     it("disables Rename with no selection (empty-area right-click)", async () => {
@@ -303,6 +306,9 @@ describe("File Explorer Rename entry points (#362)", () => {
       openMenu("Drafts");
       clickMenu("rename");
       expect(renameDialogInput()?.value).toBe("Drafts");
+
+      // Clicking a folder started loading its children; settle it inside act().
+      await flush();
     });
   });
 
@@ -319,6 +325,9 @@ describe("File Explorer Rename entry points (#362)", () => {
       clickEntry("Drafts");
       pressF2();
       expect(renameDialogInput()?.value).toBe("Drafts");
+
+      // Clicking a folder started loading its children; settle it inside act().
+      await flush();
     });
 
     it("is a no-op for no selection", async () => {
@@ -463,6 +472,9 @@ describe("File Explorer Rename entry points (#362)", () => {
       expect(harness.onRenameUnavailable).toHaveBeenCalledWith(
         t("en", "explorer.rename.error.openDocumentDirty")
       );
+
+      // Clicking a folder started loading its children; settle it inside act().
+      await flush();
     });
   });
 });

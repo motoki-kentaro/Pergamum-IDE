@@ -27,6 +27,6 @@ describe("forge packaging whitelist for the Japanese lint dictionary (#625)", ()
     expect(ignored("/node_modules/better-sqlite3/package.json")).toBe(false);
     expect(ignored("/node_modules/bindings")).toBe(false);
     expect(ignored("/node_modules/file-uri-to-path")).toBe(false);
-    expect(ignored("/.vite/build/main.js")).toBe(false);
+    expect(ignored("/.vite/build/main.cjs")).toBe(false);
   });
 });

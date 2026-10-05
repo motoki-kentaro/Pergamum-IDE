@@ -105,7 +105,7 @@ module.exports = {
           },
           {
             // #625: the Japanese Linter Worker, run by utilityProcess.fork().
-            // Its own bundle next to main.js (.vite/build/japaneseLintWorker.js).
+            // Its own bundle next to main.cjs (.vite/build/japaneseLintWorker.cjs).
             entry: 'src/main/linterWorker/japaneseLintWorker.ts',
             config: 'vite.main.config.mts',
             target: 'main',

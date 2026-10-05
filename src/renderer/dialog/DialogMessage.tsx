@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { AppDialogMessage } from "./appDialogTypes";
 import { MaskedIcon } from "../MaskedIcon";
 import linkExternalIconUrl from "../../../assets/icons/codicons/dialog/link-external.svg?url";

@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, JSX } from "react";
 import type { GlossaryTag } from "../shared/glossary";
 import flagIcon from "../../assets/icons/feather/tag/flag.svg?raw";
 

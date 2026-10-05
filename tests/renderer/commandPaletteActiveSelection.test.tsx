@@ -7,7 +7,7 @@
 // ENTER execution target are exercised together.
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProjectDocument } from "../../src/shared/api";
 import { CommandRegistry, defineCommandId } from "../../src/shared/commandRegistry";

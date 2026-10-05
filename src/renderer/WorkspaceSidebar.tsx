@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { FileExplorerEntry, PergamumProject } from "../shared/api";
 import type { DocumentMapSettings } from "../shared/documentMapSettings";
 import type { ProjectDocumentPathRelocation } from "../shared/projectMove";

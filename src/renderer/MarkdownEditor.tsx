@@ -4,7 +4,7 @@ import {
   previewToEditorScrollSyncAnnotation,
   transactionRequestsScrollIntoView
 } from "./previewScrollSyncAnnotation";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore, type JSX } from "react";
 import {
   Compartment,
   EditorSelection,

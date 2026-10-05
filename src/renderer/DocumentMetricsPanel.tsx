@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode, type JSX } from "react";
 import type { Translate } from "../shared/i18n";
 import { estimateManuscriptPages } from "../shared/manuscriptPages";
 import barChartIcon from "../../assets/icons/feather/metrics/bar-chart.svg?raw";

@@ -24,9 +24,9 @@ import { resolveJapaneseLintDictionaryPath } from "./japaneseLintDictionary";
  * still runs textlint in-process); it exists so the next slices can.
  */
 
-/** The Worker bundle sits next to main.js (`.vite/build`, inside app.asar). */
+/** The Worker bundle sits next to main.cjs (`.vite/build`, inside app.asar). */
 export function resolveJapaneseLintWorkerEntry(mainDirectory: string): string {
-  return path.join(mainDirectory, "japaneseLintWorker.js");
+  return path.join(mainDirectory, "japaneseLintWorker.cjs");
 }
 
 export interface ElectronJapaneseLintHostOptions
@@ -34,7 +34,7 @@ export interface ElectronJapaneseLintHostOptions
     JapaneseLintHostDeps,
     "logger" | "getSettings" | "onExit" | "timeouts"
   > {
-  /** Directory of the running main bundle (`__dirname` of main.js). */
+  /** Directory of the running main bundle (`__dirname` of main.cjs). */
   readonly mainDirectory?: string;
   /** Overrides the Electron-based dictionary path (for verification). */
   readonly resolveDictionaryPath?: () => string;

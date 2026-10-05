@@ -46,8 +46,9 @@ function escapeHtmlForMermaidResult(text: string): string {
  * The root-level `htmlLabels: false` takes precedence over every
  * diagram-specific `htmlLabels` setting (flowchart, sequence, ...) per
  * mermaid's own config typing, so this alone keeps HTML labels off across
- * diagram types. Theme is left at mermaid's default — no theme settings in
- * this issue.
+ * diagram types — except for diagrams with `$$...$$` math labels, see
+ * `withMermaidMathLabelSupport` (#743). Theme is left at mermaid's default —
+ * no theme settings in this issue.
  */
 const MERMAID_CONFIG: MermaidConfig = {
   startOnLoad: false,
@@ -79,9 +80,38 @@ export type MermaidRenderFn = (
   source: string
 ) => Promise<MermaidRenderSuccess>;
 
+/** Mermaid's own math-label marker (same pattern as its internal `hasKatex`). */
+const MERMAID_MATH_LABEL_PATTERN = /\$\$(.*?)\$\$/;
+
+/** Mermaid front matter, which must stay the very first thing in the source. */
+const MERMAID_FRONT_MATTER_PATTERN = /^-{3}\s*[\n\r][\s\S]*?[\n\r]-{3}\s*[\n\r]+/;
+
+const MATH_LABEL_DIRECTIVE = '%%{init: {"htmlLabels": true}}%%\n';
+
+/**
+ * #743: Mermaid renders `$$...$$` labels with KaTeX (MathML output) only on
+ * its HTML-label path; with the global `htmlLabels: false` above, flowchart
+ * node labels take the SVG-text path and the math stays raw text. So a
+ * diagram that actually contains math gets HTML labels for that diagram
+ * alone, through Mermaid's own init directive; every other diagram keeps
+ * SVG-text labels. `htmlLabels` is not one of Mermaid's `secure` keys (a
+ * user could already set it with the same directive), `securityLevel:
+ * "strict"` still sanitizes the HTML labels, and the global config is never
+ * mutated, so concurrent renders cannot observe each other's settings.
+ */
+export function withMermaidMathLabelSupport(source: string): string {
+  if (!MERMAID_MATH_LABEL_PATTERN.test(source)) {
+    return source;
+  }
+
+  const frontMatter = MERMAID_FRONT_MATTER_PATTERN.exec(source);
+  const insertAt = frontMatter ? frontMatter[0].length : 0;
+  return `${source.slice(0, insertAt)}${MATH_LABEL_DIRECTIVE}${source.slice(insertAt)}`;
+}
+
 export const defaultMermaidRender: MermaidRenderFn = async (id, source) => {
   const mermaid = await loadMermaid();
-  return mermaid.render(id, source);
+  return mermaid.render(id, withMermaidMathLabelSupport(source));
 };
 
 export interface MermaidPreviewMessages {

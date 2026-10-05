@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, JSX } from "react";
 import type { Translate } from "../shared/i18n";
 import type { UtilityWindowTabId } from "./workbenchLayout";
 

@@ -125,7 +125,7 @@ function candidateWithText(
   };
 }
 
-function mountDialog(options: {
+async function mountDialog(options: {
   candidates?: readonly ExportCandidateListItem[];
   onReloadCandidates?: () => Promise<
     readonly ExportCandidateListItem[] | null
@@ -141,11 +141,11 @@ function mountDialog(options: {
   onSelectExportFolder?: ExportConfirmationDialogProps["onSelectExportFolder"];
   onGetDocumentsPath?: ExportConfirmationDialogProps["onGetDocumentsPath"];
   onCheckFileExists?: ExportConfirmationDialogProps["onCheckFileExists"];
-} = {}): void {
+} = {}): Promise<void> {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  act(() => {
+  await act(async () => {
     root!.render(
       <ExportConfirmationDialog
         origin={{ kind: "folder", folderPath: "First" }}
@@ -302,7 +302,9 @@ function setSelectValue(select: HTMLSelectElement, value: string): void {
     "value"
   )?.set;
   setter?.call(select, value);
-  select.dispatchEvent(new Event("change", { bubbles: true }));
+  act(() => {
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
 }
 
 function headingRemovalSelect(): HTMLSelectElement {
@@ -428,8 +430,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(markup).not.toContain("<tbody>");
   });
 
-  it("updates included count and total characters when a row is toggled", () => {
-    mountDialog();
+  it("updates included count and total characters when a row is toggled", async () => {
+    await mountDialog();
 
     expect(summaryText()).toBe("Approx. characters: 15  Included/candidates: 2/2 files");
 
@@ -444,8 +446,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(folderRow("First").textContent).toContain("Included 2/2");
   });
 
-  it("collapses and expands folder groups without changing totals", () => {
-    mountDialog({ candidates: groupedCandidates });
+  it("collapses and expands folder groups without changing totals", async () => {
+    await mountDialog({ candidates: groupedCandidates });
 
     expect(candidateRow("First/01.md")).not.toBeNull();
     expect(summaryText()).toBe("Approx. characters: 35  Included/candidates: 3/3 files");
@@ -462,8 +464,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(candidateRow("First/01.md")).not.toBeNull();
   });
 
-  it("folder toggle updates child rows, folder summary, and overall summary", () => {
-    mountDialog();
+  it("folder toggle updates child rows, folder summary, and overall summary", async () => {
+    await mountDialog();
 
     act(() => folderToggle("First").click());
 
@@ -488,8 +490,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(folderRow("First").textContent).toContain("Included 2/2");
   });
 
-  it("tracks candidate list dirty state and enables/disables reload button", () => {
-    mountDialog();
+  it("tracks candidate list dirty state and enables/disables reload button", async () => {
+    await mountDialog();
 
     expect(dirtyIcon()).toBeNull();
     expect(tableReloadButton().disabled).toBe(true);
@@ -507,7 +509,7 @@ describe("ExportConfirmationDialog (#523)", () => {
     const onExportTxt = vi.fn<ExportConfirmationDialogProps["onExportTxt"]>(
       async () => ({ ok: true, outputPath: "C:\\Users\\User\\Documents\\First.txt" })
     );
-    mountDialog({ onExportTxt });
+    await mountDialog({ onExportTxt });
 
     // Move to Step 2
     navigateToStep2();
@@ -563,7 +565,7 @@ describe("ExportConfirmationDialog (#523)", () => {
     >(async (relativePath) =>
       relativePath.endsWith(".txt") ? "※［＃1-14-2］" : "｜吾輩《わがはい》"
     );
-    mountDialog({ onExportTxt, loadAozoraText });
+    await mountDialog({ onExportTxt, loadAozoraText });
 
     act(() => {
       setSelectValue(bodyNotationSelect(), "aozora");
@@ -595,7 +597,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       async () => ({ ok: true, outputPath: "C:\\export\\manuscript.txt" })
     );
     const onExportUnavailable = vi.fn();
-    mountDialog({ onExportTxt, onExportUnavailable });
+    await mountDialog({ onExportTxt, onExportUnavailable });
 
     act(() => folderToggle("First").click());
 
@@ -612,8 +614,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(onExportTxt).not.toHaveBeenCalled();
   });
 
-  it("reorders folder groups by dragging the folder gripper", () => {
-    mountDialog({ candidates: groupedCandidates });
+  it("reorders folder groups by dragging the folder gripper", async () => {
+    await mountDialog({ candidates: groupedCandidates });
 
     expect(renderedFolderOrder()).toEqual(["First", "Second"]);
 
@@ -638,8 +640,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(tableReloadButton().disabled).toBe(true);
   });
 
-  it("reorders file rows within the same folder by dragging the row gripper", () => {
-    mountDialog({ candidates: groupedCandidates });
+  it("reorders file rows within the same folder by dragging the row gripper", async () => {
+    await mountDialog({ candidates: groupedCandidates });
 
     expect(renderedFileOrder()).toEqual([
       "First/01.md",
@@ -680,8 +682,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(tableReloadButton().disabled).toBe(true);
   });
 
-  it("recalculates previews and totals when heading removal changes", () => {
-    mountDialog({
+  it("recalculates previews and totals when heading removal changes", async () => {
+    await mountDialog({
       candidates: [
         candidateWithText("First/heading.md", "markdown", "# Title\nabcdefghijklmnop"),
         candidateWithText("First/notes.txt", "text", "# Text heading\nbody")
@@ -754,7 +756,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       }
     ]);
     const onConfirmDiscardReload = vi.fn(async () => true);
-    mountDialog({ onReloadCandidates, onConfirmDiscardReload });
+    await mountDialog({ onReloadCandidates, onConfirmDiscardReload });
 
     expect(tableReloadButton().disabled).toBe(true);
 
@@ -781,7 +783,7 @@ describe("ExportConfirmationDialog (#523)", () => {
   it("cancels dirty reload confirmation without changing dialog state", async () => {
     const onReloadCandidates = vi.fn(async () => [candidates[0]]);
     const onConfirmDiscardReload = vi.fn(async () => false);
-    mountDialog({ onReloadCandidates, onConfirmDiscardReload });
+    await mountDialog({ onReloadCandidates, onConfirmDiscardReload });
 
     act(() => includeToggle("First/01.md").click());
 
@@ -804,7 +806,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       warningCount: 0
     }));
 
-    mountDialog({ onExportHtmlCombined });
+    await mountDialog({ onExportHtmlCombined });
 
     navigateToStep2();
 
@@ -896,7 +898,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       warningCount: 1
     }));
 
-    mountDialog({ candidates: pdfCandidates, onExportPdfCombined });
+    await mountDialog({ candidates: pdfCandidates, onExportPdfCombined });
 
     navigateToStep2();
 
@@ -985,7 +987,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       warningCount: 0
     }));
 
-    mountDialog({ candidates: pdfCandidates, onExportPdfCombined });
+    await mountDialog({ candidates: pdfCandidates, onExportPdfCombined });
 
     navigateToStep2();
 
@@ -1066,7 +1068,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       }
     };
 
-    mountDialog({ candidates: pdfCandidates, onExportPdfCombined });
+    await mountDialog({ candidates: pdfCandidates, onExportPdfCombined });
 
     await act(async () => {
       await Promise.resolve();
@@ -1148,7 +1150,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       }
     };
 
-    mountDialog({ candidates: pdfCandidates });
+    await mountDialog({ candidates: pdfCandidates });
 
     await act(async () => {
       await Promise.resolve();
@@ -1193,7 +1195,7 @@ describe("ExportConfirmationDialog (#523)", () => {
   });
 
   it("navigates through all 4 wizard steps and allows reconfiguring (#523 Slice 10)", async () => {
-    mountDialog();
+    await mountDialog();
 
     // Step 1 check
     expect(container!.querySelector("[data-export-body-notation-select='true']")).not.toBeNull();
@@ -1228,8 +1230,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(container!.querySelector("[data-export-result-path]")).toBeNull();
   });
 
-  it("locks candidate list during Step 3 and unlocks when returning to Step 2 (#523 Slice 10)", () => {
-    mountDialog();
+  it("locks candidate list during Step 3 and unlocks when returning to Step 2 (#523 Slice 10)", async () => {
+    await mountDialog();
 
     expect(includeToggle("First/01.md").disabled).toBe(false);
     expect(fileDragHandle("First/01.md").getAttribute("draggable")).toBe("true");
@@ -1261,7 +1263,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       NonNullable<ExportConfirmationDialogProps["onCheckFileExists"]>
     >(async () => ({ exists: true }));
 
-    mountDialog({ onExportTxt, onCheckFileExists });
+    await mountDialog({ onExportTxt, onCheckFileExists });
 
     navigateToStep2();
     navigateToStep3();
@@ -1287,8 +1289,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(onExportTxt.mock.calls[0]?.[0]?.allowOverwrite).toBe(true);
   });
 
-  it("dynamically updates extension label in Step 3 based on selected format (#523 Slice 10)", () => {
-    mountDialog();
+  it("dynamically updates extension label in Step 3 based on selected format (#523 Slice 10)", async () => {
+    await mountDialog();
 
     navigateToStep2();
     setSelectValue(container!.querySelector<HTMLSelectElement>("select[data-export-format-select='true']")!, "txtUtf8");
@@ -1309,7 +1311,7 @@ describe("ExportConfirmationDialog (#523)", () => {
   });
 
   it("verifies all Slice 10 UI polish specifications", async () => {
-    mountDialog();
+    await mountDialog();
 
     // 1. Table top-left reload button
     const reloadBtn = tableReloadButton();
@@ -1358,8 +1360,8 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(topCloseBtn.getAttribute("title")).toBe("Cancel");
   });
 
-  it("verifies Step 2 layout follow-up fixes (single heading removal dropdown, PDF caption under TOC toggle, single TOC toggle slider, no native TOC checkbox)", () => {
-    mountDialog();
+  it("verifies Step 2 layout follow-up fixes (single heading removal dropdown, PDF caption under TOC toggle, single TOC toggle slider, no native TOC checkbox)", async () => {
+    await mountDialog();
 
     navigateToStep2();
 

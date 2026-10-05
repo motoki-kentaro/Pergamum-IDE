@@ -4,6 +4,7 @@
  * Find panel (`find/ActiveFindPanel.tsx`, #424 Slice 2). Extracted verbatim so
  * neither feature reimplements the icon inlining or the button markup.
  */
+import type { JSX } from "react";
 import glossarySearchIconRaw from "../../assets/icons/svgrepo/search/vocabulary-svgrepo-com.svg?raw";
 import wholeWordIconRaw from "../../assets/icons/codicons/search/whole-word.svg?raw";
 import caseSensitiveIconRaw from "../../assets/icons/codicons/search/case-sensitive.svg?raw";

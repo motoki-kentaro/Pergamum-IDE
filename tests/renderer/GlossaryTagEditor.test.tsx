@@ -2,7 +2,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Translate } from "../../src/shared/i18n";
 import { GlossaryTagEditor } from "../../src/renderer/GlossaryTagEditor";

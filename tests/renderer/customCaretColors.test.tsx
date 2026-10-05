@@ -173,7 +173,7 @@ describe("#725 custom caret UI and live surface", () => {
   );
   it.each([false, true])(
     "warns but permits manual low-contrast save (search=%s)",
-    (search) => {
+    async (search) => {
       const settings = {
         ...defaultApplicationSettings,
         textCursor: {
@@ -206,6 +206,10 @@ describe("#725 custom caret UI and live surface", () => {
         search ? "textCursor.cursorTextColor" : "",
       );
       expect(container.querySelector("[role='status']")).toBeNull();
+
+      // CaretContrastWarning re-checks from a MutationObserver callback (a
+      // microtask); let any pending one run inside act().
+      await act(async () => {});
     },
   );
   it("updates theme/custom and cursor text color without recreating preview or changing history, selection, scroll", () => {

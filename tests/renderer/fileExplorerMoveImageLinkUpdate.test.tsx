@@ -8,7 +8,7 @@
 // events are built by hand.
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   FileExplorerEntry,

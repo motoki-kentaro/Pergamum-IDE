@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type JSX } from "react";
 import type { Translate } from "../shared/i18n";
 import { InfoDialog } from "./dialog/InfoDialog";
 
