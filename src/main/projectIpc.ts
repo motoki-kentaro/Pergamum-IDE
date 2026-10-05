@@ -13,6 +13,11 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
+  cleanStaleProjectWriteLockArchives,
+  createProjectWriteLockStaleArchiveDirName,
+  type ProjectWriteLockHousekeepingFileSystem
+} from "./projectWriteLockHousekeeping";
+import {
   defaultProjectAccessMode,
   PROJECT_CHANNELS,
   type CloseCurrentProjectRequest,
@@ -294,10 +299,18 @@ export interface ProjectWriteLockFileSystem {
   ): Promise<void>;
   open(path: string, flags: string): Promise<ProjectWriteLockFileHandle>;
   unlink(path: string): Promise<void>;
-  rmdir(path: string): Promise<void>;
+  rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   rename(fromPath: string, toPath: string): Promise<void>;
   stat(path: string): Promise<{ isDirectory(): boolean }>;
+  readdir?(path: string): Promise<string[]>;
+  lstat?(
+    path: string
+  ): Promise<{ isDirectory(): boolean; isSymbolicLink(): boolean }>;
+  rm?(
+    path: string,
+    options?: { recursive?: boolean; force?: boolean }
+  ): Promise<void>;
 }
 
 export interface ProjectWriteLockRuntimeMetadataProvider {
@@ -412,12 +425,11 @@ function projectWriteLockStaleArchiveDirName(
   now: Date,
   instanceRunId: string
 ): string {
-  const base = path.basename(lockDirectoryPath);
-  const timestamp = now.toISOString().replace(/[:.]/g, "-");
-  const fragment =
-    instanceRunId.replace(/[^0-9a-fA-F]/g, "").slice(0, 8) || "run";
-
-  return `${base}.stale-${timestamp}-${fragment}`;
+  return createProjectWriteLockStaleArchiveDirName(
+    lockDirectoryPath,
+    now,
+    instanceRunId
+  );
 }
 
 function projectWriteLockStaleTakeoverInfo(
@@ -469,6 +481,11 @@ function projectWriteLockUnavailable(
   };
 }
 
+export type ProjectWriteLockHousekeepingCleaner = (
+  lockDirectoryPath: string,
+  fileSystem: ProjectWriteLockHousekeepingFileSystem
+) => Promise<void>;
+
 export class ProjectWriteLockOwnershipManager
   implements ProjectWriteOwnershipManager
 {
@@ -483,7 +500,9 @@ export class ProjectWriteLockOwnershipManager
     private readonly metadataProvider: ProjectWriteLockRuntimeMetadataProvider =
       defaultProjectWriteLockRuntimeMetadataProvider,
     private readonly staleReclamationPolicy: ProjectWriteLockStaleReclamationPolicy =
-      { probeProcessLiveness }
+      { probeProcessLiveness },
+    private readonly housekeepingCleaner: ProjectWriteLockHousekeepingCleaner =
+      cleanStaleProjectWriteLockArchives
   ) {}
 
   async acquire(
@@ -574,6 +593,16 @@ export class ProjectWriteLockOwnershipManager
       }
 
       this.ownedLocks.set(lockDirectoryPath, { ownerHandle });
+
+      try {
+        await this.housekeepingCleaner(
+          lockDirectoryPath,
+          this.fileSystem as unknown as ProjectWriteLockHousekeepingFileSystem
+        );
+      } catch {
+        // Housekeeping failure is isolated and must never cause lock acquisition failure
+        // or trigger read-only fallback.
+      }
 
       return {
         kind: "owned",
