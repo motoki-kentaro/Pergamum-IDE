@@ -8,6 +8,12 @@ import {
 } from "electron";
 import started from "electron-squirrel-startup";
 import path from "node:path";
+import { performance } from "node:perf_hooks";
+import { createRuntimePrimaryRouter } from "./primaryRouterEndpoint";
+import {
+  installPrimaryRouterShutdown,
+  type PrimaryRouterCoordinator
+} from "./primaryRouterCoordination";
 import { parseDebugModeFromArgv } from "./debugMode";
 import { registerAppInfoIpc } from "./appInfoIpc";
 import {
@@ -137,6 +143,14 @@ let coldStartWebContentsId: number | null = null;
 const pergamumDebugMode = parseDebugModeFromArgv(process.argv);
 // #272: one process-run identity for the lifetime of this Pergamum process.
 const instanceRunId = createUuidv7();
+const coordinationStartedAt = performance.timeOrigin;
+let primaryRouterCoordinator: PrimaryRouterCoordinator | null = null;
+let primaryRouterInitialization: Promise<void> | null = null;
+
+installPrimaryRouterShutdown(app, async () => {
+  await primaryRouterInitialization;
+  await primaryRouterCoordinator?.stop();
+});
 
 // #409: the `pergamum-asset://` scheme that serves project-local images to
 // the Markdown Preview must be declared privileged BEFORE `app.ready`. It is
@@ -361,6 +375,24 @@ function installDebugLogLifecycleHandlers(logger: DebugLogger): void {
 }
 
 app.whenReady().then(async () => {
+  // Election readiness is independent of Session/routing readiness. This
+  // starts only probe/discovery; no launch target is handed off or opened.
+  if (!started) {
+    primaryRouterInitialization = createRuntimePrimaryRouter({
+      userDataPath: app.getPath("userData"),
+      mode: app.isPackaged ? "packaged" : "development",
+      instanceRunId,
+      pid: process.pid,
+      startedAt: coordinationStartedAt
+    }).then(async (coordinator) => {
+      primaryRouterCoordinator = coordinator;
+      await coordinator.start();
+    }).catch(() => {
+      // Coordination failure does not change existing cold-start behavior
+      // or imply any Recovery/Session/Project ownership entitlement.
+      primaryRouterCoordinator = null;
+    });
+  }
   const startupProjectArgvOptions = { isPackaged: app.isPackaged };
   const startupProjectFilePath = extractStartupProjectFilePathFromArgv(
     process.argv,
