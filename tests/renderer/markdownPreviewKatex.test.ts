@@ -1,6 +1,19 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { markdownPreviewRenderer } from "../../src/renderer/preview/markdownPreviewRenderer";
 import { aozoraPreviewRenderer } from "../../src/renderer/preview/aozoraPreviewRenderer";
+import { inlineKatexWoff2Fonts } from "../../src/renderer/glossaryExport/katexExportCss";
+
+function renderMarkdownPreview(content: string): string {
+  return markdownPreviewRenderer.render(content, { previewRenderer: "markdown" });
+}
+
+function countMatches(html: string, pattern: RegExp): number {
+  return (html.match(pattern) ?? []).length;
+}
+
+/** The KaTeX stylesheet Preview and export load (same `katex` dependency). */
+const katexCss = readFileSync("node_modules/katex/dist/katex.min.css", "utf8");
 
 describe("markdownPreviewRenderer KaTeX math rendering (#566)", () => {
   describe("Markdown horizontal preview (previewRenderer: 'markdown')", () => {
@@ -59,7 +72,7 @@ describe("markdownPreviewRenderer KaTeX math rendering (#566)", () => {
         previewRenderer: "markdown"
       });
 
-      expect(html).toMatch(/<div data-source-line="\d+"><p class="katex-block"/);
+      expect(html).toMatch(/<div class="katex-block" data-source-line="3">/);
     });
 
     it("does not throw and keeps the rest of the preview intact when math is invalid", () => {
@@ -182,5 +195,195 @@ describe("markdownPreviewRenderer KaTeX math rendering (#566)", () => {
       expect(html).toContain("Some paragraph text.");
       expect(html).not.toContain('class="katex"');
     });
+
+    it("keeps headings, lists, links, images, code, callouts and Mermaid working next to math", () => {
+      const md = [
+        "# 見出し",
+        "",
+        "- 項目 $x^2$",
+        "- [リンク](https://example.com)",
+        "",
+        "![図](https://example.com/a.png)",
+        "",
+        "```ts",
+        "const price = \"$5\";",
+        "```",
+        "",
+        "> [!NOTE]",
+        "> 注記 $\\alpha$",
+        "",
+        "```mermaid",
+        "graph TD",
+        "  A --> B",
+        "```",
+        "",
+        "$$",
+        "\\frac{a}{b}",
+        "$$"
+      ].join("\n");
+      const html = renderMarkdownPreview(md);
+
+      expect(html).toMatch(/<h1[^>]*>見出し<\/h1>/);
+      expect(html).toMatch(/<li[^>]*>項目 <span class="katex">/);
+      expect(html).toContain('<a href="https://example.com">リンク</a>');
+      expect(html).toContain('src="https://example.com/a.png"');
+      expect(html).toContain("hljs language-ts");
+      // `$` inside a code fence is code, never math.
+      expect(html).toContain("$5");
+      expect(html).toContain("markdown-callout-note");
+      expect(html).toContain("markdownMermaidBlock");
+      expect(countMatches(html, /class="katex-block"/g)).toBe(1);
+      expect(countMatches(html, /class="katex"/g)).toBe(3);
+    });
+  });
+});
+
+describe("markdownMath syntax and KaTeX rendering (#743)", () => {
+  it.each([
+    ["fraction", "\\frac{a}{b}", "mfrac"],
+    ["square root", "\\sqrt{x}", "sqrt"],
+    ["subscript", "x_i", "msupsub"],
+    ["superscript", "x^2", "msupsub"],
+    ["summation", "\\sum_{i=1}^{n} i", "op-symbol"],
+    ["Greek letter", "\\alpha", "mord"]
+  ])("renders %s as inline math", (_label, latex, expectedClass) => {
+    const html = renderMarkdownPreview(`本文 $${latex}$ 本文`);
+
+    expect(html).toContain('class="katex"');
+    expect(html).toContain(expectedClass);
+    expect(html).toContain(
+      `<annotation encoding="application/x-tex">${latex}</annotation>`
+    );
+    expect(html).not.toContain("katex-error");
+    expect(html).toMatch(/^<p[^>]*>本文 <span class="katex">/);
+    expect(html).toContain("</span> 本文</p>");
+  });
+
+  it("renders the inline Pythagorean example without leaking delimiters", () => {
+    const html = renderMarkdownPreview("本文 $x^2 + y^2 = z^2$ 本文");
+
+    expect(countMatches(html, /class="katex"/g)).toBe(1);
+    expect(html).not.toContain("$");
+  });
+
+  it("renders $$...$$ inside a paragraph as display math", () => {
+    const html = renderMarkdownPreview("前 $$\\sum_{i=1}^{n} i$$ 後");
+
+    expect(html).toContain('class="katex-display"');
+    expect(html).toContain("前 ");
+    expect(html).toContain(" 後");
+  });
+
+  it("renders a display block whose closing $$ ends the last content line", () => {
+    const html = renderMarkdownPreview("$$\n\\sqrt{x}\n+ 1 $$\n\n後書き");
+
+    expect(countMatches(html, /class="katex-block"/g)).toBe(1);
+    expect(html).toContain("後書き");
+  });
+
+  it("renders a display block inside a list item", () => {
+    const html = renderMarkdownPreview("- 式:\n\n  $$\n  x^2\n  $$\n");
+
+    expect(html).toMatch(/<li[^>]*>[\s\S]*class="katex-block"[\s\S]*<\/li>/);
+  });
+
+  it.each([
+    ["a space after the opening $", "これは $ x$ です"],
+    ["a space before the closing $", "これは $x $ です"],
+    ["a digit after the closing $", "価格は $5 から $10 です"],
+    ["escaped dollars", "これは \\$x\\$ です"],
+    ["an empty pair", "これは $$ です"]
+  ])("keeps prose literal with %s", (_label, md) => {
+    const html = renderMarkdownPreview(md);
+
+    expect(html).not.toContain('class="katex');
+    expect(html).toContain("$");
+  });
+
+  it("keeps an unclosed $$ block as ordinary text", () => {
+    const html = renderMarkdownPreview("$$\nx^2\n\n本文");
+
+    expect(html).not.toContain("katex-block");
+    expect(html).toContain("本文");
+  });
+
+  it("does not treat an indented $$ as math (indented code wins)", () => {
+    const html = renderMarkdownPreview("    $$\n    x\n    $$");
+
+    expect(html).toMatch(/<pre[^>]*><code>\$\$/);
+    expect(html).not.toContain('class="katex');
+  });
+
+  it.each([
+    ["unknown command", "$\\notacommand{x}$"],
+    ["incomplete expression", "$x^{$"],
+    ["unbalanced braces in a block", "$$\n\\frac{a}{b\n$$"],
+    ["environment KaTeX rejects inline", "$\\begin{align}a&=b\\end{align}$"]
+  ])("renders %s without throwing and keeps the document", (_label, math) => {
+    const md = `前置き\n\n${math}\n\n後書き`;
+
+    expect(() => renderMarkdownPreview(md)).not.toThrow();
+
+    const html = renderMarkdownPreview(md);
+    expect(html).toContain("前置き");
+    expect(html).toContain("後書き");
+    expect(html).toContain('class="katex');
+  });
+
+  it("does not honour URL / HTML commands (trust stays off)", () => {
+    const html = renderMarkdownPreview(
+      "$\\href{javascript:alert(1)}{x}$ $\\htmlClass{evil}{y}$"
+    );
+
+    expect(html).not.toContain("javascript:alert(1)\"");
+    expect(html).not.toMatch(/<a [^>]*href=/);
+    expect(html).not.toContain('class="evil"');
+  });
+
+  it("uses only KaTeX classes the bundled KaTeX stylesheet defines (one KaTeX generation)", () => {
+    const html = renderMarkdownPreview(
+      "$\\frac{a}{b} \\sqrt{x} x_i x^2 \\alpha$\n\n$$\n\\sum_{i=1}^{n} i\n$$"
+    );
+    const katexClasses = new Set<string>();
+    for (const match of html.matchAll(/class="([^"]+)"/g)) {
+      for (const name of match[1].split(/\s+/)) {
+        // `katex-block` is Pergamum's own wrapper, not a KaTeX class.
+        if (name.startsWith("katex") && name !== "katex-block") {
+          katexClasses.add(name);
+        }
+      }
+    }
+
+    expect(katexClasses.size).toBeGreaterThan(0);
+    for (const name of katexClasses) {
+      expect(katexCss, `.${name} missing from katex.min.css`).toContain(`.${name}`);
+    }
+  });
+});
+
+describe("KaTeX export stylesheet from the installed katex package (#743)", () => {
+  it("inlines every woff2 font and drops all woff / ttf fallbacks", async () => {
+    const fontNames = [
+      ...new Set(
+        [...katexCss.matchAll(/url\(fonts\/([^)]+\.woff2)\)/g)].map(
+          (match) => match[1]
+        )
+      )
+    ];
+    const loaders = Object.fromEntries(
+      fontNames.map((name) => [
+        `/node_modules/katex/dist/fonts/${name}`,
+        async () => "data:font/woff2;base64,AAAA"
+      ])
+    );
+
+    const inlined = await inlineKatexWoff2Fonts(katexCss, loaders);
+
+    expect(fontNames.length).toBeGreaterThan(0);
+    expect(inlined).not.toContain("url(fonts/");
+    expect(inlined).not.toMatch(/format\("(?:woff|truetype)"\)/);
+    expect(countMatches(inlined, /url\(data:font\/woff2;base64,AAAA\)/g)).toBe(
+      countMatches(katexCss, /url\(fonts\/[^)]+\.woff2\)/g)
+    );
   });
 });

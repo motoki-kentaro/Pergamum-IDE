@@ -1,9 +1,12 @@
 // @vitest-environment happy-dom
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { renderMermaidPlaceholder } from "../../src/renderer/preview/mermaidPreviewPlaceholder";
 import {
   renderMermaidDiagramsInContainer,
+  withMermaidMathLabelSupport,
   type MermaidPreviewMessages,
   type MermaidRenderFn,
   type MermaidRenderSuccess
@@ -215,4 +218,85 @@ describe("Mermaid tooltip suppression styles contract (#564 / #716)", () => {
       expect(bodyRule).not.toContain("overflow: hidden");
     }
   });
+});
+
+/**
+ * #743: Mermaid renders `$$...$$` labels with KaTeX — on its HTML-label path
+ * only, which `withMermaidMathLabelSupport` turns on per diagram — as
+ * MathML-only output on Chromium. A real `mermaid.render()` cannot be
+ * exercised here: under happy-dom it resolves with an empty SVG (no layout /
+ * measurement), so the end-to-end label rendering is a PO dogfood item. What
+ * this pins instead is what the `overrides.katex` entry must guarantee:
+ * Mermaid resolves the same KaTeX package Pergamum uses, and that KaTeX
+ * accepts Mermaid's own call shape.
+ */
+describe("withMermaidMathLabelSupport (#743)", () => {
+  const directive = '%%{init: {"htmlLabels": true}}%%\n';
+
+  it("leaves a diagram without $$...$$ labels untouched (SVG-text labels stay)", () => {
+    const source = 'flowchart LR\n  A["<b>bold</b> $5"] --> B["plain"]';
+
+    expect(withMermaidMathLabelSupport(source)).toBe(source);
+  });
+
+  it("turns on HTML labels for a diagram whose labels contain $$...$$ math", () => {
+    const source = 'flowchart LR\n  A["$$x^2$$"] --> B["$$\\frac{a}{b}$$"]';
+
+    expect(withMermaidMathLabelSupport(source)).toBe(`${directive}${source}`);
+  });
+
+  it("keeps front matter first and puts the directive right after it", () => {
+    const frontMatter = "---\ntitle: T\n---\n";
+    const body = 'flowchart LR\n  A["$$x^2$$"] --> B';
+
+    expect(withMermaidMathLabelSupport(`${frontMatter}${body}`)).toBe(
+      `${frontMatter}${directive}${body}`
+    );
+  });
+
+  it("never touches securityLevel or any other setting", () => {
+    const result = withMermaidMathLabelSupport('flowchart LR\n  A["$$x$$"]');
+
+    expect(result).not.toContain("securityLevel");
+    expect(result.match(/%%\{init:/g)).toHaveLength(1);
+  });
+});
+
+describe("Mermaid math labels share Pergamum's KaTeX (#743)", () => {
+  const projectRequire = createRequire(join(process.cwd(), "package.json"));
+  const mermaidRequire = createRequire(
+    join(process.cwd(), "node_modules/mermaid/package.json")
+  );
+
+  it("resolves the same katex package from mermaid as from Pergamum", () => {
+    const projectKatex = projectRequire.resolve("katex/package.json");
+    const mermaidKatex = mermaidRequire.resolve("katex/package.json");
+    const version = (JSON.parse(readFileSync(projectKatex, "utf8")) as { version: string })
+      .version;
+
+    expect(mermaidKatex).toBe(projectKatex);
+    expect(version).toMatch(/^0\.19\./);
+  });
+
+  it.each([
+    ["x^2", "<msup>"],
+    ["\\frac{a}{b}", "<mfrac>"]
+  ])(
+    "renders the label $$%s$$ to MathML with Mermaid's KaTeX options",
+    async (latex, expectedElement) => {
+      const { default: katex } = await import("katex");
+
+      // Same options Mermaid passes for MathML-capable environments.
+      const html = katex.renderToString(latex, {
+        throwOnError: true,
+        displayMode: true,
+        output: "mathml"
+      });
+
+      expect(html).toContain("<math");
+      expect(html).toContain(expectedElement);
+      expect(html).not.toContain("katex-html");
+      expect(html).not.toContain("katex-error");
+    }
+  );
 });
