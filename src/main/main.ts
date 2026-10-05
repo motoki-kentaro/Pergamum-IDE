@@ -289,7 +289,7 @@ async function createMainWindow(isColdStartWindow: boolean): Promise<void> {
     // the startup visual settings, so no unthemed frame is ever visible.
     show: false,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
