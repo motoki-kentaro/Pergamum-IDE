@@ -5,7 +5,7 @@
 // plan/execute; Cut/Paste keeps the existing Move path. No OS clipboard.
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   FileExplorerEntry,
@@ -605,7 +605,7 @@ describe("File Explorer context menu shortcut column", () => {
       );
       expect(shortcutOf("delete")).toBeNull();
     } finally {
-      store.resetEffectiveKeybindings();
+      act(() => store.resetEffectiveKeybindings());
     }
   });
 });

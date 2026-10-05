@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type JSX } from "react";
 import type { Translate } from "../shared/i18n";
 import type {
   MarkdownOutlineItem,

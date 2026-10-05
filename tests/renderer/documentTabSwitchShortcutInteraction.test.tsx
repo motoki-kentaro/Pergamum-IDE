@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   findAdjacentWorkspaceTab,
@@ -186,7 +186,14 @@ describe("Tab switch shortcuts interaction logic (#480)", () => {
       });
       return (
         <div className="cm-editor">
-          <div className="cm-content" tabIndex={0} contentEditable="true">
+          {/* Like CodeMirror, mark the content editable from outside React. */}
+          <div
+            className="cm-content"
+            tabIndex={0}
+            ref={(element) => {
+              element?.setAttribute("contenteditable", "true");
+            }}
+          >
             Middle of document text
           </div>
         </div>

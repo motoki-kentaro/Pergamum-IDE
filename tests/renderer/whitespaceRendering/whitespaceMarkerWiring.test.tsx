@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { MarkdownEditor } from "../../../src/renderer/MarkdownEditor";
 import { whitespaceLayerClassName } from "../../../src/renderer/whitespaceRendering/whitespaceMarkerLayer";

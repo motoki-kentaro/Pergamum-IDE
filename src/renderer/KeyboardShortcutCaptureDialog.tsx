@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import type { KeybindingCaptureInput } from "../shared/api";
 import type { Translate } from "../shared/i18n";
 import {

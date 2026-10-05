@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DocumentTabBar,
@@ -779,7 +779,7 @@ describe("Document Tab context menu: Export / Japanese Style Check (#684)", () =
     try {
       return await run();
     } finally {
-      store.resetEffectiveKeybindings();
+      act(() => store.resetEffectiveKeybindings());
     }
   }
 

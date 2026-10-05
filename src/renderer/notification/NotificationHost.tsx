@@ -17,7 +17,7 @@
  * announced calmly, never assertively (#266 §12).
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 import type { Translate } from "../../shared/i18n";
 import {
   NotificationController,

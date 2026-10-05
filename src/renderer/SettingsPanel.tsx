@@ -1,6 +1,6 @@
 import { CaretContrastWarning } from "./CaretContrastWarning";
 import { SettingsColorInput } from "./SettingsColorInput";
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import type {
   ApplicationSettings,
   ExpectedLineEnding,

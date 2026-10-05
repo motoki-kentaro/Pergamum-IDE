@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { RecentProject } from "../shared/api";
 import type { Translate } from "../shared/i18n";
 

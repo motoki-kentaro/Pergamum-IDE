@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react";
+import { act, type JSX } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -34,6 +34,11 @@ import {
 } from "../../src/renderer/SettingsPanel";
 import { FontCacheControl } from "../../src/renderer/FontCacheControl";
 import { CaretSettingsSection, CaretNumberControl } from "../../src/renderer/components/CaretSettingsSection";
+import { CaretContrastWarning } from "../../src/renderer/CaretContrastWarning";
+import { ColorThemeSettingControl } from "../../src/renderer/ColorThemeSettingControl";
+import { SettingsColorInput } from "../../src/renderer/SettingsColorInput";
+import { SettingsCollapsibleGroup } from "../../src/renderer/components/SettingsCollapsibleGroup";
+import { SliderNumberControl } from "../../src/renderer/components/SliderNumberControl";
 
 type ElementProps = Record<string, unknown> & {
   children?: React.ReactNode;
@@ -105,6 +110,17 @@ function isolate(key: string): string {
   return key;
 }
 
+// Components that call hooks: invoking them outside a React render is invalid
+// (React reports "Invalid hook call"), so collectElements never calls them -
+// it treats them as leaves and walks their own children prop instead.
+const HOOK_COMPONENTS: ReadonlySet<unknown> = new Set([
+  CaretContrastWarning,
+  ColorThemeSettingControl,
+  SettingsColorInput,
+  SettingsCollapsibleGroup,
+  SliderNumberControl
+]);
+
 function collectElements(
   node: React.ReactNode,
   predicate: (element: React.ReactElement<ElementProps>) => boolean
@@ -122,7 +138,7 @@ function collectElements(
     // custom component elements by invoking them (they are all pure/
     // stateless, so a direct call is safe) and recurse into that output
     // instead of into their own (unrelated) children prop.
-    if (typeof child.type === "function") {
+    if (typeof child.type === "function" && !HOOK_COMPONENTS.has(child.type)) {
       if (child.type === FontCacheControl || child.type === CaretSettingsSection || child.type === CaretNumberControl) {
         if (predicate(child)) {
           elements.push(child);

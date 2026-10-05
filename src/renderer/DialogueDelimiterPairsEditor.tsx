@@ -1,4 +1,4 @@
-import { useState, type DragEvent, type MouseEvent as ReactMouseEvent } from "react";
+import { useState, type DragEvent, type MouseEvent as ReactMouseEvent, type JSX } from "react";
 import {
   reorderDocumentMapDialoguePairs,
   type DocumentMapDialogueDelimiterPair

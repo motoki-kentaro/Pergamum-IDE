@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { normalizeDocumentMapColor } from "../shared/documentMapSettings";
 import type { Translate } from "../shared/i18n";
 

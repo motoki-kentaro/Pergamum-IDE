@@ -1,4 +1,4 @@
-import { useId, useState, type FocusEvent } from "react";
+import { useId, useState, type FocusEvent, type JSX } from "react";
 import type { GlossaryTag } from "../shared/glossary";
 import type { Translate } from "../shared/i18n";
 import { GlossaryTagChip } from "./GlossaryTagChip";

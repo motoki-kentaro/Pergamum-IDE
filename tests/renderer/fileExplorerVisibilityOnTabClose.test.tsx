@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createProjectDocument } from "../../src/renderer/currentDocument";
 import {
@@ -193,6 +193,14 @@ describe("blocker: closing an editor tab must not break File Explorer visibility
       delete (window as unknown as { pergamum?: unknown }).pergamum;
     });
 
+    // Mounting starts loading the root's children; settle it inside act().
+    async function flushLoads(): Promise<void> {
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+    }
+
     function mount(highlightedProjectDocumentRelativePath: string | null): void {
       const listFileExplorerChildren = vi.fn(
         async (): Promise<ListFileExplorerChildrenResult> => ({
@@ -233,7 +241,7 @@ describe("blocker: closing an editor tab must not break File Explorer visibility
       });
     }
 
-    it("renders File Explorer for an open project when there is no active project document highlight", () => {
+    it("renders File Explorer for an open project when there is no active project document highlight", async () => {
       mount(null);
 
       expect(
@@ -247,9 +255,11 @@ describe("blocker: closing an editor tab must not break File Explorer visibility
       expect(
         container!.querySelector('.fileExplorerItem.isActive')
       ).toBeNull();
+
+      await flushLoads();
     });
 
-    it("still renders File Explorer when the highlight is cleared after being set", () => {
+    it("still renders File Explorer when the highlight is cleared after being set", async () => {
       mount("chapter-01.md");
       expect(
         container!.querySelector('[data-file-explorer-entry-kind="root"]')
@@ -279,6 +289,8 @@ describe("blocker: closing an editor tab must not break File Explorer visibility
         container!.querySelector('[data-file-explorer-entry-kind="root"]')
       ).not.toBeNull();
       expect(container!.textContent).toContain("Novel");
+
+      await flushLoads();
     });
   });
 });

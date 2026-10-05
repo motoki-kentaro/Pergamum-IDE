@@ -1,3 +1,5 @@
+import type { JSX } from "react";
+
 /**
  * #683/#685: the shared two-column content of a renderer context menu item —
  * label on the start side, shortcut at the end. The shortcut is supplementary

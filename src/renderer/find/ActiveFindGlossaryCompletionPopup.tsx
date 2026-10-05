@@ -1,4 +1,4 @@
-import type { MouseEvent as ReactMouseEvent } from "react";
+import type { MouseEvent as ReactMouseEvent, JSX } from "react";
 import type { Translate } from "../../shared/i18n";
 import type { GlossaryCompletionDisplayItem } from "./activeFindGlossaryCompletion";
 

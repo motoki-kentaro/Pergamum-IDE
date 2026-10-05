@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { Translate, TranslationKey } from "../../shared/i18n";
 import type { LineEndingDistribution } from "../lineEndingDistribution";
 import type { LineEndingKind } from "../lineEndingTracking";

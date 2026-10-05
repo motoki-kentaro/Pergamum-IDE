@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import {
   useEffect,
   useId,
@@ -312,8 +313,8 @@ function useCommandPaletteFooterDetailMarquee(input: {
   readonly resetKey: string;
   readonly settings: CommandPaletteFooterDetailSettings;
 }): {
-  readonly containerRef: RefObject<HTMLDivElement>;
-  readonly measureRef: RefObject<HTMLSpanElement>;
+  readonly containerRef: RefObject<HTMLDivElement | null>;
+  readonly measureRef: RefObject<HTMLSpanElement | null>;
   readonly state: CommandPaletteFooterDetailMarqueeState;
 } {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { MaskedIcon } from "../MaskedIcon";
 import {
   useEffect,

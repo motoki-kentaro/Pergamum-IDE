@@ -1,4 +1,4 @@
-import { Fragment, useId, useState, type FormEvent } from "react";
+import { Fragment, useId, useState, type FormEvent, type JSX } from "react";
 import type { RubyMarkupRule } from "../../shared/settings";
 import type { Translate } from "../../shared/i18n";
 import {

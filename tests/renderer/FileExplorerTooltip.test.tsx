@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   ListFileExplorerChildrenResult,
@@ -55,6 +55,14 @@ describe("FileExplorer root tooltip and logical name (#422)", () => {
     delete (window as unknown as { pergamum?: unknown }).pergamum;
   });
 
+  // Rendering starts loading the root's children; settle it inside act().
+  async function flushLoads(): Promise<void> {
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  }
+
   it("root label shows logical project name and title shows physical DB file path", async () => {
     const project: PergamumProject = {
       rootPath: "C:\\works\\Novel",
@@ -84,6 +92,8 @@ describe("FileExplorer root tooltip and logical name (#422)", () => {
     expect(rootButton!.getAttribute("title")).toBe(
       "C:\\works\\Novel\\story.pergamum"
     );
+
+    await flushLoads();
   });
 
   it("after logical rename, root label updates while title tooltip remains unchanged", async () => {
@@ -142,5 +152,7 @@ describe("FileExplorer root tooltip and logical name (#422)", () => {
     expect(updatedRootButton!.getAttribute("title")).toBe(
       "C:\\works\\Novel\\story.pergamum"
     );
+
+    await flushLoads();
   });
 });

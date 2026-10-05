@@ -1,5 +1,5 @@
 import { SettingsColorInput } from "./SettingsColorInput";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import type {
   ApplicationSettings,
   SaveApplicationSettingsRequest

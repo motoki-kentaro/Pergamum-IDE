@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useId, useRef, type KeyboardEvent as ReactKeyboardEvent, type JSX } from "react";
 import chevronsDownIcon from "../../assets/icons/feather/glossary/chevrons-down.svg?raw";
 import chevronsRightIcon from "../../assets/icons/feather/glossary/chevrons-right.svg?raw";
 import type { GlossaryTag } from "../shared/glossary";

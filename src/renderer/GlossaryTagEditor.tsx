@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { GLOSSARY_TAG_LABEL_MAX_LENGTH } from "../shared/glossary";
 import type { Translate, TranslationKey } from "../shared/i18n";
 import type { GlossaryTagDraftValidity } from "./glossaryTagDraft";

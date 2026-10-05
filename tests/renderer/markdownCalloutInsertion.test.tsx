@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { EditorSelection, EditorState, type Extension } from "@codemirror/state";
 import { history, redo, undo } from "@codemirror/commands";

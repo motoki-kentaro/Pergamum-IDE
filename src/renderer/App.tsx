@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { startupRoutingIsSettled } from "./runtimeRoutingSettlement";
 import { createRuntimeMarkdownLocalReceiver, createRuntimeMarkdownLocalHandler, tryOwnRuntimeRejection } from "./runtimeMarkdownLocalRouting";
 import type { RuntimeLocalActionRequest, RuntimeLocalActionResult } from "../shared/runtimeLaunchAction";

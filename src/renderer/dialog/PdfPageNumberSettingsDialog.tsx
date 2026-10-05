@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type JSX } from "react";
 import type { Translate } from "../../shared/i18n";
 import type {
   PdfPageNumberFormat,

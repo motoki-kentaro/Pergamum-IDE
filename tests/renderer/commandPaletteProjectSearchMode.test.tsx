@@ -6,7 +6,7 @@
 // are exercised together. Mirrors commandPaletteHeadingJumpMode.test.tsx.
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CommandRegistry, defineCommandId } from "../../src/shared/commandRegistry";
 import type { CommandContext } from "../../src/shared/commandEnablement";

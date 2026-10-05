@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type JSX } from "react";
 import hourglassIconUrl from "../../assets/icons/ionicons/dialog/hourglass-outline.svg?url";
 import type { Translate } from "../shared/i18n";
 import { dialogIconSvgByKind } from "./dialog/dialogIcons";

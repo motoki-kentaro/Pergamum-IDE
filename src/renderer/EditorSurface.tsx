@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import refreshIconRaw from "../../assets/icons/codicons/general/refresh.svg?raw";
 import type { JapaneseLintSource } from "../shared/japaneseLint";
 import type { JapaneseLintNotice } from "./japaneseLint/japaneseLintGutterExtension";

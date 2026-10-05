@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 
 interface SliderNumberControlProps {
   /** Id of the number input (the Settings row's `settingControl-<key>`). */

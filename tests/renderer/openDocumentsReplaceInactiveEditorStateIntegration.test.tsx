@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { isolateHistory, redo, undo, undoDepth } from "@codemirror/commands";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";

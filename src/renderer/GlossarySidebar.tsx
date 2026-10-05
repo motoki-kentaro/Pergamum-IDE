@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import chevronsDownIcon from "../../assets/icons/feather/glossary/chevrons-down.svg?raw";
 import chevronsRightIcon from "../../assets/icons/feather/glossary/chevrons-right.svg?raw";
 import type { GlossaryEntry, GlossaryEntryId } from "../shared/glossary";

@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useState, type KeyboardEvent, type MouseEvent, type JSX } from "react";
 import editIcon from "../../assets/icons/feather/global/edit-2.svg?raw";
 import deleteIcon from "../../assets/icons/feather/glossary/delete.svg?raw";
 import exportIcon from "../../assets/icons/codicons/dialog/export.svg?raw";

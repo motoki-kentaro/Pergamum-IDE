@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type JSX } from "react";
 import editIcon from "../../assets/icons/feather/global/edit-2.svg?raw";
 import deleteIcon from "../../assets/icons/feather/glossary/delete.svg?raw";
 import gripperIconRaw from "../../assets/icons/codicons/dialog/gripper.svg?raw";

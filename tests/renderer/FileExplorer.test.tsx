@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   FileExplorerEntry,
@@ -1842,6 +1842,9 @@ describe("FileExplorer context polish (#311)", () => {
     act(() => toolbarButton("explorer.newFile").click());
 
     expect(contextValueText()).toBe("Drafts");
+
+    // Clicking Drafts started loading its children; settle it inside act().
+    await settle();
   });
 
   it("New File dialog shows the selected file's parent folder path", async () => {
@@ -1866,6 +1869,9 @@ describe("FileExplorer context polish (#311)", () => {
     act(() => toolbarButton("explorer.newFolder").click());
 
     expect(contextValueText()).toBe("Drafts");
+
+    // Clicking Drafts started loading its children; settle it inside act().
+    await settle();
   });
 
   it("shows a project-relative target only — never an absolute path", async () => {
@@ -2825,6 +2831,11 @@ describe("FileExplorer multi-selection (#323)", () => {
     clickEntry("c.md", { shiftKey: true });
 
     expect(selectedPaths()).toEqual(["Drafts", "a.md", "b.md", "c.md"]);
+
+    // Clicking Drafts started loading its children; let that load settle
+    // inside act() now that the not-yet-expanded selection has been checked.
+    await flushPromises();
+    await flushPromises();
   });
 
   it("Ctrl / Cmd + Shift + click behaves as Shift + click (range, not additive)", async () => {

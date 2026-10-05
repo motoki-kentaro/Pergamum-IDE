@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { ApplyKeybindingChangeFailureReason } from "../shared/api";
 import type { Translate } from "../shared/i18n";
 import type { KeybindingEditConflict } from "../shared/keybindings";

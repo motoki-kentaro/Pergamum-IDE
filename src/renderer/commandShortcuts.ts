@@ -6,7 +6,7 @@
  * and formats command-backed tooltips without polluting accessible names.
  */
 
-import React, { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import {
   formatKeybindingLabel,
   type PergamumPlatform,
@@ -22,20 +22,6 @@ import { getRuntimePlatform } from "./platformModifier";
 export type CommandShortcutResolver = (
   commandId: string | null | undefined
 ) => string | undefined;
-
-/**
- * Returns true if a React dispatcher is currently active (i.e. inside a component render).
- * Prevents "Invalid hook call" warnings when components are invoked directly as plain functions in tests.
- */
-function hasReactRenderContext(): boolean {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const internals = (React as any)?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-    return Boolean(internals?.ReactCurrentDispatcher?.current);
-  } catch {
-    return false;
-  }
-}
 
 /**
  * Returns the primary (first bound) key of a command in catalog order,
@@ -78,26 +64,12 @@ export function createCommandShortcutResolver(
  * driving live UI re-renders on rebind / unbind.
  */
 export function useCommandShortcutResolver(): CommandShortcutResolver {
-  if (!hasReactRenderContext()) {
-    // When invoked outside a React render context (e.g. legacy component
-    // unit tests calling `ActivityBar(...)` directly as a plain function),
-    // fall back to reading the effective keybinding rows synchronously.
-    const platform = getRuntimePlatform();
-
-    return createCommandShortcutResolver(
-      platform,
-      getEffectiveKeybindingRows(platform)
-    );
-  }
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const revision = useSyncExternalStore(
     subscribeEffectiveKeybindings,
     getEffectiveKeybindingsRevision,
     getEffectiveKeybindingsRevision
   );
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   return useCallback(
     (commandId) => {
       const platform = getRuntimePlatform();

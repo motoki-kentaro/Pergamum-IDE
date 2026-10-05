@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type JSX } from "react";
 import hourglassIconUrl from "../../../assets/icons/ionicons/dialog/hourglass-outline.svg?url";
 import verifiedIconUrl from "../../../assets/icons/codicons/dialog/verified.svg?url";
 import unverifiedIconUrl from "../../../assets/icons/codicons/dialog/unverified.svg?url";

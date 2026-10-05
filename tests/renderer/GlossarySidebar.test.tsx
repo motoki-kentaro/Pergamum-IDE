@@ -7,7 +7,7 @@
 // glossaryNavigatorSearch.test.tsx.
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GlossaryEntry, GlossaryTag } from "../../src/shared/glossary";
 import type { Translate } from "../../src/shared/i18n";

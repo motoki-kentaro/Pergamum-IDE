@@ -1,5 +1,5 @@
 import { MaskedIcon } from "../MaskedIcon";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type JSX } from "react";
 import type { Translate } from "../../shared/i18n";
 import { InfoDialog } from "./InfoDialog";
 import folderIconUrl from "../../../assets/icons/codicons/explorer/folder.svg?url";

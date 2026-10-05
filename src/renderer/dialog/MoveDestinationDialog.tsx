@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import type { Translate } from "../../shared/i18n";
 import { FILE_EXPLORER_MOVE_ROOT_DESTINATION } from "../fileExplorerMoveDestinations";
 import { InfoDialog } from "./InfoDialog";

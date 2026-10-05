@@ -2,6 +2,7 @@
 //
 // #573 Slice 5: glossary metadata (表記 / 検索設定 / タグ) editing inside the
 // glossary Description tab — a collapsible panel over the tab's OWN draft.
+import type { JSX } from "react";
 import React, { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { readFileSync } from "node:fs";
