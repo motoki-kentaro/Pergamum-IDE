@@ -387,3 +387,52 @@ describe("KaTeX export stylesheet from the installed katex package (#743)", () =
     );
   });
 });
+
+describe("Renderer CSP policy and KaTeX large delimiters (#749)", () => {
+  it("includes font-src 'self' data: in renderer index.html CSP meta tag without relaxing security boundary", () => {
+    const htmlContent = readFileSync("index.html", "utf8");
+    const cspMatch = htmlContent.match(
+      /http-equiv="Content-Security-Policy"\s+content="([^"]+)"/
+    );
+
+    expect(cspMatch, "index.html must contain a CSP meta tag").not.toBeNull();
+    const cspPolicy = cspMatch![1];
+
+    // Verify font-src includes 'self' data: for bundled KaTeX fonts
+    expect(cspPolicy).toContain("font-src 'self' data:");
+
+    // Verify critical directives are strictly preserved
+    expect(cspPolicy).toContain("default-src 'self'");
+    expect(cspPolicy).toContain("script-src 'self' 'unsafe-inline'");
+    expect(cspPolicy).toContain("style-src 'self' 'unsafe-inline'");
+    expect(cspPolicy).toContain("img-src 'self' data: blob: pergamum-asset:");
+    expect(cspPolicy).toContain(
+      "connect-src 'self' http://127.0.0.1:* ws://127.0.0.1:*"
+    );
+
+    // Verify forbidden wildcard or unsafe relaxations are NOT present
+    expect(cspPolicy).not.toContain("default-src *");
+    expect(cspPolicy).not.toContain("font-src *");
+    expect(cspPolicy).not.toContain("script-src *");
+    expect(cspPolicy).not.toContain("unsafe-eval");
+  });
+
+  it("renders large delimiters (\\Big, \\Bigg, \\Bigl, \\Biggl) without KaTeX errors", () => {
+    const md = [
+      "$$",
+      "\\Bigl( x + y \\Bigr)",
+      "$$",
+      "",
+      "$$",
+      "\\Biggl[ \\frac{a}{b} \\Biggr]",
+      "$$"
+    ].join("\n");
+
+    const html = renderMarkdownPreview(md);
+
+    expect(html).toContain('class="katex-display"');
+    expect(html).toContain("delimsizing");
+    expect(html).not.toContain("katex-error");
+    expect(countMatches(html, /class="katex-block"/g)).toBe(2);
+  });
+});
