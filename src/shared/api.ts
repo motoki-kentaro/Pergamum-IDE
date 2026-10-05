@@ -1818,6 +1818,8 @@ export interface PergamumApi {
     onEvent: (callback: (event: SanitizedDebugLogEvent) => void) => () => void;
   };
   runtimeLaunch?: {
+    startupSettled?: () => void;
+    resume?: () => void;
     onAction: (callback: (request: RuntimeLocalActionRequest) => void) => () => void;
     respond: (response: RuntimeLocalActionResponse) => void;
     onRelease: (callback: (requestId: string) => void) => () => void;

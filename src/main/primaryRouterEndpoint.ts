@@ -122,6 +122,7 @@ export function createRouterProbeEndpoint(
     current: () => PrimaryRouterStatus;
     receiver?: LaunchHandoffReceiver;
     policy?: LaunchHandoffPolicy;
+    childClaim?: (message: unknown) => Record<string, unknown> | null;
   },
 ): RouterProbeEndpoint {
   validatePrimaryRouterPolicy(policy);
@@ -154,6 +155,12 @@ export function createRouterProbeEndpoint(
     });
     receiveFrame(socket, policy.maxFrameBytes, (frame) => {
       const request = parseFrame(frame);
+      if (request?.kind === "routedChildClaim") {
+        const response = !stopping && handoff?.childClaim?.(request);
+        if (response) socket.end(JSON.stringify(response) + "\n");
+        else socket.destroy();
+        return;
+      }
       if (request?.kind === "launchHandoff") {
         clearTimeout(deadline);
         deadline = setTimeout(() => socket.destroy(), handoffPolicy.timeoutMs);
@@ -342,6 +349,7 @@ export interface CreateRuntimePrimaryRouterOptions extends RouterProcessDescript
   readonly policy?: PrimaryRouterPolicy;
   readonly handoffPolicy?: LaunchHandoffPolicy;
   readonly handoffReceiver?: LaunchHandoffReceiver;
+  readonly childClaimReceiver?: (message: unknown) => Record<string, unknown> | null;
 }
 
 async function ensurePrivateDirectory(directory: string): Promise<void> {
@@ -360,6 +368,7 @@ async function ensurePrivateDirectory(directory: string): Promise<void> {
 }
 
 export interface RuntimePrimaryRouter extends PrimaryRouterCoordinator {
+  readonly childClaimEndpoint: string;
   handoff(launch: RuntimeLaunchParseResult): Promise<LaunchHandoffResult>;
 }
 
@@ -424,6 +433,7 @@ export async function createRuntimePrimaryRouter(
     current: () => coordinator.current(),
     receiver: options.handoffReceiver,
     policy: options.handoffPolicy,
+    childClaim: options.childClaimReceiver,
   });
   let published = false;
 
@@ -508,6 +518,7 @@ export async function createRuntimePrimaryRouter(
   );
   return {
     ...coordinator,
+    childClaimEndpoint: endpointFor(self),
     handoff: (launch) =>
       sendLaunchHandoff(
         launch,

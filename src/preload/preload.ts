@@ -347,6 +347,8 @@ const pergamumApi: PergamumApi = {
     }
   },
   runtimeLaunch: {
+    startupSettled: () => ipcRenderer.send(RUNTIME_LAUNCH_CHANNELS.startupSettled),
+    resume: () => ipcRenderer.send(RUNTIME_LAUNCH_CHANNELS.resume),
     onAction: (callback) => {
       const listener = (_event: Electron.IpcRendererEvent, request: unknown) => {
         if (isRuntimeLocalActionRequest(request)) callback(request);

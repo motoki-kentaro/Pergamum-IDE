@@ -204,16 +204,16 @@ describe("runtime launch queue ownership", () => {
       expect(queue.current().pending).toHaveLength(kind === "accepted" ? 1 : 2);
     },
   );
-  it("rechecks election before dispatch and retains ownership after demotion", async () => {
-    let primary = true;
+  it("rechecks an optional lifecycle gate and retains ownership when it becomes unavailable", async () => {
+    let lifecycleAvailable = true;
     const queue = createRuntimeLaunchQueue({
       now: () => 0,
-      canDispatch: () => primary,
+      canDispatch: () => lifecycleAvailable,
     });
     queue.enqueue(request(1));
     queue.enqueue(request(2));
     const sink = vi.fn(async () => {
-      primary = false;
+      lifecycleAvailable = false;
       return { kind: "accepted" as const };
     });
     await queue.markReady(sink);
@@ -244,7 +244,7 @@ describe("drain settlement race", () => {
     expect(sink).toHaveBeenCalledTimes(1);
     expect(queue.current().pending).toHaveLength(0);
   });
-  it("does not start dispatch if authority callback commits stop", async () => {
+  it("does not start dispatch if lifecycle callback commits stop", async () => {
     const queue = createRuntimeLaunchQueue({
       now: () => 0,
       canDispatch: () => {
@@ -265,14 +265,18 @@ describe("drain settlement race", () => {
 
 describe("main routing queue integration boundary", () => {
   const main = readFileSync("src/main/main.ts", "utf8");
-  it("creates the queue before endpoint initialization and keeps production notReady", () => {
+  it("creates the queue before endpoint initialization and gates ready on startup settlement plus a full sink", () => {
     expect(
       main.indexOf("const runtimeLaunchQueue = createRuntimeLaunchQueue"),
     ).toBeLessThan(
       main.indexOf("primaryRouterInitialization = createRuntimePrimaryRouter"),
     );
     expect(main).toContain("handoffReceiver: runtimeLaunchQueue.receiver");
-    expect(main).not.toContain("runtimeLaunchQueue.markReady(");
+    expect(main).toContain("runtimeLaunchQueue.markReady(runtimeFullSink)");
+    expect(main).toContain("runtimeStartupSettled && runtimeInitialWindowReady && runtimeFullSink");
+    expect(main).toContain("await routedChildRouter.route(entry)");
+    const creation = main.slice(main.indexOf("const runtimeLaunchQueue ="), main.indexOf("let runtimeStartupSettled"));
+    expect(creation).not.toContain("primaryRouterCoordinator");
   });
   it("stops only on committed will-quit without adding an async wait or stopping on a cancelled quit request", () => {
     const start = main.indexOf('app.on("will-quit", () => {');

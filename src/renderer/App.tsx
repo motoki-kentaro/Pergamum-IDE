@@ -1,3 +1,4 @@
+import { startupRoutingIsSettled } from "./runtimeRoutingSettlement";
 import { createRuntimeMarkdownLocalReceiver, createRuntimeMarkdownLocalHandler, tryOwnRuntimeRejection } from "./runtimeMarkdownLocalRouting";
 import type { RuntimeLocalActionRequest, RuntimeLocalActionResult } from "../shared/runtimeLaunchAction";
 import {
@@ -2243,6 +2244,8 @@ export function App(): JSX.Element {
   const recoveryCandidateDialogOpenerRef = useRef<Element | null>(null);
   const isRecoveryCandidateDialogPendingOrOpenRef = useRef(false);
   const recoveryAutoShowAttemptedRef = useRef(false);
+  const [recoveryStartupEvaluationSettled, setRecoveryStartupEvaluationSettled] = useState(false);
+  const runtimeStartupSettledSentRef = useRef(false);
   const recoveryReminderNotificationIdRef = useRef<string | null>(null);
   const showRecoveryDocumentsCommandRef = useRef<() => void>(() => undefined);
   // #288 follow-up: latest "re-check previous-run candidate availability"
@@ -10326,7 +10329,8 @@ export function App(): JSX.Element {
             requestRecoveryReminderToast(presentation.candidateCount);
         }
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setRecoveryStartupEvaluationSettled(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     recoveryStoreStatusKind,
@@ -12951,6 +12955,36 @@ export function App(): JSX.Element {
       return false;
     }
   }
+
+  useEffect(() => {
+    const available =
+      !isAppModalSurfacePendingOrOpen && !isLifecycleCommitBarrierActive;
+    if (
+      !runtimeStartupSettledSentRef.current &&
+      startupRoutingIsSettled({
+        restoreSettled: coldStartRestoreSettled,
+        markdownSettled: coldStartMarkdownLaunchRoutingSettled,
+        recoveryStatus: recoveryStoreStatusKind,
+        recoveryEvaluationSettled: recoveryStartupEvaluationSettled,
+        deferredErrorsOutstanding: deferredRestoreErrorDialogs.hasOutstanding(),
+        modalOpen: isAppModalSurfacePendingOrOpen,
+        lifecycleBarrier: isLifecycleCommitBarrierActive
+      })
+    ) {
+      runtimeStartupSettledSentRef.current = true;
+      window.pergamum.runtimeLaunch?.startupSettled?.();
+    } else if (runtimeStartupSettledSentRef.current && available) {
+      window.pergamum.runtimeLaunch?.resume?.();
+    }
+  }, [
+    coldStartRestoreSettled,
+    coldStartMarkdownLaunchRoutingSettled,
+    recoveryStoreStatusKind,
+    recoveryStartupEvaluationSettled,
+    deferredRestoreErrorDialogVersion,
+    isAppModalSurfacePendingOrOpen,
+    isLifecycleCommitBarrierActive
+  ]);
 
   runtimePromotionWakeRef.current = () =>
     setRuntimePromotion((pending) => (pending ? { ...pending } : null));

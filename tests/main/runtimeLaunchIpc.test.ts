@@ -35,6 +35,23 @@ function harness(timeout = 100) {
   return { ipc, web, bridge, respond };
 }
 describe("awaitable Main / Renderer launch ownership", () => {
+  it("accepts startup settlement only from current main frame, once; resume stays explicit", () => {
+    const ipc = new EventEmitter();
+    const web = { mainFrame: {} } as WebContents;
+    const startup = vi.fn(), resume = vi.fn();
+    const bridge = createRuntimeLaunchIpc({ ipc: ipc as unknown as IpcMain, getWebContents: () => web, onStartupSettled: startup, onResume: resume });
+    ipc.emit(RUNTIME_LAUNCH_CHANNELS.resume, { sender: web, senderFrame: web.mainFrame });
+    ipc.emit(RUNTIME_LAUNCH_CHANNELS.startupSettled, { sender: web, senderFrame: {} });
+    ipc.emit(RUNTIME_LAUNCH_CHANNELS.startupSettled, { sender: {}, senderFrame: web.mainFrame });
+    expect(startup).not.toHaveBeenCalled(); expect(resume).not.toHaveBeenCalled();
+    const event = { sender: web, senderFrame: web.mainFrame };
+    ipc.emit(RUNTIME_LAUNCH_CHANNELS.startupSettled, event);
+    ipc.emit(RUNTIME_LAUNCH_CHANNELS.startupSettled, event);
+    ipc.emit(RUNTIME_LAUNCH_CHANNELS.resume, event);
+    expect(startup).toHaveBeenCalledOnce(); expect(resume).toHaveBeenCalledTimes(2);
+    bridge.dispose(); ipc.emit(RUNTIME_LAUNCH_CHANNELS.resume, event);
+    expect(resume).toHaveBeenCalledTimes(2);
+  });
   it("does not treat successful send as handled", async () => {
     vi.useFakeTimers();
     try {

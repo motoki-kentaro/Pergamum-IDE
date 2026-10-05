@@ -52,7 +52,7 @@ export interface RuntimeLaunchQueue {
 export function createRuntimeLaunchQueue(options: {
   readonly now: () => number;
   readonly policy?: RuntimeLaunchQueuePolicy;
-  /** Recheck election authority before starting each downstream dispatch. */
+  /** Optional process lifecycle gate. Accepted ownership survives demotion. */
   readonly canDispatch?: () => boolean;
 }): RuntimeLaunchQueue {
   const policy = { ...(options.policy ?? DEFAULT_RUNTIME_LAUNCH_QUEUE_POLICY) };

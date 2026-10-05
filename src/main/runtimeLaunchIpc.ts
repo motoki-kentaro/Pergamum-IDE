@@ -17,6 +17,8 @@ export function createRuntimeLaunchIpc(options: {
   readonly ipc: Pick<IpcMain, "on" | "removeListener">;
   readonly getWebContents: () => WebContents | null;
   readonly policy?: typeof DEFAULT_RUNTIME_LOCAL_ACTION_POLICY;
+  readonly onStartupSettled?: () => void;
+  readonly onResume?: () => void;
 }) {
   const timeoutMs =
     options.policy?.acknowledgementTimeoutMs ??
@@ -33,6 +35,21 @@ export function createRuntimeLaunchIpc(options: {
     }
   >();
   let disposed = false;
+  let startupSettled = false;
+  const isCurrentFrame = (event: { sender: WebContents; senderFrame: unknown }) =>
+    !disposed && event.sender === options.getWebContents() && event.senderFrame === event.sender.mainFrame;
+  const startupListener = (event: { sender: WebContents; senderFrame: unknown }) => {
+    if (!isCurrentFrame(event)) return;
+    if (!startupSettled) {
+      startupSettled = true;
+      options.onStartupSettled?.();
+    } else options.onResume?.();
+  };
+  const resumeListener = (event: { sender: WebContents; senderFrame: unknown }) => {
+    if (startupSettled && isCurrentFrame(event)) options.onResume?.();
+  };
+  options.ipc.on(RUNTIME_LAUNCH_CHANNELS.startupSettled, startupListener);
+  options.ipc.on(RUNTIME_LAUNCH_CHANNELS.resume, resumeListener);
   const listener = (
     event: { sender: WebContents; senderFrame: unknown },
     response: unknown,
@@ -91,6 +108,8 @@ export function createRuntimeLaunchIpc(options: {
     dispose() {
       disposed = true;
       options.ipc.removeListener(RUNTIME_LAUNCH_CHANNELS.result, listener);
+      options.ipc.removeListener(RUNTIME_LAUNCH_CHANNELS.startupSettled, startupListener);
+      options.ipc.removeListener(RUNTIME_LAUNCH_CHANNELS.resume, resumeListener);
       for (const entry of pending.values())
         entry.resolve({ kind: "retryLater" });
     },

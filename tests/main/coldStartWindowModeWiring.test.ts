@@ -27,7 +27,7 @@ describe("cold-start Window mode wiring (#274 / #659)", () => {
     expect(main).toMatch(
       /createMainWindow\(\s*isColdStartWindow:\s*boolean\s*\)/
     );
-    expect(main).toContain("void createMainWindow(true)");
+    expect(main).toContain("await createMainWindow(true)");
     expect(main).toContain("void createMainWindow(false)");
     // Placement is derived from the payload only for the cold-start window.
     expect(main).toMatch(

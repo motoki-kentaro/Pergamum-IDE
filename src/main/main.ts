@@ -1,3 +1,11 @@
+import { createRuntimeLaunchSink } from "./runtimeLaunchSink";
+import { createRoutedChildRouter, spawnRoutedProcess } from "./routedChildRouter";
+import {
+  takeRoutedChildMetadata,
+  notifyRoutedChildOwnership
+} from "./routedChildClaim";
+import { parseRuntimeLaunch, ROUTED_LAUNCH_OPTION } from "./runtimeLaunchRouting";
+import type { RuntimeLaunchDispatchSink } from "./runtimeLaunchQueue";
 import { createRuntimeLaunchDispatcher } from "./runtimeLaunchDispatcher";
 import { createRuntimeLaunchIpc } from "./runtimeLaunchIpc";
 import {
@@ -11,12 +19,12 @@ import {
 import started from "electron-squirrel-startup";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
-import { createRuntimePrimaryRouter } from "./primaryRouterEndpoint";
-import { createRuntimeLaunchQueue } from "./runtimeLaunchQueue";
 import {
-  installPrimaryRouterShutdown,
-  type PrimaryRouterCoordinator
-} from "./primaryRouterCoordination";
+  type RuntimePrimaryRouter,
+  createRuntimePrimaryRouter
+} from "./primaryRouterEndpoint";
+import { createRuntimeLaunchQueue } from "./runtimeLaunchQueue";
+import { installPrimaryRouterShutdown } from "./primaryRouterCoordination";
 import { parseDebugModeFromArgv } from "./debugMode";
 import { registerAppInfoIpc } from "./appInfoIpc";
 import {
@@ -148,18 +156,42 @@ const pergamumDebugMode = parseDebugModeFromArgv(process.argv);
 // #272: one process-run identity for the lifetime of this Pergamum process.
 const instanceRunId = createUuidv7();
 const coordinationStartedAt = performance.timeOrigin;
-let primaryRouterCoordinator: PrimaryRouterCoordinator | null = null;
+let primaryRouterCoordinator: RuntimePrimaryRouter | null = null;
 let primaryRouterInitialization: Promise<void> | null = null;
 // The queue exists before the endpoint listens. It remains notReady until
 // startup/restore/modal settlement and a real downstream sink are available.
 const runtimeLaunchQueue = createRuntimeLaunchQueue({
-  now: () => performance.now(),
-  canDispatch: () => primaryRouterCoordinator?.current().kind === "primary"
+  now: () => performance.now()
 });
+let runtimeStartupSettled = false;
+let runtimeInitialWindowReady = false;
+let runtimeFullSink: RuntimeLaunchDispatchSink | null = null;
+const resumeRuntimeRouting = () => {
+  // Admission needs Primary authority; retained queue ownership does not.
+  if (runtimeStartupSettled && runtimeInitialWindowReady && runtimeFullSink && runtimeLaunchQueue.current().state !== "stopping") {
+    void runtimeLaunchQueue.markReady(runtimeFullSink);
+  }
+};
+const routedChildRouter = createRoutedChildRouter({
+  parentInstanceRunId: instanceRunId,
+  endpoint: () => primaryRouterCoordinator?.childClaimEndpoint ?? null,
+  now: () => performance.now(),
+  onClaimed: () => queueMicrotask(resumeRuntimeRouting),
+  spawn: (target, metadata) => spawnRoutedProcess({
+    executable: process.execPath,
+    appPath: app.getAppPath(),
+    packaged: app.isPackaged,
+    target,
+    metadata,
+    environment: process.env
+  }),
+});
+const routedChildMetadata = takeRoutedChildMetadata(process.env);
 // A cancelled close/quit never reaches this committed-quit boundary. No
 // extra async quit protocol: pending ownership stays here until process exit.
 app.on("will-quit", () => {
   runtimeLaunchQueue.stop();
+  routedChildRouter.stop();
   const pendingCount = runtimeLaunchQueue.current().pending.length;
   if (pendingCount > 0) {
     console.warn("Runtime launch queue stopping with untransferred requests:", pendingCount);
@@ -403,7 +435,8 @@ app.whenReady().then(async () => {
       instanceRunId,
       pid: process.pid,
       startedAt: coordinationStartedAt,
-      handoffReceiver: runtimeLaunchQueue.receiver
+      handoffReceiver: runtimeLaunchQueue.receiver,
+      childClaimReceiver: routedChildRouter.receiveClaim
     }).then(async (coordinator) => {
       primaryRouterCoordinator = coordinator;
       await coordinator.start();
@@ -414,6 +447,13 @@ app.whenReady().then(async () => {
     });
   }
   const startupProjectArgvOptions = { isPackaged: app.isPackaged };
+  const startupRuntimeLaunch = parseRuntimeLaunch(process.argv, startupProjectArgvOptions);
+  const hasRoutedMarker = process.argv.some(argument => argument.startsWith(ROUTED_LAUNCH_OPTION));
+  if ((hasRoutedMarker && (startupRuntimeLaunch.kind !== "launch" || startupRuntimeLaunch.origin !== "routedChild")) ||
+      (routedChildMetadata && (!hasRoutedMarker || startupRuntimeLaunch.kind !== "launch"))) {
+    throw new Error("Invalid internally routed launch.");
+  }
+
   const startupProjectFilePath = extractStartupProjectFilePathFromArgv(
     process.argv,
     startupProjectArgvOptions
@@ -569,19 +609,30 @@ app.whenReady().then(async () => {
 
   const runtimeLocalActions = createRuntimeLaunchIpc({
     ipc: ipcMain,
+    onStartupSettled: () => {
+      runtimeStartupSettled = true;
+      resumeRuntimeRouting();
+    },
+    onResume: resumeRuntimeRouting,
     getWebContents: () => mainWindow && !mainWindow.isDestroyed() ? mainWindow.webContents : null,
   });
   const runtimeDispatcher = createRuntimeLaunchDispatcher({
     getContext: () => ({ projectId: currentProjectId(), rootPath: currentProjectRootPath(), projectFilePath: currentActiveProjectFilePath() }),
-    canDispatch: () => primaryRouterCoordinator?.current().kind === "primary" && runtimeLaunchQueue.current().state !== "stopping",
+    canDispatch: () => runtimeLaunchQueue.current().state !== "stopping",
     platform: process.platform === "win32" ? "windows" : process.platform === "darwin" ? "macos" : "linux",
     dispatchLocal: runtimeLocalActions.send,
     releaseLocal: runtimeLocalActions.release,
     registerDocument: registerCurrentProjectDocumentPath,
   });
-  // Slice 6 must connect all downstream ownership paths before marking ready.
-  // Keep the real dispatcher available without draining into a partial sink.
-  void runtimeDispatcher;
+  runtimeFullSink = createRuntimeLaunchSink({
+    dispatch: runtimeDispatcher.dispatch,
+    routeChild: async (entry) => {
+      const result = await routedChildRouter.route(entry);
+      if (result.kind !== "claimed") console.warn("Routed child ownership unconfirmed:", result.kind);
+      return result;
+    },
+    releaseChild: routedChildRouter.release,
+  });
   app.on("will-quit", () => runtimeLocalActions.dispose());
 
   ipcMain.handle(WINDOW_CHANNELS.toggleFullscreen, (event): boolean => {
@@ -772,7 +823,20 @@ app.whenReady().then(async () => {
     getCurrentProjectFilePath: currentActiveProjectFilePath
   });
 
-  void createMainWindow(true);
+  await createMainWindow(true);
+  runtimeInitialWindowReady = true;
+  // Cold-start payload is held by Main and its initial delivery path exists.
+  // Claim reports ownership already acquired; no Parent ACK blocks the Child.
+  if (routedChildMetadata && startupRuntimeLaunch.kind === "launch" && startupRuntimeLaunch.origin === "routedChild") {
+    const target = startupRuntimeLaunch.target.kind === "pergamum"
+      ? startupRuntimeLaunch.target.filePath
+      : path.resolve(startupRuntimeLaunch.target.rawInput);
+    void notifyRoutedChildOwnership(routedChildMetadata, { instanceRunId, pid: process.pid }, target)
+      .then((confirmed) => {
+        if (!confirmed) console.warn("Routed child ownership notification unconfirmed.");
+      });
+  }
+  resumeRuntimeRouting();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {

@@ -5,6 +5,8 @@ export const RUNTIME_LAUNCH_CHANNELS = {
   action: "runtimeLaunch:action",
   result: "runtimeLaunch:result",
   release: "runtimeLaunch:release",
+  startupSettled: "runtimeLaunch:startupSettled",
+  resume: "runtimeLaunch:resume",
 } as const;
 export interface RuntimeProjectContext {
   readonly projectId: string | null;
