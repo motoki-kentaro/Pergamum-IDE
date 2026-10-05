@@ -1,6 +1,19 @@
+import { externalLaunchRejectionDialog, routeExternalLaunchStartup, withColdStartOwnership } from "./externalLaunchStartup";
+import { t, type Language } from "../shared/i18n";
+import { createRuntimeLaunchSink } from "./runtimeLaunchSink";
+import { createRoutedChildRouter, spawnRoutedProcess } from "./routedChildRouter";
+import {
+  takeRoutedChildMetadata,
+  notifyRoutedChildOwnership
+} from "./routedChildClaim";
+import { parseRuntimeLaunch, ROUTED_LAUNCH_OPTION } from "./runtimeLaunchRouting";
+import type { RuntimeLaunchDispatchSink } from "./runtimeLaunchQueue";
+import { createRuntimeLaunchDispatcher } from "./runtimeLaunchDispatcher";
+import { createRuntimeLaunchIpc } from "./runtimeLaunchIpc";
 import {
   app,
   BrowserWindow,
+  dialog,
   ipcMain,
   powerMonitor,
   protocol,
@@ -8,6 +21,13 @@ import {
 } from "electron";
 import started from "electron-squirrel-startup";
 import path from "node:path";
+import { performance } from "node:perf_hooks";
+import {
+  type RuntimePrimaryRouter,
+  createRuntimePrimaryRouter
+} from "./primaryRouterEndpoint";
+import { createRuntimeLaunchQueue } from "./runtimeLaunchQueue";
+import { installPrimaryRouterShutdown } from "./primaryRouterCoordination";
 import { parseDebugModeFromArgv } from "./debugMode";
 import { registerAppInfoIpc } from "./appInfoIpc";
 import {
@@ -42,6 +62,7 @@ import { installKeybindingCapture } from "./keybindingCapture";
 import type { ResolvedKeybinding } from "../shared/keybindings";
 import { nodePlatformToPergamumPlatform } from "./menuAccelerators";
 import {
+  currentProjectRootPath,
   currentActiveProjectFilePath,
   currentProjectId,
   defaultProjectWriteOwnershipManager,
@@ -137,6 +158,53 @@ let coldStartWebContentsId: number | null = null;
 const pergamumDebugMode = parseDebugModeFromArgv(process.argv);
 // #272: one process-run identity for the lifetime of this Pergamum process.
 const instanceRunId = createUuidv7();
+const coordinationStartedAt = performance.timeOrigin;
+let primaryRouterCoordinator: RuntimePrimaryRouter | null = null;
+let primaryRouterInitialization: Promise<void> | null = null;
+// The queue exists before the endpoint listens. It remains notReady until
+// startup/restore/modal settlement and a real downstream sink are available.
+const runtimeLaunchQueue = createRuntimeLaunchQueue({
+  now: () => performance.now()
+});
+let runtimeStartupSettled = false;
+let runtimeInitialWindowReady = false;
+let runtimeFullSink: RuntimeLaunchDispatchSink | null = null;
+const resumeRuntimeRouting = () => {
+  // Admission needs Primary authority; retained queue ownership does not.
+  if (runtimeStartupSettled && runtimeInitialWindowReady && runtimeFullSink && runtimeLaunchQueue.current().state !== "stopping") {
+    void runtimeLaunchQueue.markReady(runtimeFullSink);
+  }
+};
+const routedChildRouter = createRoutedChildRouter({
+  parentInstanceRunId: instanceRunId,
+  endpoint: () => primaryRouterCoordinator?.childClaimEndpoint ?? null,
+  now: () => performance.now(),
+  onClaimed: () => queueMicrotask(resumeRuntimeRouting),
+  spawn: (target, metadata) => spawnRoutedProcess({
+    executable: process.execPath,
+    appPath: app.getAppPath(),
+    packaged: app.isPackaged,
+    target,
+    metadata,
+    environment: process.env
+  }),
+});
+const routedChildMetadata = takeRoutedChildMetadata(process.env);
+// A cancelled close/quit never reaches this committed-quit boundary. No
+// extra async quit protocol: pending ownership stays here until process exit.
+app.on("will-quit", () => {
+  runtimeLaunchQueue.stop();
+  routedChildRouter.stop();
+  const pendingCount = runtimeLaunchQueue.current().pending.length;
+  if (pendingCount > 0) {
+    console.warn("Runtime launch queue stopping with untransferred requests:", pendingCount);
+  }
+});
+
+installPrimaryRouterShutdown(app, async () => {
+  await primaryRouterInitialization;
+  await primaryRouterCoordinator?.stop();
+});
 
 // #409: the `pergamum-asset://` scheme that serves project-local images to
 // the Markdown Preview must be declared privileged BEFORE `app.ready`. It is
@@ -361,7 +429,74 @@ function installDebugLogLifecycleHandlers(logger: DebugLogger): void {
 }
 
 app.whenReady().then(async () => {
+  // Election readiness is independent of Session/routing readiness. This
+  // Incoming handoffs may acquire queue ownership, but no routing/open starts.
+  if (!started) {
+    primaryRouterInitialization = createRuntimePrimaryRouter({
+      userDataPath: app.getPath("userData"),
+      mode: app.isPackaged ? "packaged" : "development",
+      instanceRunId,
+      pid: process.pid,
+      startedAt: coordinationStartedAt,
+      handoffReceiver: runtimeLaunchQueue.receiver,
+      childClaimReceiver: routedChildRouter.receiveClaim
+    }).then(async (coordinator) => {
+      primaryRouterCoordinator = coordinator;
+      await coordinator.start();
+    }).catch(() => {
+      // Coordination failure does not change existing cold-start behavior
+      // or imply any Recovery/Session/Project ownership entitlement.
+      primaryRouterCoordinator = null;
+    });
+  }
   const startupProjectArgvOptions = { isPackaged: app.isPackaged };
+  const startupRuntimeLaunch = parseRuntimeLaunch(process.argv, startupProjectArgvOptions);
+  const hasRoutedMarker = process.argv.some(argument => argument.startsWith(ROUTED_LAUNCH_OPTION));
+  if ((hasRoutedMarker && (startupRuntimeLaunch.kind !== "launch" || startupRuntimeLaunch.origin !== "routedChild")) ||
+      (routedChildMetadata && (!hasRoutedMarker || startupRuntimeLaunch.kind !== "launch"))) {
+    throw new Error("Invalid internally routed launch.");
+  }
+
+  const externalStartup = await routeExternalLaunchStartup({
+    launch: startupRuntimeLaunch,
+    router: async () => {
+      await primaryRouterInitialization;
+      return primaryRouterCoordinator;
+    },
+    enqueue: runtimeLaunchQueue.enqueue
+  });
+  if (externalStartup.kind === "handedOff") {
+    // No Project/Session/Recovery initialization or BrowserWindow in a courier.
+    app.quit();
+    return;
+  }
+  if (externalStartup.kind === "rejected") {
+    console.warn("External launch target rejected:", externalStartup.reason);
+    await dialog.showMessageBox(externalLaunchRejectionDialog(
+      externalStartup,
+      app.getLocale().startsWith("ja") ? "ja" : "en"
+    ));
+    app.quit();
+    return;
+  }
+  if (externalStartup.kind === "routingUnconfirmed") {
+    // Delivery may be uncertain. Own an explicit native failure presentation
+    // instead of racing into cold-start or creating a duplicate window.
+    console.warn("External launch routing unconfirmed:", externalStartup.reason);
+    const language: Language = app.getLocale().startsWith("ja") ? "ja" : "en";
+    await dialog.showMessageBox({
+      type: "error",
+      title: "Pergamum",
+      message: t(language, "dialog.externalLaunchRoutingUnconfirmed.message"),
+      detail: t(language, "dialog.externalLaunchRoutingUnconfirmed.detail"),
+      buttons: ["OK"],
+      defaultId: 0,
+      cancelId: 0
+    });
+    app.quit();
+    return;
+  }
+
   const startupProjectFilePath = extractStartupProjectFilePathFromArgv(
     process.argv,
     startupProjectArgvOptions
@@ -514,6 +649,39 @@ app.whenReady().then(async () => {
   // (above); this attaches the handler now that `app` is ready.
   registerPergamumAssetProtocol();
   registerAppInfoIpc();
+
+  const runtimeLocalActions = createRuntimeLaunchIpc({
+    ipc: ipcMain,
+    onStartupSettled: () => {
+      runtimeStartupSettled = true;
+      resumeRuntimeRouting();
+    },
+    onResume: resumeRuntimeRouting,
+    getWebContents: () => mainWindow && !mainWindow.isDestroyed() ? mainWindow.webContents : null,
+  });
+  const runtimeDispatcher = createRuntimeLaunchDispatcher({
+    getContext: () => ({ projectId: currentProjectId(), rootPath: currentProjectRootPath(), projectFilePath: currentActiveProjectFilePath() }),
+    canDispatch: () => runtimeLaunchQueue.current().state !== "stopping",
+    platform: process.platform === "win32" ? "windows" : process.platform === "darwin" ? "macos" : "linux",
+    dispatchLocal: runtimeLocalActions.send,
+    releaseLocal: runtimeLocalActions.release,
+    registerDocument: registerCurrentProjectDocumentPath,
+  });
+  const downstreamRuntimeSink = createRuntimeLaunchSink({
+    dispatch: runtimeDispatcher.dispatch,
+    routeChild: async (entry) => {
+      const result = await routedChildRouter.route(entry);
+      if (result.kind !== "claimed") console.warn("Routed child ownership unconfirmed:", result.kind);
+      return result;
+    },
+    releaseChild: routedChildRouter.release,
+  });
+  runtimeFullSink = withColdStartOwnership({
+    initial: externalStartup.kind === "queuedColdStart" ? externalStartup : null,
+    coldStartOwned: () => runtimeInitialWindowReady && runtimeStartupSettled && coldStartPayload?.launchTarget !== null && coldStartPayload?.launchTarget !== undefined,
+    downstream: downstreamRuntimeSink
+  });
+  app.on("will-quit", () => runtimeLocalActions.dispose());
 
   ipcMain.handle(WINDOW_CHANNELS.toggleFullscreen, (event): boolean => {
     const window = BrowserWindow.fromWebContents(event.sender);
@@ -703,7 +871,20 @@ app.whenReady().then(async () => {
     getCurrentProjectFilePath: currentActiveProjectFilePath
   });
 
-  void createMainWindow(true);
+  await createMainWindow(true);
+  runtimeInitialWindowReady = true;
+  // Cold-start payload is held by Main and its initial delivery path exists.
+  // Claim reports ownership already acquired; no Parent ACK blocks the Child.
+  if (routedChildMetadata && startupRuntimeLaunch.kind === "launch" && startupRuntimeLaunch.origin === "routedChild") {
+    const target = startupRuntimeLaunch.target.kind === "pergamum"
+      ? startupRuntimeLaunch.target.filePath
+      : path.resolve(startupRuntimeLaunch.target.rawInput);
+    void notifyRoutedChildOwnership(routedChildMetadata, { instanceRunId, pid: process.pid }, target)
+      .then((confirmed) => {
+        if (!confirmed) console.warn("Routed child ownership notification unconfirmed.");
+      });
+  }
+  resumeRuntimeRouting();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {

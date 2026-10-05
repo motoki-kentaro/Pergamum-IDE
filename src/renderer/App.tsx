@@ -1,3 +1,6 @@
+import { startupRoutingIsSettled } from "./runtimeRoutingSettlement";
+import { createRuntimeMarkdownLocalReceiver, createRuntimeMarkdownLocalHandler, tryOwnRuntimeRejection } from "./runtimeMarkdownLocalRouting";
+import type { RuntimeLocalActionRequest, RuntimeLocalActionResult } from "../shared/runtimeLaunchAction";
 import {
   useCallback,
   useEffect,
@@ -1769,6 +1772,35 @@ export function App(): JSX.Element {
   );
   const toggleSyntaxCheckerCommandRef = useRef<() => void>(() => undefined);
   const canToggleSyntaxCheckerCommandRef = useRef<() => boolean>(() => false);
+  const runtimeRoutingSnapshotRef = useRef({ ready: false, project: project as PergamumProject | null });
+  const runtimeActionHandlerRef = useRef<(request: RuntimeLocalActionRequest) => Promise<RuntimeLocalActionResult>>(async () => ({ kind: "retryLater" }));
+  const runtimePromotionWakeRef = useRef<() => void>(() => undefined);
+  const runtimePromotionDispatchingRef = useRef(false);
+  const runtimeActionMountedRef = useRef(false);
+  const runtimeActionReceiverRef = useRef<ReturnType<typeof createRuntimeMarkdownLocalReceiver> | null>(null);
+  if (!runtimeActionReceiverRef.current) {
+    runtimeActionReceiverRef.current = createRuntimeMarkdownLocalReceiver({
+      handle: request => runtimeActionHandlerRef.current(request),
+      retryInFlight: () => runtimePromotionWakeRef.current(),
+    });
+  }
+  const [runtimePromotion, setRuntimePromotion] = useState<{
+    projectFilePath: string;
+    projectId: string;
+    filePath: string;
+    resolve: (result: RuntimeLocalActionResult) => void;
+  } | null>(null);
+  useEffect(() => {
+    const api = window.pergamum.runtimeLaunch;
+    if (!api) return;
+    runtimeActionMountedRef.current = true;
+    const offAction = api.onAction(request => {
+      void runtimeActionReceiverRef.current!.receive(request).then(result => api.respond({ requestId: request.requestId, result }));
+    });
+    const offRelease = api.onRelease(id => runtimeActionReceiverRef.current!.release(id));
+    return () => { runtimeActionMountedRef.current = false; offAction(); offRelease(); };
+  }, []);
+
   // #274: cold-start Session restore + launch routing runs exactly once,
   // after settings are ready. Replaces the bare startup-project open.
   const coldStartRestoreAttemptedRef = useRef(false);
@@ -2212,6 +2244,8 @@ export function App(): JSX.Element {
   const recoveryCandidateDialogOpenerRef = useRef<Element | null>(null);
   const isRecoveryCandidateDialogPendingOrOpenRef = useRef(false);
   const recoveryAutoShowAttemptedRef = useRef(false);
+  const [recoveryStartupEvaluationSettled, setRecoveryStartupEvaluationSettled] = useState(false);
+  const runtimeStartupSettledSentRef = useRef(false);
   const recoveryReminderNotificationIdRef = useRef<string | null>(null);
   const showRecoveryDocumentsCommandRef = useRef<() => void>(() => undefined);
   // #288 follow-up: latest "re-check previous-run candidate availability"
@@ -10005,16 +10039,17 @@ export function App(): JSX.Element {
 
   async function openStandaloneMarkdownByPathForRestore(
     filePath: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       const file = await window.pergamum.files.readMarkdownFile(filePath);
 
-      await openDocument(createFileDocument(file));
+      return await openDocument(createFileDocument(file));
     } catch (error) {
       setStatus({
         key: "status.documentOpenFailed",
         values: { message: errorMessage(error, translate) }
       });
+      return false;
     }
   }
 
@@ -10294,7 +10329,8 @@ export function App(): JSX.Element {
             requestRecoveryReminderToast(presentation.candidateCount);
         }
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setRecoveryStartupEvaluationSettled(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     recoveryStoreStatusKind,
@@ -12767,9 +12803,9 @@ export function App(): JSX.Element {
     }
   }
 
-  async function activateProjectDocument(relativePath: string): Promise<void> {
+  async function activateProjectDocument(relativePath: string): Promise<boolean> {
     if (isLifecycleCommitBarrierActiveNow()) {
-      return;
+      return false;
     }
 
     const activeProject = project;
@@ -12777,7 +12813,7 @@ export function App(): JSX.Element {
 
     if (!activeProject || !activeContext) {
       setStatus({ key: "status.projectDocumentNotFound" });
-      return;
+      return false;
     }
 
     const documentId = createProjectDocumentEditorId(
@@ -12814,7 +12850,7 @@ export function App(): JSX.Element {
         });
       }
 
-      return;
+      return false;
     }
 
     if (
@@ -12825,7 +12861,7 @@ export function App(): JSX.Element {
       })
     ) {
       setStatus({ key: "status.projectDocumentNotFound" });
-      return;
+      return false;
     }
 
     const existingDocument = activeProject.documents.find(
@@ -12909,14 +12945,178 @@ export function App(): JSX.Element {
             }
           : { key: "status.projectDocumentNotFound" }
       );
+      return didOpen;
     } catch (error) {
       setStatus({
         key: "status.documentOpenFailed",
         values: { message: errorMessage(error, translate) }
       });
       await showFileOpenFailedDialog();
+      return false;
     }
   }
+
+  useEffect(() => {
+    const available =
+      !isAppModalSurfacePendingOrOpen && !isLifecycleCommitBarrierActive;
+    if (
+      !runtimeStartupSettledSentRef.current &&
+      startupRoutingIsSettled({
+        restoreSettled: coldStartRestoreSettled,
+        markdownSettled: coldStartMarkdownLaunchRoutingSettled,
+        recoveryStatus: recoveryStoreStatusKind,
+        recoveryEvaluationSettled: recoveryStartupEvaluationSettled,
+        deferredErrorsOutstanding: deferredRestoreErrorDialogs.hasOutstanding(),
+        modalOpen: isAppModalSurfacePendingOrOpen,
+        lifecycleBarrier: isLifecycleCommitBarrierActive
+      })
+    ) {
+      runtimeStartupSettledSentRef.current = true;
+      window.pergamum.runtimeLaunch?.startupSettled?.();
+    } else if (runtimeStartupSettledSentRef.current && available) {
+      window.pergamum.runtimeLaunch?.resume?.();
+    }
+  }, [
+    coldStartRestoreSettled,
+    coldStartMarkdownLaunchRoutingSettled,
+    recoveryStoreStatusKind,
+    recoveryStartupEvaluationSettled,
+    deferredRestoreErrorDialogVersion,
+    isAppModalSurfacePendingOrOpen,
+    isLifecycleCommitBarrierActive
+  ]);
+
+  runtimePromotionWakeRef.current = () =>
+    setRuntimePromotion((pending) => (pending ? { ...pending } : null));
+  runtimeRoutingSnapshotRef.current = {
+    ready:
+      coldStartRestoreSettled &&
+      coldStartMarkdownLaunchRoutingSettled &&
+      !isAppModalSurfacePendingOrOpen &&
+      !runtimePromotion,
+    project
+  };
+  runtimeActionHandlerRef.current = createRuntimeMarkdownLocalHandler({
+    isReady: () =>
+      runtimeActionMountedRef.current &&
+      runtimeRoutingSnapshotRef.current.ready &&
+      !isLifecycleCommitBarrierActiveNow() &&
+      !dialogController.getPendingRequest(),
+    getContext: async () => ({
+      projectId: await window.pergamum.projects.getCurrentProjectId(),
+      rootPath: runtimeRoutingSnapshotRef.current.project?.rootPath ?? null,
+      projectFilePath:
+        runtimeRoutingSnapshotRef.current.project?.activeProjectFilePath ?? null
+    }),
+    openStandalone: openStandaloneMarkdownByPathForRestore,
+    openProjectDocument: activateProjectDocument,
+    reject: (reason) => {
+      const options: AppConfirmDialogOptions = {
+        title: translate("dialog.runtimeMarkdownRejected.title"),
+        message: {
+          kind: "plainText",
+          text: translate(
+            (reason === "unsupportedExtension" ||
+            reason === "urlLikeInput" ||
+            reason === "discoveryFailed"
+              ? "dialog.runtimeMarkdownRejected.reason." + reason
+              : "dialog.startupMarkdownRejected.reason." +
+                reason) as TranslationKey
+          )
+        },
+        icon: { kind: "info", tooltip: translate("dialog.icon.info") },
+        clipboardText: null,
+        dismissOnBackdropClick: false,
+        confirmLabel: translate("common.ok"),
+        cancelLabel: null
+      };
+      return tryOwnRuntimeRejection(options, {
+        confirm: confirmDialog,
+        getPendingRequest: () => dialogController.getPendingRequest()
+      });
+    },
+    promoteProject: async (projectFilePath, filePath) => {
+      try {
+        if (!(await confirmProjectSwitch())) {
+          setStatus({ key: "status.openProjectCanceled" });
+          return { kind: "rejected" };
+        }
+        // Recheck authoritative identity after dirty-close confirmation.
+        if ((await window.pergamum.projects.getCurrentProjectId()) !== null)
+          return { kind: "retryLater" };
+        const opened = await resolveProjectOpenResult(
+          await window.pergamum.projects.openRecentProject(projectFilePath)
+        );
+        if (!opened) {
+          setStatus({ key: "status.openProjectCanceled" });
+          return { kind: "rejected" };
+        }
+        const settingsError = await reloadSettingsAfterProjectOpen();
+        const status = await activateProject(opened);
+        if (!status) return { kind: "retryLater" };
+        setStatus(projectOpenStatus(status, settingsError, translate));
+        const projectId = await window.pergamum.projects.getCurrentProjectId();
+        if (!projectId) return { kind: "retryLater" };
+        return await new Promise<RuntimeLocalActionResult>((resolve) => {
+          setRuntimePromotion({
+            projectFilePath: opened.activeProjectFilePath,
+            projectId,
+            filePath,
+            resolve
+          });
+        });
+      } catch {
+        setStatus({ key: "status.recentProjectOpenFailed" });
+        // An unexpected IPC/open failure is inconclusive; preserve queue ownership.
+        return { kind: "retryLater" };
+      }
+    }
+  });
+
+  useEffect(() => {
+    if (!runtimePromotion || runtimePromotionDispatchingRef.current) return;
+    const pending = runtimePromotion;
+    if (
+      !project ||
+      project.activeProjectFilePath !== pending.projectFilePath ||
+      !activeProjectContext ||
+      isLifecycleCommitBarrierActiveNow() ||
+      dialogController.getPendingRequest()
+    )
+      return;
+    runtimePromotionDispatchingRef.current = true;
+    void (async () => {
+      try {
+        if (
+          (await window.pergamum.projects.getCurrentProjectId()) !==
+          pending.projectId
+        )
+          return;
+        const { relativePath } =
+          await window.pergamum.projects.registerProjectDocumentPath(
+            pending.filePath
+          );
+        if (
+          (await window.pergamum.projects.getCurrentProjectId()) !==
+            pending.projectId ||
+          runtimeRoutingSnapshotRef.current.project?.activeProjectFilePath !==
+            pending.projectFilePath
+        )
+          return;
+        if (relativePath && (await activateProjectDocument(relativePath))) {
+          setRuntimePromotion(null);
+          pending.resolve({ kind: "handled" });
+        }
+      } catch {
+        // Keep the deferred continuation and its original in-flight result.
+        // A queue retry wakes this step, never reopens the promoted Project.
+      } finally {
+        runtimePromotionDispatchingRef.current = false;
+      }
+    })();
+    // Run against the committed Project / EditorNavigation adapter.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runtimePromotion, project, activeProjectContext]);
 
   // #384: the per-file reader shared by both Search pane modes. Dirty-buffer
   // priority — an open Markdown editor's live text wins over the disk file;

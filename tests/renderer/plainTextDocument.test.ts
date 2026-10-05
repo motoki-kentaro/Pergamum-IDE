@@ -145,7 +145,7 @@ describe("Plain Text Document Support (#501 Slice 3)", () => {
   it("gates new .txt project-document opens by current settings while allowing already-open tabs", () => {
     const source = readFileSync("src/renderer/App.tsx", "utf8");
     const start = source.indexOf(
-      "async function activateProjectDocument(relativePath: string): Promise<void>"
+      "async function activateProjectDocument(relativePath: string): Promise<boolean>"
     );
     const end = source.indexOf(
       "function createProjectSearchReadText",
