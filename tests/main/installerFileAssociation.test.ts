@@ -20,7 +20,9 @@ type PackageJson = {
       }>;
     };
     nsis?: {
+      oneClick?: boolean;
       perMachine?: boolean;
+      include?: string;
     };
     fileAssociations?: unknown;
   };
@@ -44,7 +46,9 @@ describe("Windows installer file association config", () => {
     expect(packageJson.build?.files).toEqual([".vite/**/*"]);
     expect(packageJson.build?.win?.target).toBe("nsis");
     expect(packageJson.build?.win?.icon).toBe("assets/icon.ico");
+    expect(packageJson.build?.nsis?.oneClick).toBe(false);
     expect(packageJson.build?.nsis?.perMachine).toBe(true);
+    expect(packageJson.build?.nsis?.include).toBe("build/installer.nsh");
     expect(packageJson.build?.afterPack).toBe("scripts/electronBuilderAfterPack.js");
   });
 
@@ -107,5 +111,80 @@ describe("Windows installer file association config", () => {
     expect(path.extname(iconPath).toLowerCase()).toBe(".ico");
     expect(fs.existsSync(iconPath)).toBe(true);
     expect(fs.statSync(iconPath).isFile()).toBe(true);
+  });
+
+  // These are source-contract checks, not evidence of rendered installer UI.
+  // The built NSIS installer still needs OFF/ON and uninstall dogfood on Windows.
+  function readInstaller(): string {
+    const nshPath = path.join(process.cwd(), "build/installer.nsh");
+    return fs.readFileSync(nshPath, "utf8");
+  }
+
+  it("adds exactly one checkbox through an available assisted-installer page hook", () => {
+    const script = readInstaller();
+    const template = fs.readFileSync(path.join(process.cwd(),
+      "node_modules/app-builder-lib/templates/nsis/assistedInstaller.nsh"), "utf8");
+    expect(template).toContain("!insertmacro customPageAfterChangeDir");
+    expect(template.indexOf("!insertmacro customPageAfterChangeDir"))
+      .toBeLessThan(template.indexOf("!insertmacro MUI_PAGE_INSTFILES"));
+    expect(script).toMatch(/!macro customPageAfterChangeDir\s+Page custom PergamumMarkdownPage PergamumMarkdownPageLeave/);
+    expect(script.match(/\$\{NSD_CreateCheckbox\}/g)).toHaveLength(1);
+    expect(script).toContain("nsDialogs::Create 1018");
+    expect(script).toContain("nsDialogs::Show");
+    expect(script).not.toMatch(/MUI_PAGE_COMPONENTS|Section\s+\/o/);
+  });
+
+  it("initializes OFF, retains page state, and guards every registry write by CHECKED", () => {
+    const script = readInstaller();
+    expect(script).toContain("StrCpy $PergamumMarkdownSelected ${BST_UNCHECKED}");
+    expect(script).toContain("${NSD_SetState} $PergamumMarkdownCheckbox $PergamumMarkdownSelected");
+    expect(script).toContain("${NSD_GetState} $PergamumMarkdownCheckbox $PergamumMarkdownSelected");
+    const install = script.match(/!macro customInstall\s+([\s\S]*?)!macroend/)?.[1] ?? "";
+    expect(install.trim()).toMatch(/^\$\{If\} \$PergamumMarkdownSelected == \$\{BST_CHECKED\}[\s\S]*\$\{EndIf\}$/);
+    expect(install).not.toMatch(/\$\{Else|\$\{OrIf/);
+    expect(install.match(/WriteRegStr/g)).toHaveLength(3);
+    expect(script.match(/WriteRegStr/g)).toHaveLength(3);
+    const template = fs.readFileSync(path.join(process.cwd(),
+      "node_modules/app-builder-lib/templates/nsis/installSection.nsh"), "utf8");
+    expect(template).toContain("!insertmacro customInstall");
+  });
+
+  it("localizes Japanese and English without changing builder's bundled language set", () => {
+    const script = readInstaller();
+    const { LangConfigurator } = require("app-builder-lib/out/targets/nsis/nsisLang");
+    const { lcid } = require("app-builder-lib/out/util/langs");
+    const languages: string[] = new LangConfigurator(readPackageJson().build?.nsis ?? {}).langs;
+    expect(languages).toContain("en_US");
+    expect(languages).toContain("ja_JP");
+    const fallbackIds = [...script.matchAll(/^!insertmacro PergamumMarkdownEnglish (\d+)/gm)]
+      .map((match) => Number(match[1]));
+    expect([...fallbackIds, 1041].sort()).toEqual(languages.map((lang) => lcid[lang]).sort());
+    for (const name of ["Title", "Description", "Checkbox", "Hint"]) {
+      expect(script).toContain(`LangString PergamumMarkdown${name} 1041`);
+      expect(script).toContain(`LangString PergamumMarkdown${name} \${LANG}`);
+      expect(script).toContain(`$(PergamumMarkdown${name})`);
+    }
+  });
+
+  it("registers only the Markdown ProgID and .md OpenWithProgids, with a quoted command", () => {
+    const script = readInstaller();
+    const writes = script.split(/\r?\n/).map((line) => line.trim())
+      .filter((line) => line.startsWith("WriteReg"));
+    expect(writes).toEqual([
+      'WriteRegStr HKLM "Software\\Classes\\Pergamum.Markdown" "" "Markdown Document"',
+      "WriteRegStr HKLM \"Software\\Classes\\Pergamum.Markdown\\shell\\open\\command\" \"\" '$\\\"$INSTDIR\\${APP_EXECUTABLE_FILENAME}$\\\" $\\\"%1$\\\"'",
+      'WriteRegStr HKLM "Software\\Classes\\.md\\OpenWithProgids" "Pergamum.Markdown" ""'
+    ]);
+    expect(script).not.toMatch(/UserChoice|DefaultIcon|SupportedTypes|Applications\\|\\\.(?:markdown|mdown|mkd|txt|pergamum)\b/i);
+  });
+
+  it("uninstalls only this installation's ProgID and its own OpenWith value", () => {
+    const uninstall = readInstaller().match(/!macro customUnInstall\s+([\s\S]*?)!macroend/)?.[1] ?? "";
+    expect(uninstall).toContain('ReadRegStr $0 HKLM "Software\\Classes\\Pergamum.Markdown\\shell\\open\\command" ""');
+    expect(uninstall).toContain("${If} $0 ==");
+    expect(uninstall.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.startsWith("DeleteReg"))).toEqual([
+      'DeleteRegValue HKLM "Software\\Classes\\.md\\OpenWithProgids" "Pergamum.Markdown"',
+      'DeleteRegKey HKLM "Software\\Classes\\Pergamum.Markdown"'
+    ]);
   });
 });
