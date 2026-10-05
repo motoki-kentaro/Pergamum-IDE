@@ -22,6 +22,23 @@ import {
   type RouterProcessDescriptor,
 } from "./primaryRouterCoordination";
 
+import {
+  createLaunchHandoffReceiver,
+  DEFAULT_LAUNCH_HANDOFF_POLICY,
+  validateLaunchHandoffPolicy,
+  parseLaunchHandoffRequest,
+  parseLaunchHandoffResponse,
+  launchHandoffProof,
+  matchesHandoffProof,
+  sendLaunchHandoff,
+  type LaunchHandoffPolicy,
+  type LaunchHandoffReceiver,
+  type LaunchHandoffTransportResult,
+  type LaunchHandoffResult,
+} from "./launchHandoff";
+import type { RuntimeLaunchParseResult } from "./runtimeLaunchRouting";
+import type { PrimaryRouterStatus } from "./primaryRouterCoordination";
+
 function proof(
   record: RouterDiscoveryRecord,
   direction: "request" | "response",
@@ -61,7 +78,7 @@ function parseFrame(frame: string): Record<string, unknown> | null {
   }
 }
 
-/** One bounded frame, no launch targets. A bare successful connection is not
+/** One bounded frame per connection. A bare successful connection is not
  * reachability proof: the peer must know this run's private record secret.
  */
 function receiveFrame(
@@ -88,6 +105,11 @@ function receiveFrame(
 export interface RouterProbeEndpoint {
   listen(): Promise<void>;
   probe(record: RouterDiscoveryRecord): Promise<boolean>;
+  sendLaunchHandoff(
+    record: RouterDiscoveryRecord,
+    requestId: string,
+    target: string,
+  ): Promise<LaunchHandoffTransportResult>;
   deactivate(): void;
   close(): Promise<void>;
 }
@@ -96,8 +118,27 @@ export function createRouterProbeEndpoint(
   self: RouterDiscoveryRecord,
   endpointFor: (record: RouterProcessDescriptor) => string,
   policy: PrimaryRouterPolicy = DEFAULT_PRIMARY_ROUTER_POLICY,
+  handoff?: {
+    current: () => PrimaryRouterStatus;
+    receiver?: LaunchHandoffReceiver;
+    policy?: LaunchHandoffPolicy;
+  },
 ): RouterProbeEndpoint {
   validatePrimaryRouterPolicy(policy);
+  const handoffPolicy = handoff?.policy ?? DEFAULT_LAUNCH_HANDOFF_POLICY;
+  validateLaunchHandoffPolicy(handoffPolicy);
+  const receiveHandoff = createLaunchHandoffReceiver(
+    () =>
+      accepting
+        ? (handoff?.current() ?? {
+            kind: "unavailable",
+            reason: "coordinationFailure",
+          })
+        : { kind: "stopping" },
+    handoff?.receiver,
+    () => performance.now(),
+    handoffPolicy,
+  );
   let accepting = false;
   let stopping = false;
   let listening = false;
@@ -105,7 +146,7 @@ export function createRouterProbeEndpoint(
   const sockets = new Set<net.Socket>();
   const server = net.createServer((socket) => {
     sockets.add(socket);
-    const deadline = setTimeout(() => socket.destroy(), policy.probeTimeoutMs);
+    let deadline = setTimeout(() => socket.destroy(), policy.probeTimeoutMs);
     socket.on("error", () => socket.destroy());
     socket.once("close", () => {
       clearTimeout(deadline);
@@ -113,6 +154,35 @@ export function createRouterProbeEndpoint(
     });
     receiveFrame(socket, policy.maxFrameBytes, (frame) => {
       const request = parseFrame(frame);
+      if (request?.kind === "launchHandoff") {
+        clearTimeout(deadline);
+        deadline = setTimeout(() => socket.destroy(), handoffPolicy.timeoutMs);
+        const message = parseLaunchHandoffRequest(request);
+        if (
+          !message ||
+          !matchesHandoffProof(message.proof, launchHandoffProof(self, message))
+        ) {
+          socket.destroy();
+          return;
+        }
+        void receiveHandoff(message)
+          .then((disposition) => {
+            if (!socket.destroyed)
+              socket.end(
+                JSON.stringify({
+                  protocolVersion: 1,
+                  kind: "launchHandoffResult",
+                  requestId: message.requestId,
+                  nonce: message.nonce,
+                  instanceRunId: self.instanceRunId,
+                  disposition,
+                  proof: launchHandoffProof(self, message, disposition),
+                }) + "\n",
+              );
+          })
+          .catch(() => socket.destroy());
+        return;
+      }
       if (
         !accepting ||
         request?.kind !== "probe" ||
@@ -190,6 +260,63 @@ export function createRouterProbeEndpoint(
         });
       });
     },
+    sendLaunchHandoff(record, requestId, target) {
+      return new Promise<LaunchHandoffTransportResult>((resolve) => {
+        const nonce = randomBytes(32).toString("hex");
+        const request = {
+          protocolVersion: 1,
+          kind: "launchHandoff",
+          requestId,
+          target,
+          nonce,
+          proof: launchHandoffProof(record, { requestId, target, nonce }),
+        };
+        const frame = JSON.stringify(request) + "\n";
+        if (Buffer.byteLength(frame) > policy.maxFrameBytes) {
+          resolve({ kind: "rejected", reason: "invalidTarget" });
+          return;
+        }
+        if (stopping) {
+          resolve({ kind: "transportFailure" });
+          return;
+        }
+        let finished = false;
+        const socket = net.createConnection(endpointFor(record));
+        sockets.add(socket);
+        const deadline = setTimeout(
+          () => finish({ kind: "transportFailure" }),
+          handoffPolicy.timeoutMs,
+        );
+        function finish(result: LaunchHandoffTransportResult) {
+          if (finished) return;
+          finished = true;
+          clearTimeout(deadline);
+          sockets.delete(socket);
+          socket.destroy();
+          resolve(result);
+        }
+        socket.once("connect", () => socket.write(frame));
+        socket.once("error", () => finish({ kind: "transportFailure" }));
+        socket.once("close", () => finish({ kind: "transportFailure" }));
+        receiveFrame(socket, policy.maxFrameBytes, (frame) => {
+          const value = parseFrame(frame);
+          const disposition = value && parseLaunchHandoffResponse(value);
+          if (
+            !value ||
+            !disposition ||
+            value.requestId !== requestId ||
+            value.nonce !== nonce ||
+            value.instanceRunId !== record.instanceRunId ||
+            !matchesHandoffProof(
+              value.proof,
+              launchHandoffProof(record, request, disposition),
+            )
+          )
+            finish({ kind: "protocolError" });
+          else finish(disposition);
+        });
+      });
+    },
     deactivate() {
       stopping = true;
       accepting = false;
@@ -213,6 +340,8 @@ export interface CreateRuntimePrimaryRouterOptions extends RouterProcessDescript
   readonly userDataPath: string;
   readonly mode: "packaged" | "development";
   readonly policy?: PrimaryRouterPolicy;
+  readonly handoffPolicy?: LaunchHandoffPolicy;
+  readonly handoffReceiver?: LaunchHandoffReceiver;
 }
 
 async function ensurePrivateDirectory(directory: string): Promise<void> {
@@ -230,9 +359,13 @@ async function ensurePrivateDirectory(directory: string): Promise<void> {
   // ACL check; custom/shared userData is outside this private-user scope.
 }
 
+export interface RuntimePrimaryRouter extends PrimaryRouterCoordinator {
+  handoff(launch: RuntimeLaunchParseResult): Promise<LaunchHandoffResult>;
+}
+
 export async function createRuntimePrimaryRouter(
   options: CreateRuntimePrimaryRouterOptions,
-): Promise<PrimaryRouterCoordinator> {
+): Promise<RuntimePrimaryRouter> {
   const policy = options.policy ?? DEFAULT_PRIMARY_ROUTER_POLICY;
   validatePrimaryRouterPolicy(policy);
   await fs.mkdir(options.userDataPath, { recursive: true, mode: 0o700 });
@@ -286,10 +419,15 @@ export async function createRuntimePrimaryRouter(
   if (!parseRouterDiscoveryRecord(self, scope))
     throw new Error("Invalid coordination identity.");
   const ownPath = path.join(directory, `${self.instanceRunId}.json`);
-  const endpoint = createRouterProbeEndpoint(self, endpointFor, policy);
+  let coordinator: PrimaryRouterCoordinator;
+  const endpoint = createRouterProbeEndpoint(self, endpointFor, policy, {
+    current: () => coordinator.current(),
+    receiver: options.handoffReceiver,
+    policy: options.handoffPolicy,
+  });
   let published = false;
 
-  return createPrimaryRouterCoordinator(
+  coordinator = createPrimaryRouterCoordinator(
     self,
     {
       async register() {
@@ -368,4 +506,49 @@ export async function createRuntimePrimaryRouter(
     },
     policy,
   );
+  return {
+    ...coordinator,
+    handoff: (launch) =>
+      sendLaunchHandoff(
+        launch,
+        {
+          current: () => coordinator.current(),
+          refresh: () => coordinator.refresh(),
+          wait: (delay) => new Promise((resolve) => setTimeout(resolve, delay)),
+          async send(primary, requestId, target) {
+            try {
+              const recordPath = path.join(
+                directory,
+                primary.instanceRunId + ".json",
+              );
+              const stats = await fs.lstat(recordPath);
+              if (
+                !stats.isFile() ||
+                stats.isSymbolicLink() ||
+                stats.size > policy.maxRecordBytes
+              )
+                return { kind: "transportFailure" };
+              const text = await fs.readFile(recordPath, "utf8");
+              if (Buffer.byteLength(text) > policy.maxRecordBytes)
+                return { kind: "transportFailure" };
+              const record = parseRouterDiscoveryRecord(
+                JSON.parse(text),
+                scope,
+              );
+              if (
+                !record ||
+                record.instanceRunId !== primary.instanceRunId ||
+                record.pid !== primary.pid ||
+                record.startedAt !== primary.startedAt
+              )
+                return { kind: "transportFailure" };
+              return endpoint.sendLaunchHandoff(record, requestId, target);
+            } catch {
+              return { kind: "transportFailure" };
+            }
+          },
+        },
+        options.handoffPolicy,
+      ),
+  };
 }
