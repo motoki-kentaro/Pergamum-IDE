@@ -8179,7 +8179,7 @@ export function App(): JSX.Element {
     const reasonDescription = translate(reasonKey);
     const text = `${header}\n\n${reasonDescription}\n\n${footer}\n\n[Code: ${effectiveReason}]`;
 
-    let appVersion = "0.80.0";
+    let appVersion = "Unknown";
     try {
       const appInfo = await window.pergamum.appInfo.getAppInfo();
       if (appInfo?.version) {
