@@ -31,6 +31,12 @@ type PackageJson = {
 
 const packageJsonPath = path.join(process.cwd(), "package.json");
 
+// #760: electron-builder's NSIS language tables are loaded once while the file
+// is collected, so the cold load of app-builder-lib is not charged to the
+// per-test timeout of the localization test below.
+const { LangConfigurator } = require("app-builder-lib/out/targets/nsis/nsisLang");
+const { lcid } = require("app-builder-lib/out/util/langs");
+
 function readPackageJson(): PackageJson {
   return JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as PackageJson;
 }
@@ -151,8 +157,6 @@ describe("Windows installer file association config", () => {
 
   it("localizes Japanese and English without changing builder's bundled language set", () => {
     const script = readInstaller();
-    const { LangConfigurator } = require("app-builder-lib/out/targets/nsis/nsisLang");
-    const { lcid } = require("app-builder-lib/out/util/langs");
     const languages: string[] = new LangConfigurator(readPackageJson().build?.nsis ?? {}).langs;
     expect(languages).toContain("en_US");
     expect(languages).toContain("ja_JP");
