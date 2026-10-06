@@ -14,12 +14,39 @@ function sourceFiles(directory: string): string[] {
   });
 }
 
-function allSourceText(): string {
-  return sourceRoots
-    .flatMap(sourceFiles)
-    .filter((filePath) => /\.(ts|tsx)$/.test(filePath))
-    .map((filePath) => readFileSync(filePath, "utf8"))
+type SourceEntry = {
+  basename: string;
+  text: string;
+};
+
+/**
+ * #760: every .ts / .tsx file under the source roots, enumerated and read
+ * exactly once while this file is collected (in traversal order). The checks
+ * below filter this in-memory list instead of re-walking and re-reading the
+ * whole source tree per check, which could push a single test past Vitest's
+ * per-test timeout on a loaded Windows machine.
+ */
+const sourceEntries: readonly SourceEntry[] = sourceRoots
+  .flatMap(sourceFiles)
+  .filter((filePath) => /\.(ts|tsx)$/.test(filePath))
+  .map((filePath) => ({
+    basename: path.basename(filePath),
+    text: readFileSync(filePath, "utf8")
+  }));
+
+function joinSourceText(
+  include: (entry: SourceEntry) => boolean = () => true
+): string {
+  return sourceEntries
+    .filter(include)
+    .map((entry) => entry.text)
     .join("\n");
+}
+
+const allSource = joinSourceText();
+
+function allSourceText(): string {
+  return allSource;
 }
 
 /**
@@ -220,15 +247,9 @@ const onKeyDownExemptFileNames = new Set([
 ]);
 
 function allSourceTextExcludingCommandPalette(): string {
-  return sourceRoots
-    .flatMap(sourceFiles)
-    .filter(
-      (filePath) =>
-        /\.(ts|tsx)$/.test(filePath) &&
-        !onKeyDownExemptFileNames.has(path.basename(filePath))
-    )
-    .map((filePath) => readFileSync(filePath, "utf8"))
-    .join("\n");
+  return joinSourceText(
+    (entry) => !onKeyDownExemptFileNames.has(entry.basename)
+  );
 }
 
 /**
@@ -240,15 +261,7 @@ function allSourceTextExcludingCommandPalette(): string {
  * protects against ad-hoc reimplementation.
  */
 function allSourceTextExcludingClipboardAdapter(): string {
-  return sourceRoots
-    .flatMap(sourceFiles)
-    .filter(
-      (filePath) =>
-        /\.(ts|tsx)$/.test(filePath) &&
-        path.basename(filePath) !== "clipboardAdapter.ts"
-    )
-    .map((filePath) => readFileSync(filePath, "utf8"))
-    .join("\n");
+  return joinSourceText((entry) => entry.basename !== "clipboardAdapter.ts");
 }
 
 function sourceText(filePath: string): string {
