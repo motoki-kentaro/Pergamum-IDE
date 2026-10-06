@@ -1,3 +1,12 @@
+---
+layout: landing
+lang: en
+title: "Pergamum — IDE for novelists"
+description: "An open-source integrated writing environment for novelists."
+og_image: "https://pergamum-ide.github.io/assets/ogp_en.png"
+og_url: "https://pergamum-ide.github.io/index.en.html"
+---
+
 # ![Pergamum](assets/logo-mono.svg)
 
 [日本語](./) | English

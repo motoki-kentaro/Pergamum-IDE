@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="{{ page.lang | default: 'ja' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{{ page.title }}</title>
+  <meta name="description" content="{{ page.description }}">
+
+  <meta property="og:title" content="{{ page.title }}">
+  <meta property="og:description" content="{{ page.description }}">
+  <meta property="og:image" content="{{ page.og_image }}">
+  <meta property="og:url" content="{{ page.og_url }}">
+  <meta property="og:type" content="website">
+
+  <meta name="twitter:card" content="summary_large_image">
+<style>
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    margin: 0;
+    font-family:
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      "Noto Sans JP",
+      Helvetica,
+      Arial,
+      sans-serif;
+    line-height: 1.7;
+    color: #1f2328;
+    background: #ffffff;
+  }
+
+  main {
+    box-sizing: border-box;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  a {
+    color: #0969da;
+  }
+
+  hr {
+    margin: 48px 0;
+    border: 0;
+    border-top: 1px solid #d0d7de;
+  }
+
+  h1,
+  h2 {
+    line-height: 1.3;
+  }
+
+  @media (max-width: 700px) {
+    main {
+      padding: 24px 18px 48px;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <main>
+    {{ content }}
+  </main>
+</body>
+</html>
