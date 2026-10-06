@@ -75,21 +75,23 @@ LangString PergamumMarkdownHint 1041 "既定のアプリは変更されません
 
   !macro customInstall
     ${If} $PergamumMarkdownSelected == ${BST_CHECKED}
-      ; perMachine=true: use the same registry scope as the existing installer.
-      WriteRegStr HKLM "Software\Classes\Pergamum.Markdown" "" "Markdown Document"
-      WriteRegStr HKLM "Software\Classes\Pergamum.Markdown\shell\open\command" "" '$\"$INSTDIR\${APP_EXECUTABLE_FILENAME}$\" $\"%1$\"'
-      WriteRegStr HKLM "Software\Classes\.md\OpenWithProgids" "Pergamum.Markdown" ""
+      ; SHCTX follows the installer's own scope: HKCU for a per-user install
+      ; (no elevation needed), HKLM for an all-users install. This is the same
+      ; root electron-builder uses for the .pergamum file association.
+      WriteRegStr SHCTX "Software\Classes\Pergamum.Markdown" "" "Markdown Document"
+      WriteRegStr SHCTX "Software\Classes\Pergamum.Markdown\shell\open\command" "" '$\"$INSTDIR\${APP_EXECUTABLE_FILENAME}$\" $\"%1$\"'
+      WriteRegStr SHCTX "Software\Classes\.md\OpenWithProgids" "Pergamum.Markdown" ""
       System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
     ${EndIf}
   !macroend
 !endif
 
 !macro customUnInstall
-  ; Only remove registration owned by this installation.
-  ReadRegStr $0 HKLM "Software\Classes\Pergamum.Markdown\shell\open\command" ""
+  ; Only remove registration owned by this installation (same scope as install).
+  ReadRegStr $0 SHCTX "Software\Classes\Pergamum.Markdown\shell\open\command" ""
   ${If} $0 == '$\"$INSTDIR\${APP_EXECUTABLE_FILENAME}$\" $\"%1$\"'
-    DeleteRegValue HKLM "Software\Classes\.md\OpenWithProgids" "Pergamum.Markdown"
-    DeleteRegKey HKLM "Software\Classes\Pergamum.Markdown"
+    DeleteRegValue SHCTX "Software\Classes\.md\OpenWithProgids" "Pergamum.Markdown"
+    DeleteRegKey SHCTX "Software\Classes\Pergamum.Markdown"
     System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
   ${EndIf}
 !macroend
