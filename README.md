@@ -6,7 +6,7 @@
 
 <p align="center"><strong>IDE for novelists</strong></p>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Version v0.90.0](https://img.shields.io/badge/version-v0.90.0-blue)](./package.json) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
+[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Version v0.90.0](https://img.shields.io/badge/version-v0.90.0-blue)](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.0) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
 
 [日本語](./README.md) | [English](./README.en.md)
 
@@ -22,7 +22,9 @@ Pergamum（ペルガモン）は、**小説を書く人のためのオープン�
 
 ## v0.90.0 — BETA
 
-小説 IDE としての中核機能がひととおり揃い、**Windows インストーラーを生成して配布できる段階**になりました。ここからは実際に使ってもらい、不具合・使いにくい点・追加要望を集めていきます。
+小説 IDE としての中核機能がひととおり揃い、**v0.90.0 BETA を最初の公開リリースとして提供しています**。Windows 向けには NSIS インストーラーを配布しています。
+
+ここからは実際に使ってもらい、不具合・使いにくい点・追加要望を集めていきます。
 
 まだ安定版の 1.0 ではありません。1.0 まではプロジェクト DB の schema や互換性に破壊的変更が入る可能性があります。重要な原稿・作品情報は、作品フォルダ全体を Git や通常のバックアップでも保護してください。
 
@@ -64,7 +66,7 @@ Windows 向けには、**NSIS インストーラー**を提供しています。
 
 インストーラーから Pergamum を導入でき、`.pergamum` ファイルを Pergamum で開くためのファイル関連付けにも対応しています。
 
-最新の Windows 向けインストーラーは、GitHub Releases から入手できます。
+**[Pergamum v0.90.0 BETA を GitHub Releases からダウンロード](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.0)**
 
 ### macOS / Linux
 
