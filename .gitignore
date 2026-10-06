@@ -12,6 +12,9 @@ scripts/*
 !scripts/generate-aozora-accent-table.mjs
 !scripts/electronFusesPolicy.js
 !scripts/electronBuilderAfterPack.js
+!scripts/generateThirdPartyLicenses.js
+!scripts/thirdPartyLicenseOverrides.json
+!scripts/thirdPartyLicenses/
 *.ps1
 /docs/handoff*.md
 review-logs/

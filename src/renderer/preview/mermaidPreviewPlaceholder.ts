@@ -6,7 +6,7 @@
  * happens later, from the live preview DOM (see `markdownMermaidRendering.ts`)
  * — this module never touches the DOM or imports `mermaid` itself.
  *
- * Third-party license: mermaid is MIT licensed. See THIRD_PARTY_NOTICES.md
+ * Third-party license: mermaid is MIT licensed. See THIRD_PARTY_LICENSES.md
  * for the full license text.
  */
 

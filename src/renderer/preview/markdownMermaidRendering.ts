@@ -20,7 +20,7 @@
  * as a unique target id) additionally keys each render by an incrementing
  * generation counter supplied by the caller, per #564's requirement.
  *
- * Third-party license: mermaid is MIT licensed. See THIRD_PARTY_NOTICES.md
+ * Third-party license: mermaid is MIT licensed. See THIRD_PARTY_LICENSES.md
  * for the full license text.
  */
 

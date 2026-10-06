@@ -652,6 +652,8 @@ Attribution and license information for each asset is collected in [`THIRD_PARTY
 - SVG Repo icons (per-icon licenses)
 - Typewriter sounds (OpenGameArt, CC0)
 
+The licenses of the bundled npm packages (production dependencies) and the Electron runtime are listed in [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md), generated from `package-lock.json` (regenerate with `npm run generate:third-party-licenses`).
+
 ---
 
 ## License

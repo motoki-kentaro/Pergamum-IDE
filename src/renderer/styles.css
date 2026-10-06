@@ -8702,7 +8702,7 @@ label.settingsItemHeader {
  * #536 / #707: highlight.js syntax highlighting — theme-aware colors.
  * Scoped to the Preview pane so it does not affect other surfaces.
  * Uses Pergamum semantic tokens (--pg-color-preview-syntax-*).
- * Third-party notices: see THIRD_PARTY_NOTICES.md.
+ * Third-party license (highlight.js): see THIRD_PARTY_LICENSES.md.
  */
 .preview pre code.hljs {
   display: block;

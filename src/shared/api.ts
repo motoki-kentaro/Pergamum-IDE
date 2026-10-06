@@ -690,21 +690,27 @@ export const EDIT_CHANNELS = {
 export const APP_INFO_CHANNELS = {
   getAppInfo: "appInfo:getAppInfo",
   openRepository: "appInfo:openRepository",
-  openThirdPartyNotices: "appInfo:openThirdPartyNotices",
+  openLegalDocument: "appInfo:openLegalDocument",
   openExternalUrl: "appInfo:openExternalUrl"
 } as const;
 
 export const APP_INFO_EXTERNAL_LINKS = {
-  repository: "https://github.com/Pergamum-IDE/Pergamum-IDE",
-  /**
-   * #432: the About dialog's secondary external link opens the repo's
-   * aggregated third-party notices (Feather / Ionicons / SVG Repo / Codicons /
-   * typewriter sounds). Fixed, application-owned constant — the renderer never
-   * passes a URL through this path (see appInfoIpc.ts).
-   */
-  thirdPartyNotices:
-    "https://github.com/Pergamum-IDE/Pergamum-IDE/blob/main/THIRD_PARTY_NOTICES.md"
+  repository: "https://github.com/Pergamum-IDE/Pergamum-IDE"
 } as const;
+
+/**
+ * #627: the legal documents shipped in the packaged app's resources/ folder,
+ * opened from the About dialog. The renderer can only name one of these fixed
+ * ids; the main process maps each id to its file (see appInfoIpc.ts), so no
+ * path ever crosses the IPC boundary.
+ */
+export const LEGAL_DOCUMENT_IDS = [
+  "license",
+  "thirdPartyLicenses",
+  "thirdPartyNotices"
+] as const;
+
+export type LegalDocumentId = (typeof LEGAL_DOCUMENT_IDS)[number];
 
 export type MarkdownLineEnding =
   | "lf"
@@ -1853,7 +1859,8 @@ export interface PergamumApi {
   appInfo: {
     getAppInfo: () => Promise<PergamumAppInfo>;
     openRepository: () => Promise<void>;
-    openThirdPartyNotices: () => Promise<void>;
+    /** Resolves false when the document is missing or could not be opened. */
+    openLegalDocument: (id: LegalDocumentId) => Promise<boolean>;
     openExternalUrl: (url: string) => Promise<void>;
   };
   imageAttachment: {

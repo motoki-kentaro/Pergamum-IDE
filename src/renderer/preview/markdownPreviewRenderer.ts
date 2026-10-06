@@ -463,8 +463,8 @@ markdown.renderer.rules.fence = (tokens, idx, _options, env) => {
  * synchronous `markdown.render()` call is the only reliable way to scope a
  * plugin registered on a shared instance to one render target.
  *
- * Third-party license: KaTeX is MIT licensed. See THIRD_PARTY_NOTICES.md for
- * the full license text.
+ * Third-party license: KaTeX is MIT licensed. See THIRD_PARTY_LICENSES.md for
+ * the full license text, and THIRD_PARTY_NOTICES.md for the KaTeX fonts (OFL).
  */
 markdown.use(markdownItMath);
 

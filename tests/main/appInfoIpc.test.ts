@@ -32,9 +32,12 @@ import {
   pergamumRepositoryUrl,
   readPackageLicense,
   registerAppInfoIpc,
-  thirdPartyNoticesUrl,
+  LEGAL_DOCUMENT_FILE_NAMES,
+  openLegalDocument,
+  resolveLegalDocumentPath,
   type AppInfoMetadataProvider,
   type ExternalLinkOpener,
+  type LegalDocumentLocation,
   type RuntimeMetadataProvider
 } from "../../src/main/appInfoIpc";
 
@@ -153,34 +156,27 @@ describe("app info IPC (#221)", () => {
         {},
         "https://example.invalid/not-allowed"
       );
-      await ipcHandler(APP_INFO_CHANNELS.openThirdPartyNotices)(
-        {},
-        "https://example.invalid/not-allowed"
-      );
 
       expect(externalLinkOpener.openExternal).toHaveBeenCalledWith(
         pergamumRepositoryUrl
       );
-      expect(externalLinkOpener.openExternal).toHaveBeenCalledWith(
-        thirdPartyNoticesUrl
+      expect(pergamumRepositoryUrl).toBe(
+        "https://github.com/Pergamum-IDE/Pergamum-IDE"
       );
       // The handler ignores any argument — it only ever opens the fixed URL.
       expect(externalLinkOpener.openExternal).not.toHaveBeenCalledWith(
         "https://example.invalid/not-allowed"
       );
-      // #432: the fixed external link is the third-party notices page, and the
-      // old typewriter-sounds identifiers are gone.
-      expect(APP_INFO_CHANNELS.openThirdPartyNotices).toBe(
-        "appInfo:openThirdPartyNotices"
-      );
-      expect(thirdPartyNoticesUrl).toBe(
-        "https://github.com/Pergamum-IDE/Pergamum-IDE/blob/main/THIRD_PARTY_NOTICES.md"
+      // #627: legal documents are opened from the installed app, not from
+      // GitHub; the old fixed GitHub notices channel and URL are gone.
+      expect(APP_INFO_CHANNELS as Record<string, unknown>).not.toHaveProperty(
+        "openThirdPartyNotices"
       );
       expect(APP_INFO_CHANNELS as Record<string, unknown>).not.toHaveProperty(
         "openTypewriterSoundsCredit"
       );
       expect(electronMock.ipcHandle).toHaveBeenCalledWith(
-        "appInfo:openThirdPartyNotices",
+        "appInfo:openLegalDocument",
         expect.any(Function)
       );
     } finally {
@@ -195,9 +191,95 @@ describe("app info IPC (#221)", () => {
       'export const pergamumCopyright = "Copyright (c) 2026 Pergamum IDE";'
     );
     expect(source).not.toContain("readAppCopyright");
-    expect(source).not.toContain('"LICENSE"');
+    // #627: LICENSE is only mapped as an openable legal document, never read.
+    expect(source).not.toMatch(/readFileSync\([^)]*LICENSE/);
     expect(source).not.toContain("getFullYear");
     expect(source).not.toContain("new Date");
+  });
+});
+
+describe("legal documents (#627)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const packaged: LegalDocumentLocation = {
+    isPackaged: true,
+    resourcesPath: path.join("C:", "Program Files", "Pergamum", "resources"),
+    appPath: path.join("C:", "Program Files", "Pergamum", "resources", "app.asar")
+  };
+
+  it("maps each fixed id to its file in resources/ when packaged", () => {
+    expect(LEGAL_DOCUMENT_FILE_NAMES).toEqual({
+      license: "LICENSE",
+      thirdPartyLicenses: "THIRD_PARTY_LICENSES.md",
+      thirdPartyNotices: "THIRD_PARTY_NOTICES.md"
+    });
+    expect(resolveLegalDocumentPath("license", packaged)).toBe(
+      path.join(packaged.resourcesPath, "LICENSE")
+    );
+    expect(resolveLegalDocumentPath("thirdPartyLicenses", packaged)).toBe(
+      path.join(packaged.resourcesPath, "THIRD_PARTY_LICENSES.md")
+    );
+    expect(resolveLegalDocumentPath("thirdPartyNotices", packaged)).toBe(
+      path.join(packaged.resourcesPath, "THIRD_PARTY_NOTICES.md")
+    );
+  });
+
+  it("uses the repository root (app path) in development", () => {
+    const development = { isPackaged: false, resourcesPath: "unused", appPath: process.cwd() };
+
+    for (const id of ["license", "thirdPartyLicenses", "thirdPartyNotices"] as const) {
+      const resolved = resolveLegalDocumentPath(id, development);
+      expect(resolved).toBe(path.join(process.cwd(), LEGAL_DOCUMENT_FILE_NAMES[id]));
+    }
+  });
+
+  it.each([
+    ["an arbitrary path", "C:\\Windows\\System32\\drivers\\etc\\hosts"],
+    ["a relative traversal", "../LICENSE"],
+    ["a file name", "LICENSE"],
+    ["a prototype key", "toString"],
+    ["a non-string", { id: "license" }]
+  ])("rejects %s from the renderer", async (_label, id) => {
+    const opener = { openPath: vi.fn(() => Promise.resolve("")) };
+
+    expect(resolveLegalDocumentPath(id, packaged)).toBeNull();
+    await expect(openLegalDocument(id, packaged, opener)).resolves.toBe(false);
+    expect(opener.openPath).not.toHaveBeenCalled();
+  });
+
+  it("opens the existing file and reports missing files or open errors as false", async () => {
+    const development = { isPackaged: false, resourcesPath: "unused", appPath: process.cwd() };
+    const opener = { openPath: vi.fn(() => Promise.resolve("")) };
+
+    await expect(openLegalDocument("thirdPartyNotices", development, opener)).resolves.toBe(true);
+    expect(opener.openPath).toHaveBeenCalledWith(path.join(process.cwd(), "THIRD_PARTY_NOTICES.md"));
+
+    const missing = { ...development, appPath: path.join(os.tmpdir(), "pergamum-no-such-dir") };
+    await expect(openLegalDocument("license", missing, opener)).resolves.toBe(false);
+    expect(opener.openPath).toHaveBeenCalledTimes(1);
+
+    const failing = { openPath: vi.fn(() => Promise.resolve("No application is associated")) };
+    await expect(openLegalDocument("license", development, failing)).resolves.toBe(false);
+    const throwing = { openPath: vi.fn(() => Promise.reject(new Error("boom"))) };
+    await expect(openLegalDocument("license", development, throwing)).resolves.toBe(false);
+  });
+
+  it("routes the IPC handler through the fixed-id resolver", async () => {
+    const legalDocumentOpener = { openPath: vi.fn(() => Promise.resolve("")) };
+    registerAppInfoIpc({
+      runtimeMetadataProvider,
+      externalLinkOpener: { openExternal: vi.fn(() => Promise.resolve()) },
+      legalDocumentOpener,
+      legalDocumentLocation: () => ({ isPackaged: false, resourcesPath: "unused", appPath: process.cwd() })
+    });
+
+    await expect(ipcHandler(APP_INFO_CHANNELS.openLegalDocument)({}, "thirdPartyLicenses")).resolves.toBe(true);
+    await expect(ipcHandler(APP_INFO_CHANNELS.openLegalDocument)({}, "C:\\evil.exe")).resolves.toBe(false);
+    expect(legalDocumentOpener.openPath.mock.calls).toEqual([
+      [path.join(process.cwd(), "THIRD_PARTY_LICENSES.md")]
+    ]);
   });
 });
 

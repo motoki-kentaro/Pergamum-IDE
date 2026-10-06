@@ -6,7 +6,7 @@ import {
   type CSSProperties,
   type MouseEvent as ReactMouseEvent
 } from "react";
-import type { PergamumAppInfo } from "../../shared/api";
+import type { LegalDocumentId, PergamumAppInfo } from "../../shared/api";
 import { APP_INFO_EXTERNAL_LINKS } from "../../shared/api";
 import type { Translate } from "../../shared/i18n";
 import appIconUrl from "../../../assets/icon.png?url";
@@ -34,10 +34,12 @@ export interface AboutDialogProps {
   onClose: () => void;
   onOpenRepository: () => void;
   /**
-   * #432: opens the repo's THIRD_PARTY_NOTICES.md in the external browser
-   * through the fixed-URL app-info channel (no URL argument, no in-app viewer).
+   * #627: opens one of the legal documents shipped with the installed app
+   * (resources/LICENSE, THIRD_PARTY_LICENSES.md, THIRD_PARTY_NOTICES.md) with
+   * the OS default application. Only a fixed document id crosses the IPC
+   * boundary; there is no in-app viewer.
    */
-  onOpenThirdPartyNotices: () => void;
+  onOpenLegalDocument: (id: LegalDocumentId) => void;
   onShowStaffCredits: (placement: NotificationToastPlacement) => void;
 }
 
@@ -90,7 +92,7 @@ export function AboutDialog({
   opener,
   onClose,
   onOpenRepository,
-  onOpenThirdPartyNotices,
+  onOpenLegalDocument,
   onShowStaffCredits
 }: AboutDialogProps): JSX.Element {
   const [copyState, setCopyState] =
@@ -259,7 +261,17 @@ export function AboutDialog({
           </div>
           <div className="aboutDialogMetadataRow">
             <dt>{translate("dialog.about.licenseLabel")}</dt>
-            <dd>{appInfo.license}</dd>
+            <dd>
+              <button
+                type="button"
+                className="aboutDialogLinkButton"
+                aria-label={translate("dialog.about.openLicense")}
+                title={translate("dialog.about.openLicense")}
+                onClick={() => onOpenLegalDocument("license")}
+              >
+                {appInfo.license}
+              </button>
+            </dd>
           </div>
           <div className="aboutDialogMetadataRow">
             <dt>{translate("dialog.about.copyrightLabel")}</dt>
@@ -285,20 +297,25 @@ export function AboutDialog({
         <section className="aboutDialogSection">
           <h3>{translate("dialog.about.thirdPartyLabel")}</h3>
           <p>{translate("dialog.about.thirdPartySummary")}</p>
-          {/* #432: entry point to the aggregated THIRD_PARTY_NOTICES.md, opened
-              externally through the fixed-URL app-info channel (no in-app
-              license viewer). Replaces the former per-asset typewriter
-              acknowledgement. */}
+          {/* #627: the legal documents bundled with this installed version
+              (resources/), not the repository's main branch. */}
+          <button
+            type="button"
+            className="aboutDialogLinkButton"
+            aria-label={translate("dialog.about.thirdPartyLicensesLinkAria")}
+            title={translate("dialog.about.thirdPartyLicensesLinkAria")}
+            onClick={() => onOpenLegalDocument("thirdPartyLicenses")}
+          >
+            {translate("dialog.about.thirdPartyLicensesLink")}
+          </button>
           <button
             type="button"
             className="aboutDialogLinkButton"
             aria-label={translate("dialog.about.thirdPartyNoticesLinkAria")}
-            title={APP_INFO_EXTERNAL_LINKS.thirdPartyNotices}
-            onClick={onOpenThirdPartyNotices}
+            title={translate("dialog.about.thirdPartyNoticesLinkAria")}
+            onClick={() => onOpenLegalDocument("thirdPartyNotices")}
           >
-            <span>{translate("dialog.about.thirdPartyNoticesLink")}</span>
-            {"\u00a0"}
-            <MaskedIcon url={externalLinkIconUrl} className="aboutDialogExternalLinkIcon" />
+            {translate("dialog.about.thirdPartyNoticesLink")}
           </button>
         </section>
       </div>

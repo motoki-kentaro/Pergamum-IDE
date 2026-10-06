@@ -658,6 +658,8 @@ Pergamum は、いくつかのサードパーティ製アセット（アイコ�
 - SVG Repo icons（アイコンごとに個別ライセンス）
 - Typewriter sounds（OpenGameArt, CC0）
 
+同梱している npm パッケージ（production dependencies）と Electron runtime のライセンスは、`package-lock.json` から生成した [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md) にまとめています（`npm run generate:third-party-licenses` で再生成します）。
+
 ---
 
 ## ライセンス

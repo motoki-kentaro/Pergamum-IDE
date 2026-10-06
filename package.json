@@ -21,10 +21,16 @@
     "build:installer": "npm run typecheck && electron-forge package && electron-builder --win nsis",
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "generate:third-party-licenses": "node scripts/generateThirdPartyLicenses.js"
   },
   "build": {
     "afterPack": "scripts/electronBuilderAfterPack.js",
+    "extraResources": [
+      "LICENSE",
+      "THIRD_PARTY_LICENSES.md",
+      "THIRD_PARTY_NOTICES.md"
+    ],
     "directories": {
       "output": "dist-installer"
     },

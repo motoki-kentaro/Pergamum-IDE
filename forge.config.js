@@ -3,6 +3,11 @@ const path = require('node:path');
 const { pergamumFusePolicy } = require('./scripts/electronFusesPolicy');
 
 const appIcon = 'assets/icon';
+// #627: legal files copied verbatim to <app>/resources/. Pergamum's own
+// LICENSE lands at resources/LICENSE, so it never replaces Electron's LICENSE
+// and LICENSES.chromium.html at the app root. Keep in sync with
+// package.json build.extraResources (electron-builder / NSIS).
+const legalFiles = ['LICENSE', 'THIRD_PARTY_LICENSES.md', 'THIRD_PARTY_NOTICES.md'];
 const packagedExternalDependencies = [
   'node_modules/better-sqlite3',
   'node_modules/bindings',
@@ -70,6 +75,7 @@ module.exports = {
     // AutoUnpackNatives merges its own pattern into this one.
     asar: { unpack: '**/node_modules/kuromoji/dict/**' },
     icon: appIcon,
+    extraResource: legalFiles,
     ignore: (file) => (file ? !shouldPackageFile(file) : false),
   },
   rebuildConfig: {},

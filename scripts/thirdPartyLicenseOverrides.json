@@ -1,0 +1,93 @@
+{
+  "$comment": "Manual facts for scripts/generateThirdPartyLicenses.js (#627). Keys are name@version. Overrides may only supply facts verifiable inside the installed package: a license expression when package.json declares none (with licenseEvidence), verbatim excerpts from package files when no LICENSE file is shipped (noticeExcerpts), an explicit statement that no license text is shipped (noLicenseText), and notes. upstreamLicenseFiles points to an upstream license file stored verbatim in scripts/thirdPartyLicenses/ (file name prefixed with name@version) for packages whose published tarball ships none; source and provenance record where it was taken from. Overrides never replace a declared license expression.",
+  "packages": {
+    "@azu/format-text@1.0.2": {
+      "reason": "The package ships no LICENSE file and its README has no license section.",
+      "noLicenseText": "package.json declares BSD-3-Clause; neither a LICENSE file nor a license section in README.md is included in the published package.",
+      "notes": [
+        "The upstream repository (https://github.com/azu/format-text) has no license file either, at tag v1.0.2 (commit 2f72a7bf808c0818a395c2323d77128352539297) nor on its default branch (checked 2026-10-06)."
+      ]
+    },
+    "format@0.2.2": {
+      "reason": "No LICENSE file; the README carries a short copyright and license statement, and the author later added the full license text upstream.",
+      "noticeExcerpts": [{ "file": "Readme.md", "from": "License" }],
+      "upstreamLicenseFiles": [
+        {
+          "file": "format@0.2.2.License.md",
+          "source": "https://github.com/samsonjs/format/blob/91b6bd78af9b061c90010b86d83caa051edeb1ea/License.md",
+          "provenance": "License.md added by the author in commit 91b6bd7 on 2023-06-28 (\"Add MIT license file for FOSS report\"), covering 2010-2016; tag 0.2.2, commit 4f898096759776b7c84fa7a25b13c923dadfe46e from 2015, has no license file"
+        }
+      ]
+    },
+    "imurmurhash@0.1.4": {
+      "reason": "No LICENSE file; the README carries the full MIT license text.",
+      "noticeExcerpts": [{ "file": "README.md", "from": "License (MIT)" }]
+    },
+    "khroma@2.1.0": {
+      "reason": "package.json has no license field; the shipped license file is the MIT License.",
+      "license": "MIT",
+      "licenseEvidence": { "file": "license", "text": "The MIT License (MIT)" }
+    },
+    "kuromoji@0.1.2": {
+      "reason": "The packaged dictionary (dict/*.dat.gz) is data derived from mecab-ipadic, licensed separately from the Apache-2.0 kuromoji code.",
+      "notes": [
+        "The dictionary files in dict/ contain data from mecab-ipadic-2.7.0-20070801. Its copyright and license (NAIST, including the ICOT Free Software conditions) are reproduced in NOTICE.md below."
+      ]
+    },
+    "lru_map@0.4.1": {
+      "reason": "No LICENSE file; the README carries the full MIT license text.",
+      "noticeExcerpts": [{ "file": "README.md", "from": "# MIT license" }]
+    },
+    "rehype-parse@6.0.2": {
+      "reason": "No license file in the published package; the README carries a short license statement and the monorepo root carries the full text.",
+      "noticeExcerpts": [{ "file": "readme.md", "from": "## License", "until": "<!-- Definitions -->" }],
+      "upstreamLicenseFiles": [
+        {
+          "file": "rehype-parse@6.0.2.license",
+          "source": "https://github.com/rehypejs/rehype/blob/eb6dfc5474415dbf606879502fee27cbeb2636c8/license",
+          "provenance": "repository root license at tag rehype-parse@6.0.2, commit eb6dfc5474415dbf606879502fee27cbeb2636c8"
+        }
+      ]
+    },
+    "remark-parse@9.0.0": {
+      "reason": "No license file in the published package; the README carries a short license statement and the monorepo root carries the full text.",
+      "noticeExcerpts": [{ "file": "readme.md", "from": "## License", "until": "<!-- Definitions -->" }],
+      "upstreamLicenseFiles": [
+        {
+          "file": "remark-parse@9.0.0.license",
+          "source": "https://github.com/remarkjs/remark/blob/aa598dc126343e414a5f6ac20facb63e9265cad4/license",
+          "provenance": "repository root license at tag remark-parse@9.0.0, commit aa598dc126343e414a5f6ac20facb63e9265cad4"
+        }
+      ]
+    },
+    "spdx-exceptions@2.5.0": {
+      "reason": "No LICENSE file; the README carries the copyright and licensing statement.",
+      "noticeExcerpts": [{ "file": "README.md", "from": "## Copyright and Licensing" }],
+      "notes": [
+        "The upstream repository has no separate license file at tag v2.5.0 (commit 3aa64bec339abc6a3eca00c3436aaa7e154b8799); the README statement below is the upstream licensing statement."
+      ]
+    },
+    "spdx-license-ids@3.0.23": {
+      "reason": "No LICENSE file; the README carries the license statement.",
+      "noticeExcerpts": [{ "file": "README.md", "from": "## License" }],
+      "notes": [
+        "The upstream repository has no separate license file at tag v3.0.23 (commit a2a975daf48bbc2afdc8e7c304405b44c656fd53); the README statement below is the upstream licensing statement."
+      ]
+    },
+    "textlint-rule-no-kangxi-radicals@0.2.2": {
+      "reason": "No LICENSE file; the README carries a short license statement.",
+      "noticeExcerpts": [{ "file": "README.md", "from": "## License" }],
+      "notes": [
+        "Only a short license statement is available: the upstream repository (https://github.com/xl1/textlint-rule-no-kangxi-radicals) has no tags and no license file on its default branch (commit 5b38dae6f0c1120871e8d8b2806e33a6772f134b, checked 2026-10-06)."
+      ]
+    }
+  },
+  "additionalPackages": {
+    "electron": {
+      "reason": "Electron is a devDependency in npm terms, but its runtime is redistributed with the packaged app.",
+      "notes": [
+        "Licenses of the components bundled inside Electron (Chromium, Node.js, V8 and others) are listed in LICENSES.chromium.html, which Electron distributes next to the executable."
+      ]
+    }
+  }
+}

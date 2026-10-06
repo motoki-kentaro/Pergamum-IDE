@@ -494,12 +494,13 @@ describe("glossary preload API", () => {
 
     await api.appInfo.getAppInfo();
     await api.appInfo.openRepository();
-    await api.appInfo.openThirdPartyNotices();
+    await api.appInfo.openLegalDocument("thirdPartyNotices");
 
     expect(electronMock.invoke.mock.calls).toEqual([
       [APP_INFO_CHANNELS.getAppInfo],
       [APP_INFO_CHANNELS.openRepository],
-      [APP_INFO_CHANNELS.openThirdPartyNotices]
+      // #627: only a fixed legal document id is sent; main maps it to a file.
+      [APP_INFO_CHANNELS.openLegalDocument, "thirdPartyNotices"]
     ]);
     // #432: the preload exposes only the fixed-channel functions — no generic
     // URL opener, and the old typewriter-sounds name is gone.
@@ -509,7 +510,11 @@ describe("glossary preload API", () => {
     expect(api.appInfo as Record<string, unknown>).not.toHaveProperty(
       "openTypewriterSoundsCredit"
     );
-    expect(typeof api.appInfo.openThirdPartyNotices).toBe("function");
+    expect(api.appInfo as Record<string, unknown>).not.toHaveProperty(
+      "openThirdPartyNotices"
+    );
+    expect(api.appInfo as Record<string, unknown>).not.toHaveProperty("openPath");
+    expect(typeof api.appInfo.openLegalDocument).toBe("function");
   });
 
   it("exposes native edit delegation but no context menu display API (#685)", async () => {
