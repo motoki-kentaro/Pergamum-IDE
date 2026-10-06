@@ -6,7 +6,7 @@
 
 <p align="center"><strong>IDE for novelists</strong></p>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Version v0.90.0](https://img.shields.io/badge/version-v0.90.0-blue)](./package.json) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
+[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Version v0.90.0](https://img.shields.io/badge/version-v0.90.0-blue)](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.0) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
 
 [日本語](./README.md) | [English](./README.en.md)
 
@@ -22,7 +22,9 @@ The goal is not to write novels on the author's behalf, but to build **a tool th
 
 ## v0.90.0 — BETA
 
-The core features of a novelists' IDE are in place, and Pergamum is **ready to be packaged and distributed as a Windows installer**. The next step is to gather feedback from actual writing: bugs, rough edges, and requests for new features.
+The core features of a novelists' IDE are now in place, and **Pergamum v0.90.0 BETA is available as the first public release**. A Windows NSIS installer is provided through GitHub Releases.
+
+The project is now entering a feedback-driven phase. Bug reports, rough edges, workflow problems, and requests for new features based on actual writing are welcome.
 
 This is not the stable 1.0 release. Project database schemas and compatibility may undergo breaking changes before 1.0. Protect important manuscripts and story data by keeping the entire project folder in Git or ordinary backups as well.
 
@@ -64,7 +66,7 @@ For Windows, Pergamum provides an **NSIS installer**.
 
 The installer can be used to install Pergamum and also supports file association for `.pergamum` project files.
 
-The latest Windows installer is available from GitHub Releases.
+**[Download Pergamum v0.90.0 BETA from GitHub Releases](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.0)**
 
 ### macOS / Linux
 
