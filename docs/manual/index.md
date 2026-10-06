@@ -1,3 +1,12 @@
+---
+layout: landing
+lang: ja
+title: "Pergamum — IDE for novelists"
+description: "小説を書く人のためのオープンソース統合執筆環境。"
+og_image: "https://pergamum-ide.github.io/assets/ogp_jp.png"
+og_url: "https://pergamum-ide.github.io/"
+---
+
 # ![Pergamum](assets/logo-mono.svg)
 
 日本語 | [English](index.en.html)  
