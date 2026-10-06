@@ -26,6 +26,11 @@
   },
   "build": {
     "afterPack": "scripts/electronBuilderAfterPack.js",
+    "extraResources": [
+      "LICENSE",
+      "THIRD_PARTY_LICENSES.md",
+      "THIRD_PARTY_NOTICES.md"
+    ],
     "directories": {
       "output": "dist-installer"
     },

@@ -13,6 +13,7 @@ import {
   type MouseEvent as ReactMouseEvent
 } from "react";
 import type {
+  LegalDocumentId,
   PergamumAppInfo,
   PergamumProject,
   ProjectOpenResult,
@@ -6832,10 +6833,19 @@ export function App(): JSX.Element {
       .catch(reportAboutExternalLinkFailure);
   }
 
-  function openAboutThirdPartyNotices(): void {
+  function reportLegalDocumentOpenFailure(): void {
+    setStatus({ key: "status.legalDocumentOpenFailed" });
+  }
+
+  function openAboutLegalDocument(id: LegalDocumentId): void {
     void window.pergamum.appInfo
-      .openThirdPartyNotices()
-      .catch(reportAboutExternalLinkFailure);
+      .openLegalDocument(id)
+      .then((opened) => {
+        if (!opened) {
+          reportLegalDocumentOpenFailure();
+        }
+      })
+      .catch(reportLegalDocumentOpenFailure);
   }
 
   function canCloseEditorNow(editorId?: EditorId): boolean {
@@ -14567,7 +14577,7 @@ export function App(): JSX.Element {
           opener={aboutDialogOpenerRef.current}
           onClose={closeAboutDialog}
           onOpenRepository={openAboutRepository}
-          onOpenThirdPartyNotices={openAboutThirdPartyNotices}
+          onOpenLegalDocument={openAboutLegalDocument}
           onShowStaffCredits={showAboutStaffCredits}
         />
       ) : null}

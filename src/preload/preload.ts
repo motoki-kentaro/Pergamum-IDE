@@ -22,6 +22,7 @@ import {
   SESSION_CHANNELS,
   SETTINGS_CHANNELS,
   WINDOW_CHANNELS,
+  type LegalDocumentId,
   type PergamumApi
 } from "../shared/api";
 
@@ -429,8 +430,8 @@ const pergamumApi: PergamumApi = {
   appInfo: {
     getAppInfo: () => ipcRenderer.invoke(APP_INFO_CHANNELS.getAppInfo),
     openRepository: () => ipcRenderer.invoke(APP_INFO_CHANNELS.openRepository),
-    openThirdPartyNotices: () =>
-      ipcRenderer.invoke(APP_INFO_CHANNELS.openThirdPartyNotices),
+    openLegalDocument: (id: LegalDocumentId) =>
+      ipcRenderer.invoke(APP_INFO_CHANNELS.openLegalDocument, id),
     openExternalUrl: (url) =>
       ipcRenderer.invoke(APP_INFO_CHANNELS.openExternalUrl, url)
   },

@@ -16,6 +16,7 @@ import {
 import type { ClipboardAdapter } from "../../../src/renderer/dialog/clipboardAdapter";
 
 const translateEn: Translate = (key, values) => t("en", key, values);
+const translateJa: Translate = (key, values) => t("ja", key, values);
 const noop = () => undefined;
 const noopClipboardAdapter: ClipboardAdapter = {
   writeText: () => Promise.resolve()
@@ -37,16 +38,16 @@ const testAppInfo: PergamumAppInfo = {
   }
 };
 
-function renderAboutDialog(): string {
+function renderAboutDialog(translate: Translate = translateEn): string {
   return renderToStaticMarkup(
     React.createElement(AboutDialog, {
       appInfo: testAppInfo,
-      translate: translateEn,
+      translate,
       clipboardAdapter: noopClipboardAdapter,
       opener: null,
       onClose: noop,
       onOpenRepository: noop,
-      onOpenThirdPartyNotices: noop,
+      onOpenLegalDocument: noop,
       onShowStaffCredits: noop
     })
   );
@@ -110,10 +111,11 @@ describe("AboutDialog (#221)", () => {
       "Third-party license notices will be included with the distribution or repository."
     );
     expect(markup).toContain("Third-party licenses");
-    expect(markup).toContain(APP_INFO_EXTERNAL_LINKS.thirdPartyNotices);
-    expect(markup).toContain(
-      "https://github.com/Pergamum-IDE/Pergamum-IDE/blob/main/THIRD_PARTY_NOTICES.md"
-    );
+    expect(markup).toContain("Third-party notices<");
+    // #627: legal documents open from the installed app, never from GitHub.
+    expect(markup).not.toContain("THIRD_PARTY_NOTICES.md");
+    expect(markup).not.toContain("THIRD_PARTY_LICENSES.md");
+    expect(markup).not.toContain("/blob/main/");
     expect(markup).toContain('aria-label="Copy technical information"');
     expect(markup).toContain('title="Copy technical information"');
     expect(markup).not.toContain(">Copy technical information<");
@@ -144,11 +146,11 @@ describe("AboutDialog (#221)", () => {
     expect(source).toContain('aria-live="polite"');
     expect(source).not.toContain('className="appDialogButtonLabel"');
     expect(source).toContain("onOpenRepository");
-    expect(source).toContain("onOpenThirdPartyNotices");
+    expect(source).toContain("onOpenLegalDocument");
     expect(source).toContain("onShowStaffCredits");
     expect(source).toContain('kind: "anchorRect"');
     expect(source).toContain("getBoundingClientRect");
-    expect((source.match(/\{"\\u00a0"\}/g) ?? []).length).toBe(2);
+    expect((source.match(/\{"\\u00a0"\}/g) ?? []).length).toBe(1);
     // #432 follow-up: the historical typewriter-sounds names are fully gone.
     expect(source).not.toContain("TypewriterSoundsCredit");
     expect(source).not.toContain("typewriterCredit");
@@ -174,7 +176,16 @@ describe("AboutDialog (#221)", () => {
     ]);
   });
 
-  it("#432: renders the third-party notices external link inside the Third-party notices section, and no Credits section", () => {
+  it("#627: makes the license value a link to the bundled LICENSE", () => {
+    const markup = renderAboutDialog();
+    const licenseRow = markup.slice(markup.indexOf("License:"), markup.indexOf("Copyright:"));
+
+    expect(licenseRow).toContain("aboutDialogLinkButton");
+    expect(licenseRow).toContain('aria-label="Open the Pergamum license"');
+    expect(licenseRow).toContain(">Test-License</button>");
+  });
+
+  it("#627: renders the two legal document links in the Third-party notices section, and no Credits section", () => {
     const markup = renderAboutDialog();
     const thirdPartyStart = markup.indexOf("Third-party notices:");
     const copyControlStart = markup.indexOf("aboutDialogTechnicalInfoControl");
@@ -182,49 +193,50 @@ describe("AboutDialog (#221)", () => {
     expect(thirdPartyStart).toBeGreaterThan(-1);
     expect(copyControlStart).toBeGreaterThan(thirdPartyStart);
 
-    // Everything from the section heading to the footer copy control.
-    const thirdPartySectionMarkup = markup.slice(
-      thirdPartyStart,
-      copyControlStart
-    );
+    const thirdPartySectionMarkup = markup.slice(thirdPartyStart, copyControlStart);
 
-    expect(thirdPartySectionMarkup).toContain("aboutDialogLinkButton");
-    expect(thirdPartySectionMarkup).toContain("aboutDialogExternalLinkIcon");
-    expect(thirdPartySectionMarkup).toContain("Third-party licenses");
-    expect(thirdPartySectionMarkup).toContain(
-      "https://github.com/Pergamum-IDE/Pergamum-IDE/blob/main/THIRD_PARTY_NOTICES.md"
-    );
-    // The dialog opens the notices EXTERNALLY — never inlines / renders the file.
+    expect(thirdPartySectionMarkup.match(/aboutDialogLinkButton/g)).toHaveLength(2);
+    expect(thirdPartySectionMarkup).toContain(">Third-party licenses</button>");
+    expect(thirdPartySectionMarkup).toContain(">Third-party notices</button>");
+    expect(thirdPartySectionMarkup).not.toContain("aboutDialogExternalLinkIcon");
     expect(markup).not.toContain("Credits:");
     expect(markup).not.toContain("dangerouslySetInnerHTML");
   });
 
-  it("#432: routes the third-party notices link through a fixed-URL app-info channel named for its target", () => {
-    const source = readFileSync(
-      "src/renderer/dialog/AboutDialog.tsx",
-      "utf8"
-    );
+  it("#627: uses the Japanese labels decided for the legal links", () => {
+    const markup = renderAboutDialog(translateJa);
 
-    // The link reuses the one fixed-URL app-info action; no href, no URL arg.
-    expect(source).toContain("onClick={onOpenThirdPartyNotices}");
-    expect(source).toContain(
-      "title={APP_INFO_EXTERNAL_LINKS.thirdPartyNotices}"
-    );
+    expect(markup).toContain("ライセンス:");
+    expect(markup).toContain("サードパーティ表記:");
+    expect(markup).toContain("Pergamum はオープンソースソフトウェアを利用しています。");
+    expect(markup).toContain(">サードパーティライセンス</button>");
+    expect(markup).toContain(">サードパーティ通知</button>");
+  });
+
+  it("#627: routes legal links through fixed document ids, and keeps the repository link external", () => {
+    const source = readFileSync("src/renderer/dialog/AboutDialog.tsx", "utf8");
+
+    expect(source).toContain('onOpenLegalDocument("license")');
+    expect(source).toContain('onOpenLegalDocument("thirdPartyLicenses")');
+    expect(source).toContain('onOpenLegalDocument("thirdPartyNotices")');
+    expect(source).toContain("title={APP_INFO_EXTERNAL_LINKS.repository}");
+    expect(source).toContain("onClick={onOpenRepository}");
     expect(source).not.toContain("href=");
     expect(source).not.toContain("openExternal");
+    expect(source).not.toContain("openPath");
+    expect(source).not.toContain("onOpenThirdPartyNotices");
     // Historical typewriter-sounds identifiers / acknowledgement text are gone.
     expect(source).not.toContain("TypewriterSoundsCredit");
     expect(source).not.toContain("typewriterCredit");
     expect(source).not.toContain("creditsLabel");
     expect(source).not.toContain("thirdPartyGuidance");
 
+    expect(APP_INFO_EXTERNAL_LINKS).toEqual({
+      repository: "https://github.com/Pergamum-IDE/Pergamum-IDE"
+    });
     const apiSource = readFileSync("src/shared/api.ts", "utf8");
-    expect(apiSource).toContain(
-      'openThirdPartyNotices: "appInfo:openThirdPartyNotices"'
-    );
-    expect(apiSource).toContain(
-      "https://github.com/Pergamum-IDE/Pergamum-IDE/blob/main/THIRD_PARTY_NOTICES.md"
-    );
+    expect(apiSource).toContain('openLegalDocument: "appInfo:openLegalDocument"');
+    expect(apiSource).not.toContain("blob/main/THIRD_PARTY");
     expect(apiSource).not.toContain("opengameart.org");
     expect(apiSource).not.toContain("TypewriterSoundsCredit");
   });
