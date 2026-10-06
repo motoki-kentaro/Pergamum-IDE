@@ -24,7 +24,7 @@ Pergamum（ペルガモン）は、小説を書く人のためのオープンソ
 
 長い物語を書くために必要な道具を、ひとつのプロジェクトにまとめます。
 
-**[Windows版をダウンロード](https://github.com/Pergamum-IDE/Pergamum-IDE/releases/latest)**  
+**[Windows版をダウンロード](https://github.com/Pergamum-IDE/Pergamum-IDE/releases)**  
 [日本語マニュアル](./ja/) · [GitHub](https://github.com/Pergamum-IDE/Pergamum-IDE)
 
 **無料・オープンソース（MIT License）**

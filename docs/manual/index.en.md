@@ -24,7 +24,7 @@ Preview your writing and export the finished result.
 
 Pergamum brings the tools you need for writing long-form fiction together in a single project.
 
-**[Download for Windows](https://github.com/Pergamum-IDE/Pergamum-IDE/releases/latest)**  
+**[Download for Windows](https://github.com/Pergamum-IDE/Pergamum-IDE/releases)**  
 [User Manual](./en/) · [GitHub](https://github.com/Pergamum-IDE/Pergamum-IDE)
 
 **Free and open source (MIT License)**  
