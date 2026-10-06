@@ -6,7 +6,7 @@
  * Does NOT use automatic language detection (`highlightAuto`).
  *
  * Third-party license: highlight.js is BSD 3-Clause licensed.
- * See THIRD_PARTY_NOTICES.md for the full license text.
+ * See THIRD_PARTY_LICENSES.md for the full license text.
  */
 
 import hljs from "highlight.js";

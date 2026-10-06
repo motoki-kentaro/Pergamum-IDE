@@ -9,3 +9,8 @@
 *.md      text eol=lf
 *.yml     text eol=lf
 *.yaml    text eol=lf
+
+# Generated license texts are verbatim upstream text and may contain lines
+# such as "=======" (a Markdown heading underline) that `git diff --check`
+# would otherwise report as conflict markers.
+THIRD_PARTY_LICENSES.md conflict-marker-size=32
