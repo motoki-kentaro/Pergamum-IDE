@@ -33,7 +33,10 @@ import { decodeMarkdownBytes } from "./markdownFileIo";
 import { currentProjectRootPath, onProjectBoundary } from "./projectIpc";
 import { loadSettings } from "./settingsStore";
 import { decodeTextFileBytes, type DecodeTextFileBytesResult } from "./textFileIo";
-import type { JapaneseLintHost } from "./linterWorker/japaneseLintHost";
+import {
+  isJapaneseLintDictionaryMissing,
+  type JapaneseLintHost
+} from "./linterWorker/japaneseLintHost";
 import { createElectronJapaneseLintHost } from "./linterWorker/japaneseLintHostElectron";
 
 /**
@@ -532,7 +535,9 @@ export function createJapaneseMachineCheckService(
 
         return {
           ok: false,
-          reason: outcome.reason === "canceled" ? "canceled" : "lint-failed"
+          reason: outcome.reason === "canceled" || outcome.reason === "dictionary-missing"
+            ? outcome.reason
+            : "lint-failed"
         };
       }
 
@@ -601,12 +606,15 @@ export function createJapaneseMachineCheckService(
           ruleCounts
         }
       };
-    } catch {
-      log({ result: "failed", failureReason: "worker-failed" }, "warn");
+    } catch (error) {
+      const reason = isJapaneseLintDictionaryMissing(error)
+        ? "dictionary-missing"
+        : "worker-failed";
+      log({ result: "failed", failureReason: reason }, "warn");
 
       return {
         ok: false,
-        reason: active?.canceled ? "canceled" : "worker-failed"
+        reason: active?.canceled ? "canceled" : reason
       };
     } finally {
       const workerHost = host;

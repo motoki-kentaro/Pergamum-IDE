@@ -289,6 +289,7 @@ import {
   type DialogControllerPendingRequest
 } from "./dialog/dialogController";
 import { DeferredErrorDialogQueue } from "./dialog/deferredErrorDialogQueue";
+import { useJapaneseLintDictionaryMissingDialog } from "./japaneseLint/useJapaneseLintDictionaryMissingDialog";
 import {
   AppDialogError,
   getDialogActionOrder,
@@ -2756,7 +2757,6 @@ export function App(): JSX.Element {
     replacePreviewDialogState !== null ||
     isRecoveryCandidateDialogPendingOrOpenRef.current ||
     recoveryCandidateDialogData !== null;
-
   const requestMarkdownEditorFocus = useCallback((documentKey: string) => {
     setMarkdownEditorFocusRequest({
       id: nextMarkdownEditorFocusRequestIdRef.current,
@@ -3407,6 +3407,7 @@ export function App(): JSX.Element {
     });
 
     if (decision === "turn-on") {
+      japaneseLintDictionaryDialog.beginAttempt();
       setIsJapaneseLintActive(true);
     } else if (decision === "turn-off") {
       setIsJapaneseLintActive(false);
@@ -3892,10 +3893,25 @@ export function App(): JSX.Element {
     [emphasisMarkDialogState, notifyEmphasisMarkNoSelection]
   );
 
-  // #625: a lint pass whose result was cut at the cap stays a light toast.
-  function notifyJapaneseLint(notice: "truncated"): void {
-    void notice;
+  // #775: share one recovery dialog across instant and manual checks.
+  const japaneseLintDictionaryDialog = useJapaneseLintDictionaryMissingDialog({
+    ready: coldStartRestoreSettled && coldStartMarkdownLaunchRoutingSettled,
+    blocked:
+      isApplicationMenuKeyboardBlocked || deferredRestoreErrorDialogs.hasOutstanding(),
+    isDialogPending: () => dialogController.getPendingRequest() !== null,
+    confirm: confirmDialog,
+    translate
+  });
 
+  function notifyJapaneseLint(notice: "truncated" | "dictionary-missing"): void {
+    if (notice === "dictionary-missing") {
+      // Session-only OFF: the existing OFF effect releases the Worker.
+      setIsJapaneseLintActive(false);
+      japaneseLintDictionaryDialog.notify();
+      return;
+    }
+
+    // A result cut at the cap remains a light toast.
     notificationController.notify({
       message: translate("japaneseLint.toast.truncated")
     });
@@ -14655,6 +14671,10 @@ export function App(): JSX.Element {
           uiLanguage={displayLanguage}
           platform={window.pergamum.platform}
           onClose={() => setJapaneseMachineCheckTarget(null)}
+          onDictionaryMissing={() => {
+            japaneseLintDictionaryDialog.beginAttempt();
+            japaneseLintDictionaryDialog.notify();
+          }}
         />
       ) : null}
 

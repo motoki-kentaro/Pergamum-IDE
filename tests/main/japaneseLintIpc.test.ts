@@ -205,7 +205,7 @@ describe("instant japanese lint IPC -> Worker (#625 P1c)", () => {
 });
 
 describe("Worker failures become the existing safe failure (#625 P1c)", () => {
-  it("a dictionary that is missing is { ok:false, lint-failed } and the app is unharmed", async () => {
+  it("a dictionary that is missing stays identifiable and the app is unharmed", async () => {
     const { service } = setup({
       lint: realLint,
       realDictionary,
@@ -215,9 +215,32 @@ describe("Worker failures become the existing safe failure (#625 P1c)", () => {
     for (let index = 0; index < 3; index += 1) {
       await expect(service.lint(joshi)).resolves.toEqual({
         ok: false,
-        reason: "lint-failed"
+        reason: "dictionary-missing"
       });
+      // The Renderer turns the instant linter OFF after this failure.
+      await service.release();
     }
+  });
+
+  it.each([false, true])("preserves dictionary-missing (after init: %s), logs only its kind, and can retry", async (afterInit) => {
+    let checks = 0;
+    let repaired = false;
+    const lint = vi.fn(async () => []);
+    const { service, events } = setup({
+      lint,
+      dictionaryExists: () => repaired || (afterInit && ++checks === 1)
+    });
+    expect(await service.lint({ ...joshi, text: secretText })).toEqual({
+      ok: false, reason: "dictionary-missing"
+    });
+    expect(lint).not.toHaveBeenCalled();
+    const run = events.find((event) => event.event === "japaneseLint.run.completed");
+    expect(run?.details?.failureReason).toBe("dictionary-missing");
+    expect(JSON.stringify(events)).not.toContain(secretText);
+    await service.release();
+    repaired = true;
+    expect((await service.lint(joshi)).ok).toBe(true);
+    expect(lint).toHaveBeenCalledTimes(1);
   });
 
   it("a textlint failure inside the Worker is lint-failed", async () => {

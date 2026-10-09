@@ -85,6 +85,7 @@ export type JapaneseMachineCheckFailureReason =
   | "no-rules"
   | "busy"
   | "lint-failed"
+  | "dictionary-missing"
   | "worker-failed"
   | "canceled";
 

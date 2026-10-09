@@ -61,6 +61,7 @@ interface Harness {
   readonly saveReport: ReturnType<typeof vi.fn>;
   readonly discardResult: ReturnType<typeof vi.fn>;
   readonly onClose: ReturnType<typeof vi.fn>;
+  readonly onDictionaryMissing: ReturnType<typeof vi.fn>;
   /** Emits a stage for the dialog's current run unless `runId` says otherwise. */
   emitProgress(
     progress: Omit<JapaneseMachineCheckProgress, "runId"> & { runId?: string }
@@ -89,6 +90,7 @@ async function mount(
   );
   const cancel = vi.fn(async () => undefined);
   const onClose = vi.fn();
+  const onDictionaryMissing = vi.fn();
   const saveReport = vi.fn(
     async (): Promise<JapaneseMachineCheckSaveReportResult> => ({
       ok: true,
@@ -119,6 +121,7 @@ async function mount(
         platform="windows"
         bridge={bridge}
         onClose={onClose}
+        onDictionaryMissing={onDictionaryMissing}
       />
     );
     await Promise.resolve();
@@ -133,6 +136,7 @@ async function mount(
     saveReport,
     discardResult,
     onClose,
+    onDictionaryMissing,
     currentRunId: () =>
       (run.mock.calls.at(-1) as unknown as [{ runId?: string }] | undefined)?.[0]
         .runId,
@@ -271,6 +275,7 @@ describe("Japanese machine check dialog: estimate screen (#625 P2a)", () => {
           translate={translate}
           bridge={rejecting}
           onClose={() => undefined}
+          onDictionaryMissing={() => undefined}
         />
       );
       await Promise.resolve();
@@ -455,6 +460,22 @@ describe("Japanese machine check dialog: running screen (#625 P2a)", () => {
     await flush();
 
     expect(h.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("dictionary-missing immediately closes the wizard and requests the common dialog without results", async () => {
+    const h = await running();
+    h.resolveRun({ ok: false, reason: "dictionary-missing" });
+    await flush();
+    expect(h.onClose).toHaveBeenCalledTimes(1);
+    expect(h.onDictionaryMissing).toHaveBeenCalledTimes(1);
+    expect(h.onClose.mock.invocationCallOrder[0]).toBeLessThan(
+      h.onDictionaryMissing.mock.invocationCallOrder[0]
+    );
+    expect(h.saveReport).not.toHaveBeenCalled();
+    expect(h.discardResult).not.toHaveBeenCalled();
+    expect(document.body.textContent).not.toContain("日本語表現チェックを実行できませんでした");
+    h.emitProgress({ stage: "aggregating" });
+    expect(h.onDictionaryMissing).toHaveBeenCalledTimes(1);
   });
 
   it("unmounting mid-run cancels it", async () => {
@@ -873,6 +894,7 @@ describe("Japanese machine check dialog: platform button order (#625 P2a)", () =
             platform={platform}
             bridge={bridge}
             onClose={() => undefined}
+            onDictionaryMissing={() => undefined}
           />
         );
         await Promise.resolve();
@@ -986,6 +1008,7 @@ describe("Japanese machine check dialog: glossary Description target (#688)", ()
           translate={translate}
           bridge={bridge}
           onClose={() => undefined}
+          onDictionaryMissing={() => undefined}
         />
       );
     });

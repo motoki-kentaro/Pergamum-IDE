@@ -81,6 +81,15 @@ export class JapaneseLintWorkerError extends Error {
   }
 }
 
+/** Only a typed Worker response identifies a missing dictionary. */
+export function isJapaneseLintDictionaryMissing(error: unknown): boolean {
+  return (
+    error instanceof JapaneseLintWorkerError &&
+    error.kind === "worker-error" &&
+    error.workerError?.kind === "dictionary-missing"
+  );
+}
+
 export interface JapaneseLintHostChild {
   readonly pid: number | undefined;
   postMessage(message: unknown, transfer?: unknown[]): void;

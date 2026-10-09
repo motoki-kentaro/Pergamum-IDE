@@ -187,10 +187,10 @@ const japaneseLintMarkersField = StateField.define<RangeSet<GutterMarker>>({
 // ---------------------------------------------------------------------------
 
 /**
- * A user-visible note about a lint pass that could not show everything:
- * the result was cut at the result cap.
+ * A capped result is a notice; an unavailable dictionary stops the checker
+ * and requests the application's shared recovery dialog.
  */
-export type JapaneseLintNotice = "truncated";
+export type JapaneseLintNotice = "truncated" | "dictionary-missing";
 
 export interface JapaneseLintDriverConfig {
   /**
@@ -248,6 +248,8 @@ class JapaneseLintDriver {
   private token = 0;
   private destroyed = false;
   private lastNotice: JapaneseLintNotice | null = null;
+  private dictionaryMissing = false;
+  private activation = 0;
 
   constructor(private readonly view: EditorView) {
     // The view registers its config right after construction, so run on the
@@ -276,6 +278,8 @@ class JapaneseLintDriver {
 
   /** Re-evaluates immediately (toggle, source change). */
   refresh(): void {
+    this.dictionaryMissing = false;
+    this.activation += 1;
     this.schedule(0);
   }
 
@@ -326,7 +330,7 @@ class JapaneseLintDriver {
   }
 
   private async run(): Promise<void> {
-    if (this.destroyed) {
+    if (this.destroyed || this.dictionaryMissing) {
       return;
     }
 
@@ -342,6 +346,7 @@ class JapaneseLintDriver {
 
     const doc: Text = this.view.state.doc;
     const token = ++this.token;
+    const activation = this.activation;
 
     let response: JapaneseLintResponse;
     const requestStartedAt = performance.now();
@@ -372,6 +377,9 @@ class JapaneseLintDriver {
         ...(response.ok
           ? { count: response.diagnostics.length }
           : {
+              ...(response.reason === "dictionary-missing"
+                ? { failureReason: "dictionary-missing" as const }
+                : {}),
               reason:
                 response.reason === "invalid-request"
                   ? "validation_failed"
@@ -379,6 +387,22 @@ class JapaneseLintDriver {
             })
       }
     });
+
+    // Installation failures apply even if the user edited while linting.
+    // A previous activation (OFF/ON or changed source) must not stop a retry.
+    if (
+      !response.ok && response.reason === "dictionary-missing" &&
+      !this.destroyed && activation === this.activation && config.getSource() !== null
+    ) {
+      this.dictionaryMissing = true;
+      if (this.timer !== null) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+      this.clearMarkers();
+      this.notify(config, "dictionary-missing");
+      return;
+    }
 
     // Discard stale results: a newer request/edit/toggle superseded this one,
     // or the document is no longer the one that was linted.

@@ -1,6 +1,8 @@
 import type { TranslationDictionary } from "./ja";
 
 export const enTranslations = {
+  "japaneseLint.dictionaryMissing.title": "Japanese proofreading is unavailable",
+  "japaneseLint.dictionaryMissing.message": "The dictionary files required for Japanese proofreading could not be found.\n\nThere may be a problem with the application installation. Please reinstall the latest version of Pergamum that includes the dictionary files correctly.",
   "activity.files": "File Explorer",
   "activity.glossary": "Glossary",
   "activity.label": "Activity Bar",
