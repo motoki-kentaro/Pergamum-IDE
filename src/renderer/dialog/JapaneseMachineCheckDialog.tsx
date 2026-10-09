@@ -44,6 +44,8 @@ export interface JapaneseMachineCheckDialogProps {
   readonly platform?: AppPlatform;
   readonly opener?: Element | null;
   readonly onClose: () => void;
+  /** Replace this wizard with the shared installation-error dialog. */
+  readonly onDictionaryMissing: () => void;
   /** Defaults to `window.pergamum.japaneseMachineCheck`. */
   readonly bridge?: JapaneseMachineCheckBridge;
 }
@@ -110,6 +112,7 @@ export function JapaneseMachineCheckDialog({
   platform,
   opener = null,
   onClose,
+  onDictionaryMissing,
   bridge
 }: JapaneseMachineCheckDialogProps): JSX.Element {
   const api: JapaneseMachineCheckBridge =
@@ -248,6 +251,11 @@ export function JapaneseMachineCheckDialog({
           resultIdRef.current = result.summary.resultId;
           setSaveState("idle");
           setScreen({ kind: "summary", summary: result.summary });
+        } else if (result.reason === "dictionary-missing") {
+          runTokenRef.current += 1;
+          runIdRef.current = null;
+          onClose();
+          onDictionaryMissing();
         } else if (result.reason === "canceled") {
           onClose();
         } else {
@@ -259,7 +267,7 @@ export function JapaneseMachineCheckDialog({
           setScreen({ kind: "error", reason: "worker-failed" });
         }
       });
-  }, [api, onClose, target]);
+  }, [api, onClose, onDictionaryMissing, target]);
 
   const cancelRun = useCallback(() => {
     if (screenRef.current.kind !== "running") {

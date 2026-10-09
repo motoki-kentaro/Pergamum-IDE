@@ -145,6 +145,44 @@ describe("Japanese lint gutter driver (#625)", () => {
     expect(markers()).toEqual([]);
   });
 
+  it("dictionary-missing stops automatic checks but leaves editing and explicit OFF/ON retry available", async () => {
+    lint.mockResolvedValue({ ok: false, reason: "dictionary-missing" });
+    source = { format: "text", ext: ".txt" };
+    mount("私は彼は好きだ。");
+    await settle();
+    expect(notices).toEqual(["dictionary-missing"]);
+    for (let i = 0; i < 3; i++) {
+      view.dispatch({ changes: { from: view.state.doc.length, insert: "追記" } });
+      await settle(2000);
+    }
+    expect(lint).toHaveBeenCalledTimes(1);
+    expect(view.state.doc.toString()).toBe("私は彼は好きだ。追記追記追記");
+    expect(undoDepth(view.state)).toBeGreaterThan(0);
+    source = null;
+    refreshJapaneseLint(view);
+    await settle();
+    source = { format: "text", ext: ".txt" };
+    lint.mockResolvedValue({ ok: true, diagnostics: [diagnostic()], truncated: false });
+    refreshJapaneseLint(view);
+    await settle();
+    expect(lint).toHaveBeenCalledTimes(2);
+    expect(markers()).toHaveLength(1);
+    expect(notices).toEqual(["dictionary-missing"]);
+  });
+
+  it("dictionary failure stops checks even if edits made the diagnostics stale", async () => {
+    let finish!: (result: JapaneseLintResponse) => void;
+    lint.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    source = { format: "text", ext: ".txt" };
+    mount("本文");
+    await settle();
+    view.dispatch({ changes: { from: 2, insert: "続き" } });
+    finish({ ok: false, reason: "dictionary-missing" });
+    await settle(2000);
+    expect(lint).toHaveBeenCalledTimes(1);
+    expect(notices).toEqual(["dictionary-missing"]);
+  });
+
   it("lints as soon as it is turned ON and shows a gutter marker with tooltip", async () => {
     lint.mockResolvedValue({
       ok: true,

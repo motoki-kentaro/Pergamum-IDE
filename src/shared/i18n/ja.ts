@@ -1,4 +1,6 @@
 export const jaTranslations = {
+  "japaneseLint.dictionaryMissing.title": "日本語校正を利用できません",
+  "japaneseLint.dictionaryMissing.message": "日本語校正に必要な辞書ファイルが見つかりません。\n\nアプリケーションのインストールに問題がある可能性があります。辞書が正しく同梱された最新版の Pergamum を再インストールしてください。",
   "activity.files": "ファイルエクスプローラー",
   "activity.glossary": "語彙集",
   "activity.label": "アクティビティバー",

@@ -8,7 +8,10 @@ import {
 import { buildJapaneseLintWorkerConfig } from "../shared/japaneseLintWorkerProtocol";
 import { getDebugLogger, type DebugLogger } from "./debugLogger";
 import { loadSettings } from "./settingsStore";
-import type { JapaneseLintHost } from "./linterWorker/japaneseLintHost";
+import {
+  isJapaneseLintDictionaryMissing,
+  type JapaneseLintHost
+} from "./linterWorker/japaneseLintHost";
 import { createElectronJapaneseLintHost } from "./linterWorker/japaneseLintHostElectron";
 
 /**
@@ -18,9 +21,9 @@ import { createElectronJapaneseLintHost } from "./linterWorker/japaneseLintHostE
  * faster than linearly and would otherwise freeze the window.
  *
  * The Renderer contract is unchanged: `{ ok: true, diagnostics, truncated }`
- * or `{ ok: false, reason }`. Every Worker failure (worker-failed,
- * dictionary-missing, lint-failed, canceled) folds into `lint-failed`, so the
- * Renderer just clears its markers. This handler never rejects.
+ * or `{ ok: false, reason }`. A missing dictionary stays identifiable so the
+ * Renderer can stop checking and explain recovery. Other Worker failures
+ * fold into `lint-failed`. This handler never rejects.
  *
  * Lifecycle: the Worker starts lazily on the first lint that has something to
  * run (a document of any length: there is no size limit, the Worker keeps
@@ -195,7 +198,12 @@ export function createInstantJapaneseLintService(
           enabledRuleIds: config.enabledRuleIds
         });
 
-        return { ok: false, reason: "lint-failed" };
+        return {
+          ok: false,
+          reason: outcome.reason === "dictionary-missing"
+            ? "dictionary-missing"
+            : "lint-failed"
+        };
       }
 
       logRun("succeeded", {
@@ -216,11 +224,15 @@ export function createInstantJapaneseLintService(
         })),
         truncated: outcome.truncated
       };
-    } catch {
+    } catch (error) {
       // start() / updateConfig() failing (e.g. a missing Worker bundle).
-      logRun("failed", { reason: "lint_failed", failureReason: "worker-failed" });
+      const missing = isJapaneseLintDictionaryMissing(error);
+      logRun("failed", {
+        reason: "lint_failed",
+        failureReason: missing ? "dictionary-missing" : "worker-failed"
+      });
 
-      return { ok: false, reason: "lint-failed" };
+      return { ok: false, reason: missing ? "dictionary-missing" : "lint-failed" };
     }
   };
 

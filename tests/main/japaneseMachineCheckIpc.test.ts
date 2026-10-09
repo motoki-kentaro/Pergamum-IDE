@@ -1071,7 +1071,7 @@ describe("Worker lifecycle (#625 P2a)", () => {
     stuck.release();
   });
 
-  it("a missing dictionary is a safe failure", async () => {
+  it("a missing dictionary is a specific safe failure", async () => {
     const { service } = setup(undefined, {
       lint: realLint,
       realDictionary,
@@ -1080,8 +1080,24 @@ describe("Worker lifecycle (#625 P2a)", () => {
 
     expect(await service.run({ kind: "projectFile", relativePath: "a.md" })).toEqual({
       ok: false,
-      reason: "worker-failed"
+      reason: "dictionary-missing"
     });
+  });
+
+  it.each([false, true])("dictionary failure stops before lint/results (after init: %s)", async (afterInit) => {
+    let checks = 0;
+    const lint = vi.fn(async () => []);
+    const { service } = setup(undefined, {
+      lint,
+      dictionaryExists: () => afterInit && ++checks === 1
+    });
+    const stages: string[] = [];
+    const result = await service.run({ kind: "projectFile", relativePath: "a.md" },
+      (progress) => stages.push(progress.stage));
+    expect(result).toEqual({ ok: false, reason: "dictionary-missing" });
+    expect(lint).not.toHaveBeenCalled();
+    expect(stages).not.toContain("aggregating");
+    expect(result).not.toHaveProperty("summary");
   });
 
   it("dispose() (app quit) stops a run in flight", async () => {

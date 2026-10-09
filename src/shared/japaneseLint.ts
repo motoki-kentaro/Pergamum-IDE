@@ -47,7 +47,7 @@ export type JapaneseLintResponse =
     }
   | {
       readonly ok: false;
-      readonly reason: "invalid-request" | "lint-failed";
+      readonly reason: "invalid-request" | "lint-failed" | "dictionary-missing";
     };
 
 /** Most diagnostics returned for one request; the rest are cut (truncated). */
