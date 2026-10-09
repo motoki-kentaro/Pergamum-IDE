@@ -18,7 +18,7 @@ Pergamum（ペルガモン）は、**小説を書く人のためのオープン�
   <img src="docs/manual/assets/main_image.png" alt="Pergamumの執筆画面" width="1000">
 </p>
 
-## for novelist
+## for Novelists
 
 長い物語では、人物名、別称、地名、設定など、本文とは別に覚えておきたいことが増えていきます。Pergamum は、**本文を書く場所と、作品世界について作者が知っていることを管理する場所を分け、その両方をひとつの執筆環境として扱います**。
 
