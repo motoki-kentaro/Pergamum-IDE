@@ -123,6 +123,37 @@ describe("shared dictionary-missing dialog (#775)", () => {
     expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
 
+  it("engine-unavailable (#778) shows its own dialog with a copyable, unchanged technical info, once", async () => {
+    await render();
+    await act(async () => {
+      notice.notifyEngineUnavailable("TECH INFO");
+      notice.notifyEngineUnavailable("TECH INFO");
+    });
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(confirm.mock.calls[0]?.[0]).toMatchObject({
+      clipboardText: "TECH INFO",
+      clipboardTextTitle: t("ja", "dialog.copyTechnicalInfo"),
+      cancelLabel: null
+    });
+    expect(container.textContent).toContain(t("ja", "japaneseLint.engineUnavailable.title"));
+    expect(container.textContent).toContain("日本語校正を停止します。文書の編集と保存は引き続き利用できます。");
+    expect(container.textContent).not.toContain(t("ja", "japaneseLint.dictionaryMissing.title"));
+    await dismiss();
+  });
+
+  it("dictionary-missing is not turned into the engine dialog and goes first when both are due (#778 / #775)", async () => {
+    await render({ ready: false });
+    await act(async () => {
+      notice.notifyEngineUnavailable("TECH INFO");
+      notice.notify();
+    });
+    await render({ ready: true });
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain(t("ja", "japaneseLint.dictionaryMissing.title"));
+    expect(container.textContent).not.toContain(t("ja", "japaneseLint.engineUnavailable.title"));
+    await dismiss();
+  });
+
   it.each(["lint-failed", "worker-failed"] as const)("keeps %s in the existing manual error screen", async (reason) => {
     manualBridge.run = vi.fn(async () => ({ ok: false, reason } as const));
     await render();

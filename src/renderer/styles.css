@@ -14888,6 +14888,16 @@ body > .mermaidTooltip {
   margin-block-start: 0.1875rem;
 }
 
+.notificationToastIcon-masked {
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
 .notificationToastBody {
   flex: 1 1 auto;
   min-inline-size: 0;

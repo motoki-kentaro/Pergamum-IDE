@@ -196,7 +196,7 @@ describe("instant japanese lint IPC -> Worker (#625 P1c)", () => {
   it("returns no diagnostics for empty text", async () => {
     const { service } = setup();
 
-    expect(await service.lint({ text: "", format: "text", ext: ".txt" })).toEqual({
+    expect(await service.lint({ text: "", format: "text", ext: ".txt" })).toMatchObject({
       ok: true,
       diagnostics: [],
       truncated: false
@@ -480,7 +480,7 @@ describe("existing behavior is preserved (#625 P1c)", () => {
       ] as const) {
         expect(
           await service.lint({ text: "あ".repeat(length), format, ext })
-        ).toEqual({ ok: true, diagnostics: [], truncated: false });
+        ).toMatchObject({ ok: true, diagnostics: [], truncated: false });
       }
     }
 

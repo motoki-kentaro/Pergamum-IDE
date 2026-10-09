@@ -289,6 +289,7 @@ import {
   type DialogControllerPendingRequest
 } from "./dialog/dialogController";
 import { DeferredErrorDialogQueue } from "./dialog/deferredErrorDialogQueue";
+import type { JapaneseLintNotice } from "./japaneseLint/japaneseLintGutterExtension";
 import { useJapaneseLintDictionaryMissingDialog } from "./japaneseLint/useJapaneseLintDictionaryMissingDialog";
 import {
   AppDialogError,
@@ -3903,7 +3904,30 @@ export function App(): JSX.Element {
     translate
   });
 
-  function notifyJapaneseLint(notice: "truncated" | "dictionary-missing"): void {
+  function notifyJapaneseLint(
+    notice: JapaneseLintNotice,
+    detail?: string
+  ): void {
+    if (notice === "engine-started" || notice === "engine-restarted") {
+      // #778: the Main Process reports each start sequence once.
+      notificationController.notify({
+        message: translate(
+          notice === "engine-started"
+            ? "japaneseLint.toast.engineStarted"
+            : "japaneseLint.toast.engineRestarted"
+        )
+      });
+      return;
+    }
+
+    if (notice === "engine-unavailable") {
+      // Same stop as #775: session-only OFF releases the Worker; editing and
+      // saving are untouched.
+      setIsJapaneseLintActive(false);
+      japaneseLintDictionaryDialog.notifyEngineUnavailable(detail ?? "");
+      return;
+    }
+
     if (notice === "dictionary-missing") {
       // Session-only OFF: the existing OFF effect releases the Worker.
       setIsJapaneseLintActive(false);

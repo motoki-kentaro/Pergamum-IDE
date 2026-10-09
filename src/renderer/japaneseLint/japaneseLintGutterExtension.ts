@@ -190,7 +190,14 @@ const japaneseLintMarkersField = StateField.define<RangeSet<GutterMarker>>({
  * A capped result is a notice; an unavailable dictionary stops the checker
  * and requests the application's shared recovery dialog.
  */
-export type JapaneseLintNotice = "truncated" | "dictionary-missing";
+export type JapaneseLintNotice =
+  | "truncated"
+  | "dictionary-missing"
+  /** #778: the engine could not be started; carries copyable technical info. */
+  | "engine-unavailable"
+  /** #778: engine start sequence results, reported by the Main Process once. */
+  | "engine-started"
+  | "engine-restarted";
 
 export interface JapaneseLintDriverConfig {
   /**
@@ -198,7 +205,7 @@ export interface JapaneseLintDriverConfig {
    * change (not on every debounced re-lint) and re-armed when the linter is
    * turned OFF.
    */
-  readonly onNotice?: (notice: JapaneseLintNotice) => void;
+  readonly onNotice?: (notice: JapaneseLintNotice, detail?: string) => void;
   /**
    * The source to lint as, or null while the linter is OFF or the active
    * surface is unsupported (then any markers are cleared).
@@ -312,7 +319,8 @@ class JapaneseLintDriver {
   /** Notifies once per state change; null re-arms the notice. */
   private notify(
     config: JapaneseLintDriverConfig,
-    notice: JapaneseLintNotice | null
+    notice: JapaneseLintNotice | null,
+    detail?: string
   ): void {
     if (notice === this.lastNotice) {
       return;
@@ -322,7 +330,7 @@ class JapaneseLintDriver {
 
     if (notice !== null) {
       try {
-        config.onNotice?.(notice);
+        config.onNotice?.(notice, detail);
       } catch {
         /* a notice must never break linting */
       }
@@ -388,10 +396,26 @@ class JapaneseLintDriver {
       }
     });
 
+    // #778: the Main Process reports an engine start once per sequence, so it
+    // is surfaced even when this particular result is stale.
+    if (response.ok && response.engineNotice !== undefined && !this.destroyed) {
+      try {
+        config.onNotice?.(
+          response.engineNotice === "restarted"
+            ? "engine-restarted"
+            : "engine-started"
+        );
+      } catch {
+        /* a notice must never break linting */
+      }
+    }
+
     // Installation failures apply even if the user edited while linting.
     // A previous activation (OFF/ON or changed source) must not stop a retry.
     if (
-      !response.ok && response.reason === "dictionary-missing" &&
+      !response.ok &&
+      (response.reason === "dictionary-missing" ||
+        response.reason === "engine-unavailable") &&
       !this.destroyed && activation === this.activation && config.getSource() !== null
     ) {
       this.dictionaryMissing = true;
@@ -400,7 +424,11 @@ class JapaneseLintDriver {
         this.timer = null;
       }
       this.clearMarkers();
-      this.notify(config, "dictionary-missing");
+      if (response.reason === "engine-unavailable") {
+        this.notify(config, "engine-unavailable", response.technicalInfo);
+      } else {
+        this.notify(config, "dictionary-missing");
+      }
       return;
     }
 
