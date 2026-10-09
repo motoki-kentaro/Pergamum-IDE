@@ -73,6 +73,15 @@ describe("Linter Worker packaging (#625 P1a)", () => {
     );
   });
 
+  it("electron-builder unpacks the same dictionary pattern as Forge (#776)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
+      build: { asarUnpack?: string[] };
+    };
+
+    expect(pkg.build.asarUnpack).toEqual([forge.packagerConfig.asar.unpack]);
+  });
+
   it("still lets the dictionary (and only it) through the package whitelist", () => {
     const ignored = forge.packagerConfig.ignore;
 
