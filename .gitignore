@@ -12,6 +12,7 @@ scripts/*
 !scripts/generate-aozora-accent-table.mjs
 !scripts/electronFusesPolicy.js
 !scripts/electronBuilderAfterPack.js
+!scripts/verifyPackagedKuromojiDict.js
 !scripts/generateThirdPartyLicenses.js
 !scripts/thirdPartyLicenseOverrides.json
 !scripts/thirdPartyLicenses/

@@ -37,6 +37,9 @@
     "files": [
       ".vite/**/*"
     ],
+    "asarUnpack": [
+      "**/node_modules/kuromoji/dict/**"
+    ],
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico",
