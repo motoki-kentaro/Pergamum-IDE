@@ -6,7 +6,7 @@
 
 <p align="center"><strong>IDE for novelists</strong></p>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Version v0.90.0](https://img.shields.io/badge/version-v0.90.0-blue)](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.0) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
+[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Version v0.90.1](https://img.shields.io/badge/version-v0.90.1-blue)](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.1) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
 
 [日本語](./README.md) | [English](./README.en.md)
 
@@ -14,15 +14,44 @@
 
 Pergamum is an **open-source IDE for novelists**. It brings manuscript editing, story-world information, search, preview, and export together in one project. It is free software under the MIT License.
 
+<p align="center">
+  <img src="docs/manual/assets/main_image.png" alt="Pergamum writing workspace" width="1000">
+</p>
+
+## for novelist
+
 As a story grows, so does the information surrounding it: character names, aliases, places, and world-building notes. Pergamum **separates the place where you write from the place where you manage what you know about your story, while keeping both in one writing environment**.
 
-Human-readable Markdown files are the source of truth for the manuscript. Structured story information, such as characters and terms, lives in a SQLite `.pergamum` project file. Your manuscript remains readable in other text editors, without having to fit the database's structure.
+Ordinary Markdown / TXT files on your own computer are the source of truth for your manuscript. Structured story information, such as characters and terms, lives in a SQLite `.pergamum` project file. Your manuscript remains readable in other text editors, without having to fit the database's structure.
 
 The goal is not to write novels on the author's behalf, but to build **a tool that helps authors remember what they have already decided**. Pergamum does not rewrite your manuscript on its own: text changes and completion follow the operations and settings you choose.
 
-## v0.90.0 — BETA
+Focus on writing while keeping your manuscript on your own computer. Getting started does not require entrusting your work to a particular service.
 
-The core features of a novelists' IDE are now in place, and **Pergamum v0.90.0 BETA is available as the first public release**. A Windows NSIS installer is provided through GitHub Releases.
+- **Completely free / [MIT License](./LICENSE)**
+- **No account required**
+- **No cloud features**
+- **Your manuscript files are not sent to external services**
+- **No AI writing, text generation, or editing features**
+- **No PC administrator privileges required to install the Windows version**
+- Your manuscript stays on your computer as ordinary **Markdown / TXT files**. You can open it in other text editors even if you stop using Pergamum.
+
+Pergamum is developed with generative AI assistance, but the product itself has no AI writing, text generation, or editing features. The author creates the story and chooses the words.
+
+## for Engineer
+
+Alongside fiction, Pergamum has room for technical notes and design documents. Combine prose, diagrams, equations, and code in a single Markdown document to put your ideas in context.
+
+- **GitHub Alerts (callouts)** — Make notes and warnings stand out from the surrounding text.
+- **Mermaid syntax** — Describe diagrams and flowcharts in text.
+- **KaTeX syntax** — Write and display mathematical expressions.
+- **Syntax highlighting** — Display code blocks with language-aware coloring.
+
+Use the horizontal Markdown preview to check the presentation as you write. Search and project management also help you keep related notes together.
+
+## v0.90.1 — BETA
+
+The core features of a novelists' IDE are now in place, and **Pergamum v0.90.1 BETA is available as the first public release**. A Windows NSIS installer is provided through GitHub Releases.
 
 The project is now entering a feedback-driven phase. Bug reports, rough edges, workflow problems, and requests for new features based on actual writing are welcome.
 
@@ -62,11 +91,11 @@ The [User Manual](https://pergamum-ide.github.io/en/) covers saving and recovery
 
 ### Windows
 
-For Windows, Pergamum provides an **NSIS installer**.
+For Windows, Pergamum provides an **NSIS installer**. **No PC administrator privileges are required for installation.**
 
 The installer can be used to install Pergamum and also supports file association for `.pergamum` project files.
 
-**[Download Pergamum v0.90.0 BETA from GitHub Releases](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.0)**
+**[Download Pergamum v0.90.1 BETA from GitHub Releases](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.1)**
 
 ### macOS / Linux
 
@@ -129,3 +158,7 @@ For bug reports, the application version, OS, steps to reproduce, and expected b
 Pergamum is released under the [MIT License](./LICENSE).
 
 See [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md) for bundled dependencies and Electron, and [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for attribution and licenses of icons, sound effects, and other assets.
+
+## Origin of the name Pergamum
+
+Pergamum (Πέργαμον) was an ancient Greek city that once flourished in Asia Minor (present-day western Turkey). It was home to a great library that rivaled the Library of Alexandria, and its name also gave rise to the word “parchment.” This product takes its name from that city.
