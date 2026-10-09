@@ -6,7 +6,7 @@
 
 <p align="center"><strong>IDE for novelists</strong></p>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Version v0.90.0](https://img.shields.io/badge/version-v0.90.0-blue)](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.0) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
+[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Version v0.90.1](https://img.shields.io/badge/version-v0.90.1-blue)](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.1) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
 
 [日本語](./README.md) | [English](./README.en.md)
 
@@ -14,15 +14,44 @@
 
 Pergamum（ペルガモン）は、**小説を書く人のためのオープンソース統合執筆環境**です。本文の編集、作品の人物や用語の管理、検索、プレビュー、出力を、ひとつのプロジェクトにまとめます。MIT ライセンスのフリーソフトウェアです。
 
+<p align="center">
+  <img src="docs/manual/assets/main_image.png" alt="Pergamumの執筆画面" width="1000">
+</p>
+
+## for novelist
+
 長い物語では、人物名、別称、地名、設定など、本文とは別に覚えておきたいことが増えていきます。Pergamum は、**本文を書く場所と、作品世界について作者が知っていることを管理する場所を分け、その両方をひとつの執筆環境として扱います**。
 
-本文の正本は、人間が読める Markdown ファイルです。人物・用語などの構造化された作品情報は、SQLite の `.pergamum` プロジェクトファイルに保存します。他のテキストエディタでも原稿を読めること、本文をデータベースの都合に合わせないことを大切にしています。
+原稿本文の正本は、自分のPCに保存する通常の Markdown / TXT ファイルです。人物・用語などの構造化された作品情報は、SQLite の `.pergamum` プロジェクトファイルに保存します。他のテキストエディタでも原稿を読めること、本文をデータベースの都合に合わせないことを大切にしています。
 
 目指すのは、作者の代わりに小説を書くことではなく、**作者が既に決めたことを忘れないための道具**です。本文を勝手に書き換えず、表記の変更や補完は作者が選んだ操作・設定に従います。
 
-## v0.90.0 — BETA
+書くことに集中しながら、原稿は自分の手元に。使い始めるために、作品を特定のサービスへ預ける必要はありません。
 
-小説 IDE としての中核機能がひととおり揃い、**v0.90.0 BETA を最初の公開リリースとして提供しています**。Windows 向けには NSIS インストーラーを配布しています。
+- **完全無料 / [MIT License](./LICENSE)**
+- **アカウント登録不要**
+- **クラウド機能なし**
+- **原稿ファイルを外部サービスへ送信しません**
+- **AIによる執筆・文章生成・添削機能なし**
+- **Windows版のインストールにPCの管理者権限は不要**
+- 原稿は通常の **Markdown / TXT ファイル**として手元に残ります。Pergamumを使わなくなっても、他のテキストエディタで開けます。
+
+Pergamum は生成AIを活用して開発されていますが、製品自体にAIによる執筆・文章生成・添削機能はありません。物語を考え、言葉を選ぶのは作者です。
+
+## for Engineer
+
+小説の執筆だけでなく、技術メモや設計ノートにも。文章に図・数式・コードを添えて、考えをひとつの Markdown 文書にまとめられます。
+
+- **GitHub Alerts（コールアウト）対応** — 補足や注意点を、本文と区別して読みやすく表示できます。
+- **Mermaid記法対応** — 図やフローチャートをテキストで記述できます。
+- **KaTeX記法対応** — 数式を記述・表示できます。
+- **シンタックスハイライト対応** — コードブロックを言語に応じて色分け表示できます。
+
+Markdown の横書きプレビューで、書いた内容の表示を確認しながら整理できます。検索やプロジェクト管理も、関連するメモをまとめて扱うのに役立ちます。
+
+## v0.90.1 — BETA
+
+小説 IDE としての中核機能がひととおり揃い、**v0.90.1 BETA を最初の公開リリースとして提供しています**。Windows 向けには NSIS インストーラーを配布しています。
 
 ここからは実際に使ってもらい、不具合・使いにくい点・追加要望を集めていきます。
 
@@ -62,11 +91,11 @@ Session は開いていたタブなどの作業環境を戻し、Recovery は未
 
 ### Windows
 
-Windows 向けには、**NSIS インストーラー**を提供しています。
+Windows 向けには、**NSIS インストーラー**を提供しています。**インストールにPCの管理者権限は不要です。**
 
 インストーラーから Pergamum を導入でき、`.pergamum` ファイルを Pergamum で開くためのファイル関連付けにも対応しています。
 
-**[Pergamum v0.90.0 BETA を GitHub Releases からダウンロード](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.0)**
+**[Pergamum v0.90.1 BETA を GitHub Releases からダウンロード](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.1)**
 
 ### macOS / Linux
 
@@ -129,3 +158,7 @@ Pergamum は、機能を積み上げる段階から、**実際に使ったフィ
 Pergamum は [MIT License](./LICENSE) で公開しています。
 
 同梱する依存パッケージと Electron のライセンスは [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md)、アイコン・効果音などの帰属表示とライセンスは [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) を参照してください。
+
+## Pergamumの由来
+
+Pergamum（Πέργαμον）とは、かつて小アジア（現在のトルコ西部）に栄えた古代ギリシアの都市の名前です。アレクサンドリア図書館に匹敵する大図書館を擁し、羊皮紙（パーチメント / Parchment）の語源にもなりました。本プロダクト名はそこから引用したものです。
