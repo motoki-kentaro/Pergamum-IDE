@@ -4,7 +4,10 @@ import type { AppConfirmDialogOptions, AppConfirmDialogResult } from "../dialog/
 import { DeferredErrorDialogQueue } from "../dialog/deferredErrorDialogQueue";
 
 const cause = "japaneseLintDictionaryMissing";
-const createQueue = () => new DeferredErrorDialogQueue([cause]);
+// #778: the engine could not start within the configured attempts.
+const engineCause = "japaneseLintEngineUnavailable";
+// A missing dictionary is the more specific diagnosis: it goes first.
+const createQueue = () => new DeferredErrorDialogQueue([cause, engineCause]);
 
 /** App-owned: automatic reruns and document/project switches never re-arm it. */
 export function useJapaneseLintDictionaryMissingDialog(options: {
@@ -16,6 +19,7 @@ export function useJapaneseLintDictionaryMissingDialog(options: {
 }) {
   const queue = useRef(createQueue());
   const [revision, setRevision] = useState(0);
+  const technicalInfo = useRef<string | null>(null);
   const latest = useRef(options);
   latest.current = options;
 
@@ -32,6 +36,13 @@ export function useJapaneseLintDictionaryMissingDialog(options: {
     }
   }, []);
 
+  const notifyEngineUnavailable = useCallback((info: string) => {
+    technicalInfo.current = info;
+    if (queue.current.arm(engineCause)) {
+      setRevision((value) => value + 1);
+    }
+  }, []);
+
   useEffect(() => {
     if (!options.ready || options.blocked) {
       return;
@@ -39,12 +50,27 @@ export function useJapaneseLintDictionaryMissingDialog(options: {
     queue.current.markReady();
     const presentation = queue.current.pump({
       isDialogPending: () => latest.current.blocked || latest.current.isDialogPending(),
-      present: () => {
+      present: (id) => {
         // Another modal may have opened between pump and this microtask.
         if (latest.current.blocked || latest.current.isDialogPending()) {
           return Promise.reject(new Error("dialogAlreadyOpen"));
         }
         const { translate, confirm } = latest.current;
+        if (id === engineCause) {
+          return confirm({
+            title: translate("japaneseLint.engineUnavailable.title"),
+            message: {
+              kind: "plainText",
+              text: translate("japaneseLint.engineUnavailable.message")
+            },
+            icon: { kind: "error", tooltip: translate("dialog.icon.error") },
+            confirmLabel: translate("common.ok"),
+            cancelLabel: null,
+            clipboardText: technicalInfo.current,
+            clipboardTextTitle: translate("dialog.copyTechnicalInfo"),
+            dismissOnBackdropClick: false
+          });
+        }
         return confirm({
           title: translate("japaneseLint.dictionaryMissing.title"),
           message: { kind: "plainText", text: translate("japaneseLint.dictionaryMissing.message") },
@@ -61,5 +87,5 @@ export function useJapaneseLintDictionaryMissingDialog(options: {
     }
   }, [options.ready, options.blocked, revision]);
 
-  return { notify, beginAttempt };
+  return { notify, notifyEngineUnavailable, beginAttempt };
 }

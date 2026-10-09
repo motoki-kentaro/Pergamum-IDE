@@ -1,4 +1,8 @@
 export const jaTranslations = {
+  "japaneseLint.engineUnavailable.title": "日本語校正エンジンを起動できません",
+  "japaneseLint.engineUnavailable.message": "日本語校正エンジンの起動を繰り返し試みましたが、正常に起動できませんでした。\n\n日本語校正を停止します。文書の編集と保存は引き続き利用できます。",
+  "japaneseLint.toast.engineStarted": "日本語校正エンジンを起動しました",
+  "japaneseLint.toast.engineRestarted": "日本語校正エンジンを再起動しました",
   "japaneseLint.dictionaryMissing.title": "日本語校正を利用できません",
   "japaneseLint.dictionaryMissing.message": "日本語校正に必要な辞書ファイルが見つかりません。\n\nアプリケーションのインストールに問題がある可能性があります。辞書が正しく同梱された最新版の Pergamum を再インストールしてください。",
   "activity.files": "ファイルエクスプローラー",

@@ -300,7 +300,7 @@ interface MarkdownEditorProps {
    */
   japaneseLintSource?: JapaneseLintSource | null;
   /** #625: a lint pass was skipped (too large) or cut (too many results). */
-  onJapaneseLintNotice?: (notice: JapaneseLintNotice) => void;
+  onJapaneseLintNotice?: (notice: JapaneseLintNotice, detail?: string) => void;
   /**
    * #625: fingerprint of the Japanese lint rule settings. A change re-runs the
    * check so a Settings change applies to the open document immediately.
@@ -1084,7 +1084,8 @@ export function MarkdownEditor({
   const japaneseLintDriverConfigRef = useRef<JapaneseLintDriverConfig>({
     getSource: () => japaneseLintSourceRef.current,
     getDebounceMs: () => japaneseLintDebounceMsRef.current,
-    onNotice: (notice) => onJapaneseLintNoticeRef.current?.(notice),
+    onNotice: (notice, detail) =>
+      onJapaneseLintNoticeRef.current?.(notice, detail),
     lint: (request) => window.pergamum.japaneseLint.lint(request)
   });
 

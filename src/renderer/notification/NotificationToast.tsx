@@ -178,6 +178,13 @@ export function notificationToastPlacementStyle(
   }
 }
 
+// Monochrome Feather presets are painted as a CSS mask over currentColor: an
+// <img> cannot inherit `currentColor`, so its strokes would stay black. The
+// multi-colour brand mark keeps its own colours as an <img>.
+function isMaskedIconName(name: string): boolean {
+  return name !== "pergamum";
+}
+
 function iconUrlFor(icon: NotificationToastIcon | undefined): string | null {
   if (icon?.kind !== "preset") {
     return null;
@@ -234,7 +241,16 @@ export function NotificationToast({
         detailCard: isDetailCard
       })}
     >
-      {presetIconUrl ? (
+      {presetIconUrl && icon?.kind === "preset" && isMaskedIconName(icon.name) ? (
+        <span
+          className="notificationToastIcon notificationToastIcon-masked"
+          aria-hidden="true"
+          style={{
+            maskImage: `url("${presetIconUrl}")`,
+            WebkitMaskImage: `url("${presetIconUrl}")`
+          }}
+        />
+      ) : presetIconUrl ? (
         <img
           className="notificationToastIcon"
           src={presetIconUrl}

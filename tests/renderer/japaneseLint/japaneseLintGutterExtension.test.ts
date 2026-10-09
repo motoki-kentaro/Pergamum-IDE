@@ -90,6 +90,7 @@ describe("Japanese lint gutter driver (#625)", () => {
   let view: EditorView;
   let source: JapaneseLintSource | null;
   let notices: JapaneseLintNotice[];
+  let noticeDetails: (string | undefined)[];
   let lint: Mock<(request: JapaneseLintRequest) => Promise<JapaneseLintResponse>>;
 
   function mount(doc: string): void {
@@ -103,7 +104,10 @@ describe("Japanese lint gutter driver (#625)", () => {
     registerJapaneseLintDriver(view, {
       getSource: () => source,
       lint: (request: JapaneseLintRequest) => lint(request),
-      onNotice: (notice) => notices.push(notice)
+      onNotice: (notice, detail) => {
+        notices.push(notice);
+        noticeDetails.push(detail);
+      }
     });
   }
 
@@ -121,6 +125,7 @@ describe("Japanese lint gutter driver (#625)", () => {
     document.body.appendChild(parent);
     source = null;
     notices = [];
+    noticeDetails = [];
     lint = vi.fn(
       async (): Promise<JapaneseLintResponse> => ({
         ok: true,
@@ -181,6 +186,58 @@ describe("Japanese lint gutter driver (#625)", () => {
     await settle(2000);
     expect(lint).toHaveBeenCalledTimes(1);
     expect(notices).toEqual(["dictionary-missing"]);
+  });
+
+  it("engine notices (#778): reported once, never repeated by edits, debounce or tab-switch refreshes", async () => {
+    lint.mockResolvedValueOnce({
+      ok: true,
+      diagnostics: [],
+      truncated: false,
+      engineNotice: "started"
+    });
+    source = { format: "text", ext: ".txt" };
+    mount("本文");
+    await settle();
+    expect(notices).toEqual(["engine-started"]);
+    for (let i = 0; i < 3; i++) {
+      view.dispatch({ changes: { from: view.state.doc.length, insert: "追" } });
+      await settle(JAPANESE_LINT_DEBOUNCE_MS + 100);
+    }
+    refreshJapaneseLint(view);
+    await settle();
+    expect(lint.mock.calls.length).toBeGreaterThan(3);
+    expect(notices).toEqual(["engine-started"]);
+  });
+
+  it("engine notice survives a stale result and a restart is reported as such", async () => {
+    let finish!: (result: JapaneseLintResponse) => void;
+    lint.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    source = { format: "text", ext: ".txt" };
+    mount("本文");
+    await settle();
+    view.dispatch({ changes: { from: 2, insert: "続き" } });
+    finish({ ok: true, diagnostics: [], truncated: false, engineNotice: "restarted" });
+    await settle();
+    expect(notices).toEqual(["engine-restarted"]);
+  });
+
+  it("engine-unavailable stops automatic checks and passes the technical info along (#778)", async () => {
+    lint.mockResolvedValue({
+      ok: false,
+      reason: "engine-unavailable",
+      technicalInfo: "INFO"
+    });
+    source = { format: "text", ext: ".txt" };
+    mount("私は彼は好きだ。");
+    await settle();
+    for (let i = 0; i < 3; i++) {
+      view.dispatch({ changes: { from: view.state.doc.length, insert: "追記" } });
+      await settle(2000);
+    }
+    expect(lint).toHaveBeenCalledTimes(1);
+    expect(notices).toEqual(["engine-unavailable"]);
+    expect(noticeDetails).toEqual(["INFO"]);
+    expect(view.state.doc.toString()).toBe("私は彼は好きだ。追記追記追記");
   });
 
   it("lints as soon as it is turned ON and shows a gutter marker with tooltip", async () => {

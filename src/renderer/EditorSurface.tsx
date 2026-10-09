@@ -629,7 +629,7 @@ interface EditorSurfaceProps {
   isMarkdownSyntaxCheckerActive?: boolean;
   /** #625: Japanese lint source (null/undefined = OFF or unsupported). */
   japaneseLintSource?: JapaneseLintSource | null;
-  onJapaneseLintNotice?: (notice: JapaneseLintNotice) => void;
+  onJapaneseLintNotice?: (notice: JapaneseLintNotice, detail?: string) => void;
   japaneseLintSettingsRevision?: string;
   japaneseLintDebounceMs?: number;
   hasProject?: boolean;
@@ -1079,7 +1079,7 @@ interface MarkdownEditorSurfaceProps {
   isMarkdownSyntaxCheckerActive?: boolean;
   /** #625: Japanese lint source (null/undefined = OFF or unsupported). */
   japaneseLintSource?: JapaneseLintSource | null;
-  onJapaneseLintNotice?: (notice: JapaneseLintNotice) => void;
+  onJapaneseLintNotice?: (notice: JapaneseLintNotice, detail?: string) => void;
   japaneseLintSettingsRevision?: string;
   japaneseLintDebounceMs?: number;
   onParagraphIndentControllerChange: (

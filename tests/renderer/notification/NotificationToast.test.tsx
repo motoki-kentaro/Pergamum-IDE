@@ -40,6 +40,20 @@ describe("NotificationToast (#266)", () => {
     expect(withoutIcon).not.toContain("notificationToastIcon");
   });
 
+  it("paints monochrome presets as a currentColor mask (not an <img>) and keeps the brand mark an <img>", () => {
+    const info = render({ icon: { kind: "preset", name: "info" } });
+    const brand = render({ icon: { kind: "preset", name: "pergamum" } });
+
+    expect(info).toContain("notificationToastIcon-masked");
+    expect(info).toContain("mask-image");
+    expect(info).not.toContain("<img");
+    expect(brand).toContain("<img");
+    expect(brand).not.toContain("notificationToastIcon-masked");
+    expect(
+      readFileSync("src/renderer/styles.css", "utf8")
+    ).toMatch(/.notificationToastIcon-masked {[^}]*background-color: currentColor/);
+  });
+
   it("maps the pergamum preset to the trusted bundled file-association asset and keeps credits compatible", () => {
     const source = readFileSync(
       "src/renderer/notification/NotificationToast.tsx",

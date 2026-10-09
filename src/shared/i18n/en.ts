@@ -1,6 +1,10 @@
 import type { TranslationDictionary } from "./ja";
 
 export const enTranslations = {
+  "japaneseLint.engineUnavailable.title": "The Japanese proofreading engine cannot start",
+  "japaneseLint.engineUnavailable.message": "Pergamum tried repeatedly to start the Japanese proofreading engine, but it did not start normally.\n\nJapanese proofreading is now stopped. You can keep editing and saving documents.",
+  "japaneseLint.toast.engineStarted": "The Japanese proofreading engine has started.",
+  "japaneseLint.toast.engineRestarted": "The Japanese proofreading engine has been restarted.",
   "japaneseLint.dictionaryMissing.title": "Japanese proofreading is unavailable",
   "japaneseLint.dictionaryMissing.message": "The dictionary files required for Japanese proofreading could not be found.\n\nThere may be a problem with the application installation. Please reinstall the latest version of Pergamum that includes the dictionary files correctly.",
   "activity.files": "File Explorer",

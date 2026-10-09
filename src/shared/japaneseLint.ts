@@ -38,16 +38,33 @@ export interface JapaneseLintDiagnostic {
   readonly index: number;
 }
 
+/**
+ * #778: reported ONCE per engine start sequence (Linter ON until OFF), on the
+ * first response after the Worker became ready: a clean first start, or a
+ * start that needed retries.
+ */
+export type JapaneseLintEngineNotice = "started" | "restarted";
+
 export type JapaneseLintResponse =
   | {
       readonly ok: true;
       readonly diagnostics: readonly JapaneseLintDiagnostic[];
       /** True when there were more than the result cap and the rest was cut. */
       readonly truncated: boolean;
+      readonly engineNotice?: JapaneseLintEngineNotice;
     }
   | {
       readonly ok: false;
       readonly reason: "invalid-request" | "lint-failed" | "dictionary-missing";
+    }
+  | {
+      /**
+       * #778: the engine did not reach ready within 1 + workerRestartAttempts
+       * start attempts. `technicalInfo` is privacy-safe, copyable text.
+       */
+      readonly ok: false;
+      readonly reason: "engine-unavailable";
+      readonly technicalInfo: string;
     };
 
 /** Most diagnostics returned for one request; the rest are cut (truncated). */
