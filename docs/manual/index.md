@@ -28,7 +28,7 @@ Pergamum（ペルガモン）は、小説を書く人のためのオープンソ
 [日本語マニュアル](./ja/) · [GitHub](https://github.com/Pergamum-IDE/Pergamum-IDE)
 
 **無料・オープンソース（MIT License）**
-v0.90.0 BETA / Windows版公開中
+v0.90.2 BETA / Windows版公開中
 
 ---
 
@@ -126,9 +126,9 @@ Pergamumは、作者の代わりに小説を書くためのAI執筆ツールで�
 
 ---
 
-# Pergamum v0.90.0 BETA
+# Pergamum v0.90.2 BETA
 
-小説IDEとしての中核機能がひととおり揃い、v0.90.0 BETAを最初の公開リリースとして提供しています。
+小説IDEとしての中核機能がひととおり揃い、v0.90.2 BETAを最初の公開リリースとして提供しています。
 
 現在、Windows向けインストーラーを公開しています。  
 （署名がないため実行時に警告が出る場合があります）
@@ -139,7 +139,7 @@ Pergamumは、作者の代わりに小説を書くためのAI執筆ツールで�
 [ソースコードを見る](https://github.com/Pergamum-IDE/Pergamum-IDE)  
 [不具合・要望を送る](https://tally.so/r/vGQ06X)  
 [不具合・要望を送る@GitHub](https://github.com/Pergamum-IDE/Pergamum-IDE/issues)
-> v0.90.0はBETA版です。1.0まではプロジェクトデータの互換性に破壊的変更が入る可能性があります。重要な作品は、作品フォルダ全体のバックアップをおすすめします。
+> v0.90.2はBETA版です。1.0まではプロジェクトデータの互換性に破壊的変更が入る可能性があります。重要な作品は、作品フォルダ全体のバックアップをおすすめします。
 
 ---
 
