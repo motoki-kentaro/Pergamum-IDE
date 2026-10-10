@@ -28,7 +28,7 @@ Pergamum brings the tools you need for writing long-form fiction together in a s
 [User Manual](./en/) · [GitHub](https://github.com/Pergamum-IDE/Pergamum-IDE)
 
 **Free and open source (MIT License)**  
-v0.90.0 BETA / Windows version available
+v0.90.2 BETA / Windows version available
 
 ---
 
@@ -126,9 +126,9 @@ Pergamum aims to be **a tool that helps authors remember what they have already 
 
 ---
 
-# Pergamum v0.90.0 BETA
+# Pergamum v0.90.2 BETA
 
-The core features of the novel-writing IDE are now in place, and v0.90.0 BETA is available as the first public release.
+The core features of the novel-writing IDE are now in place, and v0.90.2 BETA is available as the first public release.
 
 A Windows installer is currently available.  
 (Because the application is not code-signed, Windows may display a warning when you run the installer.)
@@ -140,7 +140,7 @@ A Windows installer is currently available.
 [Send feedback or report an issue](https://tally.so/r/vGQ06X)  
 [Report an issue on GitHub](https://github.com/Pergamum-IDE/Pergamum-IDE/issues)
 
-> v0.90.0 is a BETA release. Until version 1.0, breaking changes to project data compatibility may occur. We recommend keeping a backup of your entire project folder for important works.
+> v0.90.2 is a BETA release. Until version 1.0, breaking changes to project data compatibility may occur. We recommend keeping a backup of your entire project folder for important works.
 
 ---
 
