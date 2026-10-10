@@ -98,7 +98,10 @@ export function createMenuShortcutLabelResolver(
   // Every customizable command, from the effective rows: a label is shown for
   // any command item that has a key, whether or not the key is also a native
   // accelerator (#693).
-  const customizable = selectMenuKeybindingKeys(rows, null);
+  const customizable = selectMenuKeybindingKeys(rows, null, [
+    "app",
+    "editor"
+  ]);
 
   return (request) => {
     const key =
@@ -154,12 +157,19 @@ export interface ApplicationMenuIntegration {
     request: RendererMenuShortcutRequest
   ) => string | undefined;
   readonly isDisabled: (commandId: string) => boolean;
+  /** #784: checked state of a checkable item, from `checkedState`. */
+  readonly isChecked: (commandId: string) => boolean;
 }
 
 export function useApplicationMenuIntegration(input: {
   readonly commandRegistry: CommandRegistry;
   readonly commandContext: CommandContext;
   readonly executeMenuCommand: (commandId: string) => void;
+  /**
+   * #784: the checked state of the checkable commands, derived by the caller
+   * from the state the toolbar already owns. Not stored here.
+   */
+  readonly checkedState: Readonly<Record<string, boolean>>;
 }): ApplicationMenuIntegration {
   const { commandRegistry, commandContext } = input;
   const platform = getRuntimePlatform();
@@ -183,6 +193,11 @@ export function useApplicationMenuIntegration(input: {
       isApplicationMenuCommandDisabled(commandRegistry, commandContext, commandId),
     [commandRegistry, commandContext]
   );
+  const { checkedState } = input;
+  const isChecked = useCallback(
+    (commandId: string) => checkedState[commandId] ?? false,
+    [checkedState]
+  );
   const executeRef = useRef(input.executeMenuCommand);
   executeRef.current = input.executeMenuCommand;
   const isDisabledRef = useRef(isDisabled);
@@ -199,5 +214,5 @@ export function useApplicationMenuIntegration(input: {
     []
   );
 
-  return { onInvoke, getShortcutLabel, isDisabled };
+  return { onInvoke, getShortcutLabel, isDisabled, isChecked };
 }

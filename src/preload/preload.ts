@@ -386,6 +386,9 @@ const pergamumApi: PergamumApi = {
     setEnablement: (enablement) => {
       ipcRenderer.send(APPLICATION_MENU_CHANNELS.setEnablement, enablement);
     },
+    setChecked: (checked) => {
+      ipcRenderer.send(APPLICATION_MENU_CHANNELS.setChecked, checked);
+    },
     invokeNativeRole: (role) =>
       ipcRenderer.invoke(APPLICATION_MENU_CHANNELS.invokeNativeRole, role)
   },

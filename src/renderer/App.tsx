@@ -4669,9 +4669,24 @@ export function App(): JSX.Element {
   }, [commandRegistry, commandContext]);
   // #664: click execution, shortcut labels and disabled state of the Renderer
   // application menu (Windows / Linux), all from the existing infrastructure.
+  // #784: the checked state of the Assist > Syntax Check items is derived from
+  // the very state the toolbar buttons use; the menu keeps no state of its own.
+  // The memo keeps the object stable so the effect below only runs on change.
+  const applicationMenuCheckedState = useMemo(
+    () => ({
+      [editorCommandIds.toggleSyntaxChecker]:
+        isMarkdownSyntaxCheckerActive,
+      [editorCommandIds.toggleInstantJapaneseLint]: isJapaneseLintActive
+    }),
+    [isMarkdownSyntaxCheckerActive, isJapaneseLintActive]
+  );
+  useEffect(() => {
+    window.pergamum.applicationMenu.setChecked(applicationMenuCheckedState);
+  }, [applicationMenuCheckedState]);
   const applicationMenuIntegration = useApplicationMenuIntegration({
     commandRegistry,
     commandContext,
+    checkedState: applicationMenuCheckedState,
     executeMenuCommand: (commandId) =>
       receiveApplicationMenuCommandRef.current(commandId)
   });
@@ -13902,6 +13917,7 @@ export function App(): JSX.Element {
         onInvoke={applicationMenuIntegration.onInvoke}
         getShortcutLabel={applicationMenuIntegration.getShortcutLabel}
         isDisabled={applicationMenuIntegration.isDisabled}
+        isChecked={applicationMenuIntegration.isChecked}
         isKeyboardBlocked={isApplicationMenuKeyboardBlocked}
         isImeComposing={imeCompositionSaveGuard.isComposing}
       />

@@ -605,6 +605,8 @@ export const DEBUG_LOG_CHANNELS = {
 export const APPLICATION_MENU_CHANNELS = {
   command: "applicationMenu:command",
   setEnablement: "applicationMenu:setEnablement",
+  /** renderer -> main: checked display state of checkable items (#784) */
+  setChecked: "applicationMenu:setChecked",
   /** renderer -> main: run an allowlisted native role (#664) */
   invokeNativeRole: "applicationMenu:invokeNativeRole"
 } as const;
@@ -682,6 +684,9 @@ export const WINDOW_CHANNELS = {
  * a command that never declares a `when` is simply always sent as `true`.
  */
 export type ApplicationMenuEnablementMap = Record<string, boolean>;
+
+/** #784: commandId -> checked, reported by the Renderer (display only). */
+export type ApplicationMenuCheckedMap = Record<string, boolean>;
 
 export const EDIT_CHANNELS = {
   delegateNativeEdit: "edit:delegateNativeEdit"
@@ -1833,6 +1838,7 @@ export interface PergamumApi {
   applicationMenu: {
     onCommand: (callback: (commandId: string) => void) => () => void;
     setEnablement: (enablement: ApplicationMenuEnablementMap) => void;
+    setChecked: (checked: ApplicationMenuCheckedMap) => void;
     /**
      * #664: runs one allowlisted native role on this window's web contents
      * (what the native menu's role item would do). Resolves false when the

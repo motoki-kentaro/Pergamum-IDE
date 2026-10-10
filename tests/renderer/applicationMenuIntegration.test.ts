@@ -77,6 +77,59 @@ function labelOf(
   );
 }
 
+describe("Syntax Check shortcut labels (#784)", () => {
+  it("shows the Markdown syntax checker's existing key from the catalog, not a hardcoded string", () => {
+    const rows = rowsFor("win32");
+    const key = rows.find(
+      (row) => row.command === editorCommandIds.toggleSyntaxChecker
+    )!.key!;
+    const labels = labelOf("win32", rows, "Assist");
+
+    expect(labels.get("Markdown Syntax Check")).toBe(
+      formatKeybindingLabel(key, "win32")
+    );
+    expect(labels.get("Markdown Syntax Check")).toBe("Ctrl+Shift+C");
+  });
+
+  it("follows a user override and shows nothing once unbound", () => {
+    const override = withKey(
+      rowsFor("win32"),
+      editorCommandIds.toggleSyntaxChecker,
+      "Mod-Alt-m"
+    );
+    const unbound = withKey(
+      rowsFor("win32"),
+      editorCommandIds.toggleSyntaxChecker,
+      null
+    );
+
+    expect(labelOf("win32", override, "Assist").get("Markdown Syntax Check")).toBe(
+      "Ctrl+Alt+M"
+    );
+    expect(
+      labelOf("win32", unbound, "Assist").get("Markdown Syntax Check")
+    ).toBeUndefined();
+  });
+
+  it("shows nothing for the Instant Japanese Style Check while it has no key", () => {
+    const rows = rowsFor("win32");
+
+    expect(
+      rows.find((row) => row.command === editorCommandIds.toggleInstantJapaneseLint)
+        ?.key ?? null
+    ).toBeNull();
+    expect(
+      labelOf("win32", rows, "Assist").get("Instant Japanese Style Check")
+    ).toBeUndefined();
+  });
+
+  it("the label widening is display only: editor-scope keys never become native accelerators", () => {
+    const lookup = createMenuAcceleratorLookup("win32", undefined, undefined, rowsFor("win32"));
+
+    expect(lookup.get(editorCommandIds.toggleSyntaxChecker)).toBeUndefined();
+  });
+});
+
 describe("Renderer menu shortcut labels (#664)", () => {
   it("shows the effective primary key, formatted by the shared formatter", () => {
     const labels = labelOf("win32", rowsFor("win32"), "File");
@@ -286,7 +339,7 @@ describe("Renderer menu shortcut labels (#664)", () => {
 
       expect(source).not.toContain("NATIVE_MENU_ACCELERATOR_COMMAND_IDS");
       expect(source).not.toContain("MENU_ACCELERATOR_COMMAND_IDS");
-      expect(source).toContain("selectMenuKeybindingKeys(rows, null)");
+      expect(source).toContain("selectMenuKeybindingKeys(rows, null, [");
     });
 
     it("keeps following the live effective-keybinding store", () => {

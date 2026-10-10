@@ -40,6 +40,7 @@ vi.mock("electron", () => ({
 }));
 
 import {
+  applyApplicationMenuChecked,
   applyApplicationMenuEnablement,
   buildApplicationMenu,
   registerApplicationMenuIpc,
@@ -777,10 +778,69 @@ describe("application menu", () => {
       ).toEqual([
         "改行コード分布...",
         "日本語表現チェック...",
+        "構文チェック",
         "段落字下げ一括挿入",
         "段落字下げ一括削除",
         "語彙を管理...",
         "タグを管理..."
+      ]);
+    });
+
+    it("Assist > Syntax Check holds two checkbox items bound to the existing toggle commands (#784)", () => {
+      for (const [language, assist, syntax, labels] of [
+        [
+          "ja",
+          "アシスト",
+          "構文チェック",
+          ["Markdown構文チェック", "インスタント日本語表現チェック"]
+        ],
+        [
+          "en",
+          "Assist",
+          "Syntax Check",
+          ["Markdown Syntax Check", "Instant Japanese Style Check"]
+        ]
+      ] as const) {
+        const assistItems = submenuItems(
+          findTopLevelMenu(
+            buildApplicationMenu(language, emptyMenuOptions(), "win32"),
+            assist
+          )
+        );
+        const syntaxItems = submenuItems(
+          assistItems.find((item) => item.label === syntax)!
+        );
+
+        expect(syntaxItems.map((item) => item.label)).toEqual(labels);
+        expect(syntaxItems.map((item) => item.type)).toEqual([
+          "checkbox",
+          "checkbox"
+        ]);
+        expect(syntaxItems.map((item) => item.id)).toEqual([
+          editorCommandIds.toggleSyntaxChecker,
+          editorCommandIds.toggleInstantJapaneseLint
+        ]);
+      }
+    });
+
+    it("a checkbox click sends the existing command id; Main-side checked never decides anything (#784)", () => {
+      const { window, send } = menuWindowMock();
+      const syntaxItems = submenuItems(
+        submenuItems(
+          findTopLevelMenu(
+            buildApplicationMenu("en", { getMainWindow: () => window }, "win32"),
+            "Assist"
+          )
+        ).find((item) => item.label === "Syntax Check")!
+      );
+
+      for (const item of syntaxItems) {
+        (item.click as () => void)();
+      }
+
+      expect(send.mock.calls.map((call) => call[1])).toEqual([
+        editorCommandIds.toggleSyntaxChecker,
+        editorCommandIds.toggleInstantJapaneseLint
       ]);
     });
 
@@ -870,8 +930,8 @@ describe("application menu", () => {
       expect(assistItems[1]?.id).toBe(
         assistCommandIds.openJapaneseMachineCheckDialog
       );
-      expect(assistItems[2]?.id).toBe(assistCommandIds.insertParagraphIndent);
-      expect(assistItems[3]?.id).toBe(assistCommandIds.removeParagraphIndent);
+      expect(assistItems[3]?.id).toBe(assistCommandIds.insertParagraphIndent);
+      expect(assistItems[4]?.id).toBe(assistCommandIds.removeParagraphIndent);
       expect(
         fileItemByLabel(
           submenuItems(fileItemByLabel(fileItems, "Import")),
@@ -982,6 +1042,75 @@ describe("applyApplicationMenuEnablement / registerApplicationMenuIpc (#252 foll
       handler?.({} as never, { "invalid.id": "not a boolean" })
     ).not.toThrow();
 
+    expect(electronMock.getApplicationMenu.mock.calls.length).toBe(
+      callsBefore
+    );
+  });
+});
+
+describe("applyApplicationMenuChecked / setChecked IPC (#784)", () => {
+  it("overwrites MenuItem.checked with the Renderer's state (display cache only)", () => {
+    // Electron auto-toggled the checkbox on click: the Renderer's truth wins.
+    const markdown = {
+      id: editorCommandIds.toggleSyntaxChecker,
+      checked: true
+    };
+    const instant = {
+      id: editorCommandIds.toggleInstantJapaneseLint,
+      checked: false
+    };
+    electronMock.getApplicationMenu.mockReturnValue({
+      getMenuItemById: (id: string) =>
+        id === markdown.id ? markdown : id === instant.id ? instant : null
+    });
+
+    applyApplicationMenuChecked({
+      [editorCommandIds.toggleSyntaxChecker]: false,
+      [editorCommandIds.toggleInstantJapaneseLint]: true
+    });
+
+    expect(markdown.checked).toBe(false);
+    expect(instant.checked).toBe(true);
+  });
+
+  it("does nothing without an installed menu", () => {
+    electronMock.getApplicationMenu.mockReturnValue(null);
+
+    expect(() =>
+      applyApplicationMenuChecked({
+        [editorCommandIds.toggleSyntaxChecker]: true
+      })
+    ).not.toThrow();
+  });
+
+  it("registers a setChecked handler that applies valid payloads and rejects others", () => {
+    registerApplicationMenuIpc();
+    const handler = electronMock.ipcMainOn.mock.calls.find(
+      (call) => call[0] === APPLICATION_MENU_CHANNELS.setChecked
+    )?.[1];
+    expect(handler).toBeTypeOf("function");
+    const instant = {
+      id: editorCommandIds.toggleInstantJapaneseLint,
+      checked: true
+    };
+    electronMock.getApplicationMenu.mockReturnValue({
+      getMenuItemById: () => instant
+    });
+
+    handler?.({} as never, {
+      [editorCommandIds.toggleInstantJapaneseLint]: false
+    });
+    expect(instant.checked).toBe(false);
+
+    const callsBefore = electronMock.getApplicationMenu.mock.calls.length;
+    handler?.({} as never, "nope");
+    handler?.({} as never, null);
+    handler?.({} as never, []);
+    // Only the checkable commands are accepted, and only booleans.
+    handler?.({} as never, { [editorCommandIds.saveDocument]: true });
+    handler?.({} as never, {
+      [editorCommandIds.toggleSyntaxChecker]: "yes"
+    });
     expect(electronMock.getApplicationMenu.mock.calls.length).toBe(
       callsBefore
     );

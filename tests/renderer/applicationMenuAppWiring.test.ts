@@ -55,6 +55,30 @@ describe("application menu wiring in App (#664)", () => {
     expect(block).toContain("isDisabled={applicationMenuIntegration.isDisabled}");
   });
 
+  it("checked state of Syntax Check is derived from the toolbar's own state, not stored (#784)", () => {
+    const start = app.indexOf("const applicationMenuCheckedState = useMemo(");
+    const block = app.slice(start, start + 900);
+
+    expect(block).toContain("isMarkdownSyntaxCheckerActive");
+    expect(block).toContain("isJapaneseLintActive");
+    // one derivation feeds both the Renderer menu and the native menu push
+    expect(block).toContain("window.pergamum.applicationMenu.setChecked(");
+    expect(app).toContain("checkedState: applicationMenuCheckedState");
+    expect(app).toContain(
+      "isChecked={applicationMenuIntegration.isChecked}"
+    );
+    // no second useState for the menu
+    expect(app).not.toMatch(/useState[^;]*[Mm]enu[^;]*[Cc]hecked/);
+    expect(app).not.toMatch(/\[\w*[Mm]enu\w*Checked\w*, set/);
+  });
+
+  it("the menu items reuse the toolbar's handlers via the existing commands (#784)", () => {
+    expect(app).toContain("toggleSyntaxChecker: handleToggleMarkdownSyntaxChecker");
+    expect(app).toContain("toggleInstantJapaneseLint: () => handleToggleJapaneseLint()");
+    // the automatic OFF paths only set the one existing state
+    expect(app.match(/setIsJapaneseLintActive\(false\)/g)!.length).toBeGreaterThan(1);
+  });
+
   it("does not quit, exit or touch Electron from the Renderer menu path", () => {
     for (const path of [
       "src/renderer/applicationMenuIntegration.ts",
