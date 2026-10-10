@@ -55,6 +55,8 @@ export interface ApplicationMenuBarProps {
   /** View state supplied by #664; absent = no shortcut label / enabled. */
   readonly getShortcutLabel?: RendererMenuProjectionOptions["getShortcutLabel"];
   readonly isDisabled?: RendererMenuProjectionOptions["isDisabled"];
+  /** #784: checked state of checkable items (from the toolbar's own state). */
+  readonly isChecked?: RendererMenuProjectionOptions["isChecked"];
   /**
    * A modal / dialog / Command Palette owns the keyboard (the app-wide modal
    * state, not a DOM query): the menu neither reacts to Alt nor stays open.
@@ -94,6 +96,7 @@ export function ApplicationMenuBar({
   onInvoke,
   getShortcutLabel,
   isDisabled,
+  isChecked,
   isKeyboardBlocked = false,
   isImeComposing
 }: ApplicationMenuBarProps) {
@@ -111,10 +114,19 @@ export function ApplicationMenuBar({
         ? projectApplicationMenu(platform, {
             translate,
             getShortcutLabel,
-            isDisabled
+            isDisabled,
+            isChecked
           })
         : [],
-    [isVisible, platform, translate, getShortcutLabel, isDisabled, state.openKey]
+    [
+      isVisible,
+      platform,
+      translate,
+      getShortcutLabel,
+      isDisabled,
+      isChecked,
+      state.openKey
+    ]
   );
   const latest = useRef({ menus, onInvoke, isKeyboardBlocked, isImeComposing });
   latest.current = { menus, onInvoke, isKeyboardBlocked, isImeComposing };
@@ -458,7 +470,8 @@ function MenuItem({
   return (
     <li
       className="applicationMenuItem"
-      role="menuitem"
+      role={entry.checked === undefined ? "menuitem" : "menuitemcheckbox"}
+      aria-checked={entry.checked}
       tabIndex={-1}
       data-menu-key={entry.key}
       data-focused={view.state.focusKey === entry.key ? "true" : undefined}
@@ -469,6 +482,15 @@ function MenuItem({
       }
       onClick={handleClick}
     >
+      {entry.checked !== undefined && (
+        <span
+          className="applicationMenuItemCheck"
+          data-checked={entry.checked ? "true" : undefined}
+          aria-hidden="true"
+        >
+          {entry.checked ? "\u2713" : ""}
+        </span>
+      )}
       <span className="applicationMenuItemLabel">{entry.label}</span>
       {entry.shortcutLabel !== undefined && (
         <span className="applicationMenuItemShortcut">

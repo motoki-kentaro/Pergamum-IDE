@@ -170,6 +170,8 @@ export const applicationMenuCommandIds = [
   commandPaletteCommandIds.open,
   assistCommandIds.showLineEndingDistribution,
   assistCommandIds.openJapaneseMachineCheckDialog,
+  editorCommandIds.toggleSyntaxChecker,
+  editorCommandIds.toggleInstantJapaneseLint,
   assistCommandIds.insertParagraphIndent,
   assistCommandIds.removeParagraphIndent,
   glossaryTabCommandIds.manageTags,
@@ -193,6 +195,26 @@ export const applicationMenuCommandIds = [
   editorCommandIds.pasteSelection,
   editorCommandIds.selectAllSelection
 ] as const;
+
+/**
+ * #784: menu commands drawn as checkable items. Their checked state is never
+ * stored by the menu: the Renderer derives it from the existing toolbar state.
+ */
+export const applicationMenuCheckableCommandIds = [
+  editorCommandIds.toggleSyntaxChecker,
+  editorCommandIds.toggleInstantJapaneseLint
+] as const;
+
+export type ApplicationMenuCheckableCommandId =
+  (typeof applicationMenuCheckableCommandIds)[number];
+
+export function isApplicationMenuCheckableCommandId(
+  commandId: string
+): commandId is ApplicationMenuCheckableCommandId {
+  return (applicationMenuCheckableCommandIds as readonly string[]).includes(
+    commandId
+  );
+}
 
 export type ApplicationMenuCommandId =
   (typeof applicationMenuCommandIds)[number];

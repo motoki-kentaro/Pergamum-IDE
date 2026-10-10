@@ -36,9 +36,11 @@ describe("Application Menu > Assist > Japanese Style Check (#688)", () => {
 
     expect(at).toBe(1);
     expect(ids[0]).toBe(assistCommandIds.showLineEndingDistribution);
-    expect(ids[2]).toBe(assistCommandIds.insertParagraphIndent);
-    expect(ids[3]).toBe(assistCommandIds.removeParagraphIndent);
-    expect(ids[4]).toBe("separator");
+    // #784: the Syntax Check submenu (no command id of its own) sits at [2].
+    expect(ids[2]).toBe("submenu");
+    expect(ids[3]).toBe(assistCommandIds.insertParagraphIndent);
+    expect(ids[4]).toBe(assistCommandIds.removeParagraphIndent);
+    expect(ids[5]).toBe("separator");
   });
 
   it("reuses the existing command (no new command id) with ja / en labels", () => {

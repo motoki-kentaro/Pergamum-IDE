@@ -47,6 +47,8 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+const NO_CHECKED_STATE = {};
+
 function Harness(props: {
   registry: CommandRegistry;
   executed: string[];
@@ -54,6 +56,7 @@ function Harness(props: {
   const integration = useApplicationMenuIntegration({
     commandRegistry: props.registry,
     commandContext: {},
+    checkedState: NO_CHECKED_STATE,
     executeMenuCommand: (commandId) => props.executed.push(commandId)
   });
 

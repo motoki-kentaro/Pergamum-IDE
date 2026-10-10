@@ -6,9 +6,13 @@ import {
 } from "electron";
 import {
   APPLICATION_MENU_CHANNELS,
+  type ApplicationMenuCheckedMap,
   type ApplicationMenuEnablementMap
 } from "../shared/api";
-import { isApplicationMenuCommandId } from "../shared/commandIds";
+import {
+  isApplicationMenuCheckableCommandId,
+  isApplicationMenuCommandId
+} from "../shared/commandIds";
 import type { Language } from "../shared/i18n";
 import type { ResolvedKeybinding } from "../shared/keybindings";
 import type { DebugLogger } from "./debugLogger";
@@ -159,6 +163,7 @@ export async function installApplicationMenu(
   // A rebuilt menu starts with every item enabled: restore what the renderer
   // had reported.
   applyApplicationMenuEnablement({ ...lastMenuEnablement });
+  applyApplicationMenuChecked({ ...lastMenuChecked });
 }
 
 function isApplicationMenuEnablementMap(
@@ -209,10 +214,56 @@ export function applyApplicationMenuEnablement(
   }
 }
 
+function isApplicationMenuCheckedMap(
+  value: unknown
+): value is ApplicationMenuCheckedMap {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  return Object.entries(value).every(
+    ([commandId, checked]) =>
+      isApplicationMenuCheckableCommandId(commandId) &&
+      typeof checked === "boolean"
+  );
+}
+
+/**
+ * #784: checked state of the checkable items. The Renderer's toolbar state is
+ * the only source of truth; this is a display cache that overwrites whatever
+ * Electron's click auto-toggle left on the item. Nothing reads it back to
+ * decide what a command does. `lastMenuChecked` restores it after a rebuild.
+ */
+const lastMenuChecked: Record<string, boolean> = {};
+
+export function applyApplicationMenuChecked(
+  checked: ApplicationMenuCheckedMap
+): void {
+  Object.assign(lastMenuChecked, checked);
+  const menu = Menu.getApplicationMenu();
+
+  if (!menu) {
+    return;
+  }
+
+  for (const [commandId, value] of Object.entries(checked)) {
+    const item = menu.getMenuItemById(commandId);
+
+    if (item) {
+      item.checked = value;
+    }
+  }
+}
+
 export function registerApplicationMenuIpc(): void {
   ipcMain.on(APPLICATION_MENU_CHANNELS.setEnablement, (_event, payload) => {
     if (isApplicationMenuEnablementMap(payload)) {
       applyApplicationMenuEnablement(payload);
+    }
+  });
+  ipcMain.on(APPLICATION_MENU_CHANNELS.setChecked, (_event, payload) => {
+    if (isApplicationMenuCheckedMap(payload)) {
+      applyApplicationMenuChecked(payload);
     }
   });
 }

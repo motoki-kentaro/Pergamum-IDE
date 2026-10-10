@@ -37,6 +37,8 @@ export type RendererMenuEntry =
       readonly target: RendererMenuInvokeTarget;
       readonly disabled: boolean;
       readonly shortcutLabel?: string;
+      /** #784: present only on a checkable item. */
+      readonly checked?: boolean;
     }
   | {
       readonly kind: "submenu";
@@ -68,6 +70,8 @@ export interface RendererMenuProjectionOptions {
   ) => string | undefined;
   /** Whether a command is currently disabled (CommandRegistry enablement). */
   readonly isDisabled?: (commandId: string) => boolean;
+  /** #784: checked state of a checkable item (derived, never stored here). */
+  readonly isChecked?: (commandId: string) => boolean;
 }
 
 /**
@@ -185,7 +189,10 @@ function projectItems(
             commandId === undefined
               ? false
               : (options.isDisabled?.(commandId) ?? false),
-          ...(shortcutLabel === undefined ? {} : { shortcutLabel })
+          ...(shortcutLabel === undefined ? {} : { shortcutLabel }),
+          ...(item.type === "command" && item.checkable
+            ? { checked: options.isChecked?.(item.commandId) ?? false }
+            : {})
         };
       }
     }

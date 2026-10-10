@@ -16,10 +16,15 @@ import type { ResolvedKeybinding } from "./keybindings";
  * The customizable (app-scope Pergamum) keys of each command, in catalog
  * order: the primary key first, then alias keys (F1, F12, `Mod-+`, ...).
  * `allowed = null` serves every app-scope Pergamum command.
+ *
+ * #784: `labelScopes` widens the scopes for the display-only LABEL (the menu
+ * also shows the key of an editor-scope toggle such as the Markdown syntax
+ * checker). The native accelerator selection keeps the default (app only).
  */
 export function selectMenuKeybindingKeys(
   rows: readonly ResolvedKeybinding[],
-  allowed: readonly string[] | null
+  allowed: readonly string[] | null,
+  labelScopes: readonly ResolvedKeybinding["scope"][] = ["app"]
 ): ReadonlyMap<string, readonly string[]> {
   const allowedSet = allowed === null ? null : new Set(allowed);
   const byCommand = new Map<string, string[]>();
@@ -27,7 +32,7 @@ export function selectMenuKeybindingKeys(
   for (const binding of rows) {
     if (
       (allowedSet !== null && !allowedSet.has(binding.command)) ||
-      binding.scope !== "app" ||
+      !labelScopes.includes(binding.scope) ||
       binding.source !== "pergamum" ||
       binding.readonly ||
       binding.key === null

@@ -202,6 +202,12 @@ describe("canonical application menu model (#662)", () => {
       expect(outline(topLevel("win32", "menu.assist").items)).toEqual([
         `command:${assistCommandIds.showLineEndingDistribution}`,
         `command:${assistCommandIds.openJapaneseMachineCheckDialog}`,
+        {
+          "menu.assist.syntaxCheck": [
+            `command:${editorCommandIds.toggleSyntaxChecker}`,
+            `command:${editorCommandIds.toggleInstantJapaneseLint}`
+          ]
+        },
         `command:${assistCommandIds.insertParagraphIndent}`,
         `command:${assistCommandIds.removeParagraphIndent}`,
         "---",

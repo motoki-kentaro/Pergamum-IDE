@@ -273,15 +273,14 @@ describe("native role items stay separate from custom accelerators (#642)", () =
     }
   });
 
-  it("does not add menu items for preview / image / syntax checker", () => {
+  it("does not add menu items for preview / image (syntax checker is a checkable item since #784)", () => {
     for (const platform of platforms) {
       const ids = new Set(
         flatten(template(platform)).map((item) => item.id).filter(Boolean)
       );
       for (const commandId of [
         "editor.preview.toggle",
-        "editor.image.insert",
-        "editor.markdown.toggleSyntaxChecker"
+        "editor.image.insert"
       ]) {
         expect(ids.has(commandId), commandId).toBe(false);
       }

@@ -17125,6 +17125,22 @@ body > .mermaidTooltip {
   text-overflow: ellipsis;
 }
 
+/* #784: check mark column of a checkable item (logical, RTL safe). */
+.applicationMenuItemCheck {
+  flex: 0 0 auto;
+  inline-size: 1.25em;
+  /* tighten the item gap after the fixed-width column */
+  margin-inline-end: -16px;
+}
+
+/* With space-between, a label whose only siblings are the check column would
+   drift to the middle / end. Let it fill the row so it starts at the same
+   inline-start edge as a plain item; a shortcut / chevron stays at the end. */
+.applicationMenuItemCheck + .applicationMenuItemLabel {
+  flex: 1 1 auto;
+  text-align: start;
+}
+
 .applicationMenuItemShortcut {
   flex: 0 0 auto;
   color: var(--pg-color-surface-muted);

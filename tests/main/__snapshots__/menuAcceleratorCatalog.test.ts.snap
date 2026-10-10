@@ -255,6 +255,21 @@ exports[`application menu accelerators come from the catalog (#642) > darwin: me
         "label": "Japanese Style Check...",
       },
       {
+        "label": "Syntax Check",
+        "submenu": [
+          {
+            "id": "editor.markdown.toggleSyntaxChecker",
+            "label": "Markdown Syntax Check",
+            "type": "checkbox",
+          },
+          {
+            "id": "editor.japaneseLint.toggleInstant",
+            "label": "Instant Japanese Style Check",
+            "type": "checkbox",
+          },
+        ],
+      },
+      {
         "id": "assist.paragraphIndent.insert",
         "label": "Insert Paragraph Indents",
       },
@@ -543,6 +558,21 @@ exports[`application menu accelerators come from the catalog (#642) > linux: men
         "label": "Japanese Style Check...",
       },
       {
+        "label": "Syntax Check",
+        "submenu": [
+          {
+            "id": "editor.markdown.toggleSyntaxChecker",
+            "label": "Markdown Syntax Check",
+            "type": "checkbox",
+          },
+          {
+            "id": "editor.japaneseLint.toggleInstant",
+            "label": "Instant Japanese Style Check",
+            "type": "checkbox",
+          },
+        ],
+      },
+      {
         "id": "assist.paragraphIndent.insert",
         "label": "Insert Paragraph Indents",
       },
@@ -809,6 +839,21 @@ exports[`application menu accelerators come from the catalog (#642) > win32: men
       {
         "id": "assist.japaneseMachineCheck.openDialog",
         "label": "Japanese Style Check...",
+      },
+      {
+        "label": "Syntax Check",
+        "submenu": [
+          {
+            "id": "editor.markdown.toggleSyntaxChecker",
+            "label": "Markdown Syntax Check",
+            "type": "checkbox",
+          },
+          {
+            "id": "editor.japaneseLint.toggleInstant",
+            "label": "Instant Japanese Style Check",
+            "type": "checkbox",
+          },
+        ],
       },
       {
         "id": "assist.paragraphIndent.insert",

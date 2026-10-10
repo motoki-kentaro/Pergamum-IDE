@@ -124,6 +124,11 @@ export interface ApplicationMenuCommandItem extends ApplicationMenuItemBase {
    * items, without a second visible entry (#642). Never shown as a label.
    */
   readonly nativeKeyAlias?: true;
+  /**
+   * #784: a checkable item (a toggle). The checked state is supplied by the
+   * Renderer from the state the toolbar already owns; the model carries none.
+   */
+  readonly checkable?: true;
 }
 
 export interface ApplicationMenuNativeRoleItem extends ApplicationMenuItemBase {
@@ -181,6 +186,7 @@ function command(
     | "nativeKeyAlias"
     | "platforms"
     | "shortcutDisplayId"
+    | "checkable"
   > = {}
 ): ApplicationMenuCommandItem {
   return { type: "command", commandId, label: { key }, ...extras };
@@ -383,6 +389,18 @@ const assistMenu: ApplicationMenuTopLevelItem = submenu("menu.assist", [
     assistCommandIds.openJapaneseMachineCheckDialog,
     "menu.assist.japaneseMachineCheck"
   ),
+  submenu("menu.assist.syntaxCheck", [
+    command(
+      editorCommandIds.toggleSyntaxChecker,
+      "menu.assist.syntaxCheck.markdown",
+      { checkable: true }
+    ),
+    command(
+      editorCommandIds.toggleInstantJapaneseLint,
+      "menu.assist.syntaxCheck.instantJapaneseLint",
+      { checkable: true }
+    )
+  ]),
   command(
     assistCommandIds.insertParagraphIndent,
     "menu.assist.paragraphIndent.insert"

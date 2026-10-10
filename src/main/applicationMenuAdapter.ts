@@ -171,7 +171,11 @@ function commandMenuItems(
     id: item.commandId,
     label: resolveLabel(context.language, item.label),
     accelerator: commandItemAccelerator(item, context),
-    click: commandItemClick(item, context)
+    click: commandItemClick(item, context),
+    // #784: Electron flips a checkbox on click by itself. That is only a
+    // display cache: the Renderer reports its real state (setChecked), which
+    // overwrites it, and the command never reads this value.
+    ...(item.checkable ? { type: "checkbox" as const, checked: false } : {})
   };
 
   return [
