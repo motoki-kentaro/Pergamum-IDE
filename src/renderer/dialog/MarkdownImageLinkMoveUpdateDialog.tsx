@@ -58,16 +58,11 @@ export function MarkdownImageLinkMoveUpdateDialog({
       footer={
         <div className="appDialogActions">
           <button
-            ref={updateButtonRef}
             type="button"
-            className="appDialogButton appDialogButton-confirm markdownImageLinkMoveUpdateApply"
-            onClick={onUpdate}
+            className="appDialogButton markdownImageLinkMoveUpdateCancel"
+            onClick={onCancel}
           >
-            {translate(
-              isBatch
-                ? "explorer.move.imageLinkUpdate.update.batch"
-                : "explorer.move.imageLinkUpdate.update"
-            )}
+            {translate("common.cancel")}
           </button>
           <button
             type="button"
@@ -81,11 +76,16 @@ export function MarkdownImageLinkMoveUpdateDialog({
             )}
           </button>
           <button
+            ref={updateButtonRef}
             type="button"
-            className="appDialogButton markdownImageLinkMoveUpdateCancel"
-            onClick={onCancel}
+            className="appDialogButton appDialogButton-confirm markdownImageLinkMoveUpdateApply"
+            onClick={onUpdate}
           >
-            {translate("common.cancel")}
+            {translate(
+              isBatch
+                ? "explorer.move.imageLinkUpdate.update.batch"
+                : "explorer.move.imageLinkUpdate.update"
+            )}
           </button>
         </div>
       }

@@ -118,7 +118,6 @@ async function mount(
       <JapaneseMachineCheckDialog
         target={target}
         translate={translate}
-        platform="windows"
         bridge={bridge}
         onClose={onClose}
         onDictionaryMissing={onDictionaryMissing}
@@ -592,10 +591,10 @@ describe("Japanese machine check dialog: summary screen (#625 P2a)", () => {
     const buttons = [...document.querySelectorAll(".appDialogFooter button")];
 
     expect(buttons.map((b) => b.textContent)).toEqual([
-      "閉じる",
-      "結果をMarkdownファイルとして保存する"
+      "結果をMarkdownファイルとして保存する",
+      "閉じる"
     ]);
-    act(() => (buttons[0] as HTMLButtonElement).click());
+    act(() => (buttons[1] as HTMLButtonElement).click());
     expect(h.onClose).toHaveBeenCalledTimes(1);
     expect(h.cancel).not.toHaveBeenCalled();
   });
@@ -867,47 +866,36 @@ describe("Japanese style check dialog: lifecycle (#625 P2c)", () => {
   });
 });
 
-describe("Japanese machine check dialog: platform button order (#625 P2a)", () => {
-  it("Windows: Run before Cancel; macOS: Cancel before Run", async () => {
-    const order = async (platform: "windows" | "macos"): Promise<string[]> => {
-      act(() => root.unmount());
-      root = createRoot(container);
-
-      const bridge: JapaneseMachineCheckBridge = {
-        prepare: async () => prepared(),
-        run: async () => ({ ok: false, reason: "lint-failed" }),
-        cancel: async () => undefined,
+describe("Japanese machine check dialog: button order (#802)", () => {
+  it("places Cancel before Run on every platform", async () => {
+    const bridge: JapaneseMachineCheckBridge = {
+      prepare: async () => prepared(),
+      run: async () => ({ ok: false, reason: "lint-failed" }),
+      cancel: async () => undefined,
       saveReport: async () => ({ ok: false, reason: "canceled" }),
       discardResult: async () => undefined,
-        onProgress: () => () => undefined
-      };
-
-      await act(async () => {
-        root.render(
-          <JapaneseMachineCheckDialog
-            target={{
-              kind: "projectFile",
-              relativePath: "a.md",
-              isDirty: false
-            }}
-            translate={translate}
-            platform={platform}
-            bridge={bridge}
-            onClose={() => undefined}
-            onDictionaryMissing={() => undefined}
-          />
-        );
-        await Promise.resolve();
-        await Promise.resolve();
-      });
-
-      return [...document.querySelectorAll(".appDialogFooter button")].map(
-        (b) => b.textContent ?? ""
-      );
+      onProgress: () => () => undefined
     };
 
-    expect(await order("windows")).toEqual(["実行", "キャンセル"]);
-    expect(await order("macos")).toEqual(["キャンセル", "実行"]);
+    await act(async () => {
+      root.render(
+        <JapaneseMachineCheckDialog
+          target={{ kind: "projectFile", relativePath: "a.md", isDirty: false }}
+          translate={translate}
+          bridge={bridge}
+          onClose={() => undefined}
+          onDictionaryMissing={() => undefined}
+        />
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(
+      [...document.querySelectorAll(".appDialogFooter button")].map(
+        (b) => b.textContent ?? ""
+      )
+    ).toEqual(["キャンセル", "実行"]);
   });
 });
 

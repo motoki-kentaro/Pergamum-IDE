@@ -196,7 +196,7 @@ describe("manual confirmation flow (#737)", () => {
       });
       expect(calls[0].confirmLabel).toBe(open);
       expect(calls[0].cancelLabel).toBe(cancel);
-      expect(calls[0].actionOrder).toBe("cancelConfirm");
+      expect(calls[0]).not.toHaveProperty("actionOrder");
       expect(calls[0].icon?.kind).toBe("externalLink");
     }
   );
@@ -222,7 +222,7 @@ describe("manual confirmation flow (#737)", () => {
     ).toContain(`translate("common.open")`);
     expect(
       readFileSync("src/renderer/manualOpen.ts", "utf8")
-    ).toContain(`actionOrder: "cancelConfirm"`);
+    ).not.toContain("actionOrder");
   });
 
   it("Cancel and Escape (resolved as cancel) open nothing", async () => {

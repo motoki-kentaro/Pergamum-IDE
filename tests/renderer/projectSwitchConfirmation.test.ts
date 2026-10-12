@@ -77,7 +77,7 @@ describe("buildProjectSwitchUnsavedChoiceDialogOptions", () => {
       "キャンセル"
     ]);
     expect(enOptions.choices.map((choice) => choice.label)).toEqual([
-      "Discard Changes and Continue",
+      "Discard changes and continue",
       "Cancel"
     ]);
     expect(jaOptions.choices.map((choice) => choice.label)).not.toContain("OK");
@@ -92,7 +92,7 @@ describe("buildProjectSwitchUnsavedChoiceDialogOptions", () => {
     expect(options.choices).toEqual([
       {
         id: projectSwitchChoiceIds.discardAndContinue,
-        label: "Discard Changes and Continue",
+        label: "Discard changes and continue",
         role: "destructive",
         icon: { kind: "alertTriangle" }
       },

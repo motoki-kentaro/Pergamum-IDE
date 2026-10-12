@@ -294,7 +294,6 @@ import type { JapaneseLintNotice } from "./japaneseLint/japaneseLintGutterExtens
 import { useJapaneseLintDictionaryMissingDialog } from "./japaneseLint/useJapaneseLintDictionaryMissingDialog";
 import {
   AppDialogError,
-  getDialogActionOrder,
   type AppChoiceDialogOptions,
   type AppChoiceDialogResult,
   type AppConfirmDialogOptions,
@@ -1344,10 +1343,6 @@ export function App(): JSX.Element {
     };
   }, []);
 
-  const dialogActionOrder = useMemo(
-    () => getDialogActionOrder(window.pergamum.platform),
-    []
-  );
 
   function confirmDialog(
     options: AppConfirmDialogOptions
@@ -3844,8 +3839,7 @@ export function App(): JSX.Element {
         },
         clipboardText: null,
         confirmLabel: translate("common.open"),
-        cancelLabel: translate("common.cancel"),
-        actionOrder: "cancelConfirm"
+        cancelLabel: translate("common.cancel")
       })) === "confirm",
     openExternal: (url) => window.pergamum.appInfo.openExternalUrl(url)
   };
@@ -7050,8 +7044,7 @@ export function App(): JSX.Element {
         },
         clipboardText: null,
         confirmLabel: translate("common.open"),
-        cancelLabel: translate("common.cancel"),
-        actionOrder: "cancelConfirm"
+        cancelLabel: translate("common.cancel")
       })) === "confirm";
 
     if (!confirmed) {
@@ -8701,7 +8694,7 @@ export function App(): JSX.Element {
       },
       clipboardText: null,
       dismissOnBackdropClick: false,
-      confirmLabel: translate("common.close"),
+      confirmLabel: translate("common.ok"),
       cancelLabel: null
     });
   }
@@ -13816,7 +13809,7 @@ export function App(): JSX.Element {
         },
         icon: {
           kind: "warning",
-          tooltip: translate("export.confirmation.reloadDiscard.title")
+          tooltip: translate("dialog.icon.warning")
         },
         clipboardText: null,
         cancelLabel: translate("common.cancel"),
@@ -13850,7 +13843,7 @@ export function App(): JSX.Element {
         },
         icon: {
           kind: "warning",
-          tooltip: translate("documentMap.export.overwriteConfirm.title")
+          tooltip: translate("dialog.icon.warning")
         },
         clipboardText: null,
         cancelLabel: translate("common.cancel"),
@@ -14911,7 +14904,7 @@ export function App(): JSX.Element {
 
 
 
-      <GlossaryExportWizardErrorBoundary>
+      <GlossaryExportWizardErrorBoundary translate={translate}>
         <GlossaryExportWizardDialog
           isOpen={isGlossaryExportWizardOpen}
           entries={glossaryExportWizardEntries}
@@ -14938,7 +14931,6 @@ export function App(): JSX.Element {
           target={japaneseMachineCheckTarget}
           translate={translate}
           uiLanguage={displayLanguage}
-          platform={window.pergamum.platform}
           onClose={() => setJapaneseMachineCheckTarget(null)}
           onDictionaryMissing={() => {
             japaneseLintDictionaryDialog.beginAttempt();
@@ -15021,7 +15013,6 @@ export function App(): JSX.Element {
             imageAttachmentPastePromptState.currentSettings.saveDirectory
           }
           translate={translate}
-          platform={window.pergamum.platform}
           opener={imageAttachmentPastePromptOpenerRef.current}
           onSave={async (result) => {
             // #535: create the destination folder immediately on confirm,
@@ -15052,7 +15043,6 @@ export function App(): JSX.Element {
           allowEmpty={false}
           initialSaveDirectory={currentImageAttachmentSettings().saveDirectory}
           translate={translate}
-          platform={window.pergamum.platform}
           opener={imageInsertionSettingsPromptState.opener}
           onSave={async (result) => {
             // #535: same "create the folder immediately on confirm" policy
@@ -15185,7 +15175,6 @@ export function App(): JSX.Element {
       {pendingDialogRequest?.kind === "confirm" ? (
         <ConfirmDialog
           options={pendingDialogRequest.options}
-          actionOrder={dialogActionOrder}
           translate={translate}
           clipboardAdapter={navigatorClipboardAdapter}
           opener={dialogOpenerRef.current}

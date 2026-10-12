@@ -103,6 +103,7 @@ const WIZARD_DRAG_MIME = "application/x-pergamum-glossary-wizard-reorder";
 
 interface ErrorBoundaryProps {
   readonly children: ReactNode;
+  readonly translate: Translate;
 }
 
 interface ErrorBoundaryState {
@@ -135,7 +136,7 @@ export class GlossaryExportWizardErrorBoundary extends Component<
             fontWeight: "bold"
           }}
         >
-          語彙エクスポート表示中にエラーが発生しました。
+          {this.props.translate("glossaryExportWizard.errorFallback")}
         </div>
       );
     }
@@ -584,7 +585,7 @@ export function GlossaryExportWizardDialog({
             className="glossaryExportWizardCancelButton"
             onClick={onClose}
           >
-            {translate("glossaryExport.closeButton")}
+            {translate("common.cancel")}
           </button>
           <button
             type="button"
@@ -631,7 +632,7 @@ export function GlossaryExportWizardDialog({
   );
 
   return (
-    <GlossaryExportWizardErrorBoundary>
+    <GlossaryExportWizardErrorBoundary translate={translate}>
       <InfoDialog
         title={translate("glossaryExportWizard.dialogTitle")}
         opener={opener ?? null}
@@ -991,7 +992,9 @@ export function GlossaryExportWizardDialog({
                     {translate("glossaryExportWizard.summaryCount")}:
                   </span>
                   <span className="glossaryExportWizardSummaryValue">
-                    {selectedCount}件
+                    {translate("glossaryExportWizard.summaryCountValue", {
+                      count: selectedCount
+                    })}
                   </span>
                 </div>
 

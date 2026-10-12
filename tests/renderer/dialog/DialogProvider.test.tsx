@@ -11,7 +11,6 @@ describe("DialogProvider (#182)", () => {
   it("renders its children", () => {
     const markup = renderToStaticMarkup(
       React.createElement(DialogProvider, {
-        actionOrder: "confirmCancel",
         translate,
         children: React.createElement(
           "div",
@@ -27,7 +26,6 @@ describe("DialogProvider (#182)", () => {
   it("does not render a confirm dialog until confirm() is called (no pending request initially)", () => {
     const markup = renderToStaticMarkup(
       React.createElement(DialogProvider, {
-        actionOrder: "confirmCancel",
         translate,
         children: React.createElement("div", null, "child")
       })

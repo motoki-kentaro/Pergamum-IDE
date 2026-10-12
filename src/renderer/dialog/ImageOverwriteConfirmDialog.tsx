@@ -38,14 +38,14 @@ function ImageOverwriteConfirmDialogContent({
             type="button"
             className="appDialogButton appDialogButton-cancel"
             onClick={onCancel}
+            autoFocus
           >
             {translate("common.cancel")}
           </button>
           <button
             type="button"
-            className="appDialogButton appDialogButton-confirm"
+            className="appDialogButton appDialogButton-choice-destructive"
             onClick={onConfirm}
-            autoFocus
           >
             {translate("imageInsertion.overwriteDialog.confirm")}
           </button>

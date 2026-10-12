@@ -39,8 +39,7 @@ export async function openManualWithConfirmation(
     },
     clipboardText: null,
     confirmLabel: deps.translate("common.open"),
-    cancelLabel: deps.translate("common.cancel"),
-    actionOrder: "cancelConfirm"
+    cancelLabel: deps.translate("common.cancel")
   });
 
   if (result === "confirm") {

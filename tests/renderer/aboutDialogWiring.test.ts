@@ -62,7 +62,7 @@ describe("About dialog command wiring (#221)", () => {
     expect(block).toContain('beforeText: translate("dialog.externalLink.message")');
     expect(block).toContain('confirmLabel: translate("common.open")');
     expect(block).toContain('cancelLabel: translate("common.cancel")');
-    expect(block).toContain('actionOrder: "cancelConfirm"');
+    expect(block).not.toContain("actionOrder");
     expect(block).toContain("url");
     expect(block).toContain("window.pergamum.appInfo.openExternalUrl(url)");
   });

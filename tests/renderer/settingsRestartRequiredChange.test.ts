@@ -307,7 +307,7 @@ describe("settingsRestartRequiredChange (#394 Step 2)", () => {
       expect(onRestartRequested).not.toHaveBeenCalled();
     });
 
-    it('requests a restart exactly once when the user picks "Restart Now" (confirm)', async () => {
+    it('requests a restart exactly once when the user picks "Restart now" (confirm)', async () => {
       const previousSettings = baseApplicationSettings();
       const nextSettings = toSaveRequest(
         baseApplicationSettings({

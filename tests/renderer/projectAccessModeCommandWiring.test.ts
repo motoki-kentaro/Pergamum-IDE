@@ -240,7 +240,7 @@ describe("project access mode command wiring (#211)", () => {
     expect(rejectionDialogBlock).toContain("afterText: translate(messageKey)");
     expect(rejectionDialogBlock).toContain('kind: "error"');
     expect(rejectionDialogBlock).toContain(
-      'confirmLabel: translate("common.close")'
+      'confirmLabel: translate("common.ok")'
     );
     expect(rejectionDialogBlock).toContain("cancelLabel: null");
     expect(rejectionDialogBlock).toContain("clipboardText: null");

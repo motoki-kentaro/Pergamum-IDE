@@ -1,8 +1,11 @@
 import type { JSX } from "react";
+import type * as React from "react";
 import { MaskedIcon } from "../MaskedIcon";
+import { dialogIconSvgByKind } from "./dialogIcons";
 import {
   Fragment,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -402,6 +405,53 @@ export function ExportConfirmationDialog({
 
   const [fileName, setFileName] = useState<string>(defaultBaseName);
   const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
+  const overwriteConfirmRef = useRef<HTMLDivElement | null>(null);
+  const overwriteConfirmWasOpenRef = useRef(false);
+  const overwriteConfirmTitleId = useId();
+  const overwriteConfirmMessageId = useId();
+
+  // #802: the overwrite confirmation is a nested modal inside the wizard.
+  // Return focus to the export button when it closes without overwriting.
+  useEffect(() => {
+    if (showOverwriteConfirm) {
+      overwriteConfirmWasOpenRef.current = true;
+      return;
+    }
+    if (overwriteConfirmWasOpenRef.current) {
+      overwriteConfirmWasOpenRef.current = false;
+      document
+        .querySelector<HTMLButtonElement>("[data-export-execute-button]")
+        ?.focus();
+    }
+  }, [showOverwriteConfirm]);
+
+  function handleOverwriteConfirmKeyDown(
+    event: React.KeyboardEvent<HTMLDivElement>
+  ): void {
+    // Escape and Tab belong to the nested confirmation only: Escape cancels
+    // it (never the whole wizard) and Tab stays between its two buttons.
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      setShowOverwriteConfirm(false);
+      return;
+    }
+    if (event.key !== "Tab" || !overwriteConfirmRef.current) {
+      return;
+    }
+    const buttons = Array.from(
+      overwriteConfirmRef.current.querySelectorAll<HTMLButtonElement>("button")
+    );
+    const first = buttons[0];
+    const last = buttons[buttons.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  }
   const [exportResultInfo, setExportResultInfo] = useState<{
     savedPath: string;
     warningCount?: number;
@@ -537,6 +587,10 @@ export function ExportConfirmationDialog({
     () => summarizeExportCandidates(orderedRows),
     [orderedRows]
   );
+  // #802: progress past Step 2 and the export itself need at least one adopted
+  // document. Uses the same count the summary displays; character count is
+  // independent (an adopted empty document still counts).
+  const hasIncludedDocuments = summary.includedCount > 0;
   const groups = useMemo(
     () =>
       groupExportCandidatesByParentPath(
@@ -1041,8 +1095,11 @@ export function ExportConfirmationDialog({
                 <button
                   type="button"
                   className="appDialogButton appDialogButton-confirm"
-                  disabled={!isValidImageAssetFolderName}
-                  onClick={() => setWizardStep("outputDestination")}
+                  disabled={!isValidImageAssetFolderName || !hasIncludedDocuments}
+                  onClick={() => {
+                    if (!hasIncludedDocuments) return;
+                    setWizardStep("outputDestination");
+                  }}
                 >
                   {translate("export.wizard.goToOutputDestination")}
                 </button>
@@ -1052,10 +1109,15 @@ export function ExportConfirmationDialog({
                 <button
                   type="button"
                   className="appDialogButton appDialogButton-confirm"
-                  disabled={!isValidFileName || !isValidImageAssetFolderName || isExporting}
+                  disabled={
+                    !isValidFileName ||
+                    !isValidImageAssetFolderName ||
+                    !hasIncludedDocuments ||
+                    isExporting
+                  }
                   data-export-execute-button="true"
                   onClick={async () => {
-                    if (!isValidFileName) return;
+                    if (!isValidFileName || !hasIncludedDocuments) return;
                     const fullPath = buildOutputPath(
                       destinationFolder,
                       fileName,
@@ -1444,14 +1506,45 @@ export function ExportConfirmationDialog({
                   className="exportOverwriteConfirmModal"
                   data-export-overwrite-modal="true"
                 >
-                  <div className="exportOverwriteConfirmContent">
-                    <p className="exportOverwriteConfirmMessage">
-                      {translate("export.wizard.overwriteConfirmMessage")}
-                    </p>
+                  <div
+                    ref={overwriteConfirmRef}
+                    className="appDialog appDialog-warning exportOverwriteConfirmContent"
+                    role="alertdialog"
+                    aria-modal="true"
+                    aria-labelledby={overwriteConfirmTitleId}
+                    aria-describedby={overwriteConfirmMessageId}
+                    onKeyDown={handleOverwriteConfirmKeyDown}
+                  >
+                    <div className="appDialogHeader">
+                      <span
+                        className="appDialogIcon appDialogIcon-warning"
+                        role="img"
+                        aria-label={translate("dialog.icon.warning")}
+                        dangerouslySetInnerHTML={{
+                          __html: dialogIconSvgByKind.warning
+                        }}
+                      />
+                      <h2
+                        id={overwriteConfirmTitleId}
+                        className="appDialogTitle exportOverwriteConfirmTitle"
+                      >
+                        {translate("export.wizard.overwriteConfirmTitle")}
+                      </h2>
+                    </div>
+                    <div className="appDialogBody">
+                      <p
+                        id={overwriteConfirmMessageId}
+                        className="exportOverwriteConfirmMessage"
+                      >
+                        {translate("export.wizard.overwriteConfirmMessage")}
+                      </p>
+                    </div>
+                    <div className="appDialogFooter">
                     <div className="exportOverwriteConfirmActions">
                       <button
                         type="button"
                         className="appDialogButton"
+                        autoFocus
                         data-export-overwrite-cancel="true"
                         onClick={() => setShowOverwriteConfirm(false)}
                       >
@@ -1459,7 +1552,7 @@ export function ExportConfirmationDialog({
                       </button>
                       <button
                         type="button"
-                        className="appDialogButton appDialogButton-confirm"
+                        className="appDialogButton appDialogButton-choice-destructive"
                         data-export-overwrite-confirm="true"
                         onClick={() => {
                           setShowOverwriteConfirm(false);
@@ -1473,6 +1566,7 @@ export function ExportConfirmationDialog({
                       >
                         {translate("export.wizard.overwriteConfirmButton")}
                       </button>
+                    </div>
                     </div>
                   </div>
                 </div>

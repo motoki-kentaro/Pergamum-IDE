@@ -132,19 +132,19 @@ describe("unsaved-changes close dialog translations (#192/#271)", () => {
       "保存して閉じる"
     );
     expect(t("en", "dialog.unsavedChanges.saveAndClose")).toBe(
-      "Save and Close"
+      "Save and close"
     );
     expect(t("ja", "dialog.unsavedChanges.saveAllAndClose")).toBe(
       "すべて保存して閉じる"
     );
     expect(t("en", "dialog.unsavedChanges.saveAllAndClose")).toBe(
-      "Save All and Close"
+      "Save all and close"
     );
     expect(t("ja", "dialog.unsavedChanges.discardAndClose")).toBe(
       "変更を破棄して閉じる"
     );
     expect(t("en", "dialog.unsavedChanges.discardAndClose")).toBe(
-      "Discard Changes and Close"
+      "Discard changes and close"
     );
     expect(t("ja", "dialog.unsavedChanges.cancel")).toBe("キャンセル");
     expect(t("en", "dialog.unsavedChanges.cancel")).toBe("Cancel");
@@ -251,10 +251,10 @@ describe("file I/O workflow translations (#202)", () => {
       "{path}"
     );
     expect(t("ja", "dialog.readOnlyProjectSaveAsInsideRoot.save")).toBe(
-      "理解して保存"
+      "このまま保存"
     );
     expect(t("en", "dialog.readOnlyProjectSaveAsInsideRoot.save")).toBe(
-      "Save Anyway"
+      "Save anyway"
     );
     expect(t("ja", "dialog.saveAsRejected.protected.title")).toBe(
       "この場所には保存できません"
@@ -352,10 +352,10 @@ describe("file I/O workflow translations (#202)", () => {
         "Do you want to open the project?"
     );
     expect(t("ja", "dialog.readOnlyProjectOpen.openReadOnly")).toBe(
-      "理解したうえで読み取り専用で開く"
+      "読み取り専用で開く"
     );
     expect(t("en", "dialog.readOnlyProjectOpen.openReadOnly")).toBe(
-      "Open Read-Only, I Understand"
+      "Open read-only"
     );
   });
 
@@ -653,10 +653,10 @@ describe("Application Settings core control translations (#195)", () => {
     expect(t("ja", "export.confirmation.modified")).toBe("変更があります");
     expect(t("en", "export.confirmation.modified")).toBe("Modified");
     expect(t("ja", "export.confirmation.reloadDiscard.message")).toBe(
-      "編集内容を破棄して読み込み直します。よろしいですか？"
+      "編集内容を破棄して読み込み直します。この操作は元に戻せません。"
     );
     expect(t("en", "export.confirmation.reloadDiscard.confirm")).toBe(
-      "Discard and Reload"
+      "Discard and reload"
     );
     expect(t("ja", "export.confirmation.headingRemoval.note")).toBe(
       "※ 本文ファイルには影響しません。"
@@ -1011,12 +1011,12 @@ describe("Recovery explicit discard translations (#300)", () => {
       "すべての復旧候補を破棄します。この操作は元に戻せません。元の文書や現在開いている文書には影響しません。"
     );
     expect(t("en", "dialog.recovery.discardSelected")).toBe(
-      "Discard Selected Recovery Candidates..."
+      "Discard selected recovery candidates..."
     );
     expect(t("en", "dialog.recovery.discardAll")).toBe(
-      "Discard All Recovery Candidates..."
+      "Discard all recovery candidates..."
     );
-    expect(t("en", "dialog.recovery.decideLater")).toBe("Decide Later");
+    expect(t("en", "dialog.recovery.decideLater")).toBe("Decide later");
     expect(t("en", "dialog.recovery.discardConfirm.message", { count: 2 })).toContain(
       "Original documents and currently open documents are not affected."
     );

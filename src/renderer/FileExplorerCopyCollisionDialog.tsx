@@ -181,20 +181,6 @@ export function FileExplorerCopyCollisionDialog({
       className="fileExplorerCopyCollisionDialog"
       footer={
         <div className="appDialogActions fileExplorerCopyCollisionDialogActions">
-          <button
-            type="button"
-            className="appDialogButton appDialogButton-confirm fileExplorerCopyCollisionRunButton"
-            disabled={
-              phase !== "confirm" || runnableRows.length === 0
-            }
-            aria-disabled={phase !== "confirm" || runnableRows.length === 0}
-            hidden={phase === "done"}
-            onClick={() => {
-              void runCopy();
-            }}
-          >
-            {translate("explorer.copy.collision.run")}
-          </button>
           {phase === "done" ? (
             <button
               ref={closeButtonRef}
@@ -209,7 +195,7 @@ export function FileExplorerCopyCollisionDialog({
               ref={cancelButtonRef}
               type="button"
               className="appDialogButton fileExplorerCopyCollisionCancelButton"
-              autoFocus
+              autoFocus={runnableRows.length === 0}
               disabled={phase === "running"}
               aria-disabled={phase === "running"}
               onClick={onDismiss}
@@ -217,6 +203,21 @@ export function FileExplorerCopyCollisionDialog({
               {translate("explorer.copy.collision.cancel")}
             </button>
           )}
+          <button
+            type="button"
+            className="appDialogButton appDialogButton-confirm fileExplorerCopyCollisionRunButton"
+            disabled={
+              phase !== "confirm" || runnableRows.length === 0
+            }
+            aria-disabled={phase !== "confirm" || runnableRows.length === 0}
+            hidden={phase === "done"}
+            autoFocus={phase === "confirm" && runnableRows.length > 0}
+            onClick={() => {
+              void runCopy();
+            }}
+          >
+            {translate("explorer.copy.collision.run")}
+          </button>
         </div>
       }
     >

@@ -4,7 +4,6 @@ import {
   AppDialogError,
   choiceDialogDismissesOnBackdropClick,
   confirmDialogDismissesOnBackdropClick,
-  getDialogActionOrder,
   resolveCancelChoiceId,
   resolveChoiceDialogActionOrder,
   resolveChoiceDialogActionOrderPolicy,
@@ -52,24 +51,6 @@ type IsExact<TActual, TExpected> =
       ? true
       : false
     : false;
-
-describe("getDialogActionOrder (#182 D-11)", () => {
-  it('returns "confirmCancel" for windows', () => {
-    expect(getDialogActionOrder("windows")).toBe("confirmCancel");
-  });
-
-  it('returns "confirmCancel" for linux', () => {
-    expect(getDialogActionOrder("linux")).toBe("confirmCancel");
-  });
-
-  it('returns "cancelConfirm" for macos', () => {
-    expect(getDialogActionOrder("macos")).toBe("cancelConfirm");
-  });
-
-  it('returns "cancelConfirm" for other', () => {
-    expect(getDialogActionOrder("other")).toBe("cancelConfirm");
-  });
-});
 
 describe("AppDialogError (#182 D-14)", () => {
   it("carries the dialogAlreadyOpen kind", () => {

@@ -76,12 +76,12 @@ describe("buildDirtyCloseChoiceDialogOptions (#192 dogfood)", () => {
     expect(options.choices).toEqual([
       {
         id: dirtyCloseChoiceIds.saveAndClose,
-        label: "Save and Close",
+        label: "Save and close",
         role: "primary"
       },
       {
         id: dirtyCloseChoiceIds.discardAndClose,
-        label: "Discard Changes and Close",
+        label: "Discard changes and close",
         role: "destructive",
         icon: { kind: "alertTriangle" }
       },
