@@ -61,6 +61,7 @@ export const debugLogEventNames = [
   "contextMenu.opened",
   "contextMenu.suppressed",
   "contextMenu.command.selected",
+  "preview.contextMenu.command.selected",
   "edit.command.requested",
   "edit.command.delegated",
   "edit.command.ignored",

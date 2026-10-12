@@ -439,6 +439,20 @@ import {
   type NativeEditCommandContext
 } from "./editContextMenuBridge";
 import { EditContextMenu } from "./EditContextMenu";
+import {
+  detectPreviewContextMenuTarget,
+  type PreviewContextMenuCommandId,
+  type PreviewContextMenuTargetState
+} from "./preview/previewContextMenuState";
+import { PreviewContextMenu } from "./preview/PreviewContextMenu";
+import {
+  extractRichTextFromRange,
+  writeMathMLSourceToClipboard,
+  writePlainTextToClipboard,
+  writeRichTextToClipboard,
+  writeSvgPngToClipboard,
+  writeSvgSourceToClipboard
+} from "./preview/previewClipboard";
 import { resolveJapaneseLintEditorSource } from "./japaneseLint/japaneseLintEditorSource";
 import {
   editContextMenuShortcutCommandIds,
@@ -2441,6 +2455,8 @@ export function App(): JSX.Element {
   const resolveContextMenuShortcut = useContextMenuShortcutResolver();
   const [editContextMenu, setEditContextMenu] =
     useState<EditContextMenuOpenRequest | null>(null);
+  const [previewContextMenu, setPreviewContextMenu] =
+    useState<PreviewContextMenuTargetState | null>(null);
   const nextContextMenuInteractionId = useMemo(
     () => createContextMenuInteractionIdFactory(),
     []
@@ -4705,6 +4721,125 @@ export function App(): JSX.Element {
     setEditContextMenu(null);
     if (options?.restoreFocus !== false && openMenu) {
       restoreContextMenuFocus(openMenu.focusTarget);
+    }
+  }
+
+  function closePreviewContextMenu(options?: {
+    restoreSelection?: boolean;
+  }): void {
+    const openMenu = previewContextMenu;
+    setPreviewContextMenu(null);
+    if (options?.restoreSelection !== false && openMenu?.selectedRange) {
+      const selection = window.getSelection();
+      if (selection) {
+        try {
+          selection.removeAllRanges();
+          selection.addRange(openMenu.selectedRange);
+        } catch {
+          // Ignore selection restoration failure if DOM changed
+        }
+      }
+    }
+  }
+
+  async function handlePreviewContextMenuSelect(
+    commandId: PreviewContextMenuCommandId
+  ): Promise<void> {
+    const openMenu = previewContextMenu;
+    if (!openMenu) {
+      return;
+    }
+    if (commandId === "selectAll") {
+      closePreviewContextMenu({ restoreSelection: false });
+      logRendererDebugEvent({
+        level: "debug",
+        event: "preview.contextMenu.command.selected",
+        details: {
+          commandId,
+          hasSelection: openMenu.hasSelection,
+          hasLinkUrl: openMenu.linkUrl !== null,
+          hasSvg: openMenu.svgElement !== null
+        }
+      });
+      openMenu.previewElement.focus();
+      const selection = window.getSelection();
+      selection?.selectAllChildren(openMenu.previewElement);
+      return;
+    }
+
+    closePreviewContextMenu({ restoreSelection: true });
+
+    logRendererDebugEvent({
+      level: "debug",
+      event: "preview.contextMenu.command.selected",
+      details: {
+        commandId,
+        hasSelection: openMenu.hasSelection,
+        hasLinkUrl: openMenu.linkUrl !== null,
+        hasSvg: openMenu.svgElement !== null,
+        hasMathML: openMenu.mathElement !== null
+      }
+    });
+
+    switch (commandId) {
+      case "copyRichText": {
+        if (openMenu.selectedRange) {
+          const { html, text } = extractRichTextFromRange(
+            openMenu.selectedRange
+          );
+          const ok = await writeRichTextToClipboard(html, text);
+          if (ok) {
+            setStatus({ key: "previewContextMenu.copied" });
+          }
+        }
+        break;
+      }
+      case "copyPlainText": {
+        if (openMenu.selectedRange) {
+          const text = openMenu.selectedRange.toString();
+          const ok = await writePlainTextToClipboard(text);
+          if (ok) {
+            setStatus({ key: "previewContextMenu.copied" });
+          }
+        }
+        break;
+      }
+      case "copyLinkUrl": {
+        if (openMenu.linkUrl) {
+          const ok = await writePlainTextToClipboard(openMenu.linkUrl);
+          if (ok) {
+            setStatus({ key: "previewContextMenu.copied" });
+          }
+        }
+        break;
+      }
+      case "copySvgSource": {
+        if (openMenu.svgElement) {
+          const ok = await writeSvgSourceToClipboard(openMenu.svgElement);
+          if (ok) {
+            setStatus({ key: "previewContextMenu.copied" });
+          }
+        }
+        break;
+      }
+      case "copySvgPngImage": {
+        if (openMenu.svgElement) {
+          const ok = await writeSvgPngToClipboard(openMenu.svgElement);
+          if (ok) {
+            setStatus({ key: "previewContextMenu.copiedSvgPng" });
+          }
+        }
+        break;
+      }
+      case "copyMathML": {
+        if (openMenu.mathElement) {
+          const ok = await writeMathMLSourceToClipboard(openMenu.mathElement);
+          if (ok) {
+            setStatus({ key: "previewContextMenu.copiedMathML" });
+          }
+        }
+        break;
+      }
     }
   }
 
@@ -7547,6 +7682,21 @@ export function App(): JSX.Element {
   function handleContextMenuCapture(
     event: ReactMouseEvent<HTMLElement>
   ): void {
+    const previewTarget = detectPreviewContextMenuTarget({
+      target: event.target,
+      clientX: event.clientX,
+      clientY: event.clientY
+    });
+
+    if (previewTarget) {
+      event.preventDefault();
+      event.stopPropagation();
+      setEditContextMenu(null);
+      setPreviewContextMenu(previewTarget);
+      return;
+    }
+
+    setPreviewContextMenu(null);
     handleEditContextMenuEvent(event, {
       commandRegistry,
       nextInteractionId: nextContextMenuInteractionId,
@@ -13969,6 +14119,14 @@ export function App(): JSX.Element {
           }))}
           onSelect={handleEditContextMenuSelect}
           onClose={() => closeEditContextMenu()}
+        />
+      ) : null}
+      {previewContextMenu !== null ? (
+        <PreviewContextMenu
+          state={previewContextMenu}
+          translate={translate}
+          onSelect={handlePreviewContextMenuSelect}
+          onClose={() => closePreviewContextMenu()}
         />
       ) : null}
       {/* #663: Windows / Linux only (renders nothing on macOS). #664: the

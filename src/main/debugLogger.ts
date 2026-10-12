@@ -111,6 +111,7 @@ const eventLevelCatalog: Record<DebugLogEventName, DebugLogLevel> = {
   "contextMenu.opened": "debug",
   "contextMenu.suppressed": "debug",
   "contextMenu.command.selected": "debug",
+  "preview.contextMenu.command.selected": "debug",
   "edit.command.requested": "debug",
   "edit.command.delegated": "debug",
   "edit.command.ignored": "debug",
