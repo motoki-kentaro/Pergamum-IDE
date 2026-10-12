@@ -380,7 +380,7 @@ describe("ExportConfirmationDialog (#523)", () => {
       />
     );
 
-    expect(markup).toContain("Export Confirmation");
+    expect(markup).toContain("Export");
     expect(markup).toContain("Target:");
     expect(markup).toContain("First");
     expect(markup).toContain("Approx. characters: 15  Included/candidates: 2/2 files");

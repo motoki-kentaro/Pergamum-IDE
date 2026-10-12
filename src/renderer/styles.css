@@ -12913,8 +12913,12 @@ body > .mermaidTooltip {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--app-dialog-border);
+  border-radius: 6px;
+  background: var(--pg-color-panel-background);
 }
 
 .exportConfirmationDialogControlRow {
@@ -12926,26 +12930,31 @@ body > .mermaidTooltip {
 .exportConfirmationDialogControl {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   min-width: 0;
-  font-size: 0.9rem;
+  font-size: 13px;
+  width: 100%;
 }
 
 .exportConfirmationDialogControlLabel {
-  color: var(--workspace-sidebar-muted-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-dialog-foreground);
+  min-width: 140px;
   white-space: nowrap;
 }
 
 .exportConfirmationDialogControlNote {
   display: block;
   width: 100%;
-  color: var(--workspace-sidebar-muted-foreground);
-  font-size: 0.78rem;
+  color: var(--pg-color-surface-muted);
+  font-size: 12px;
   line-height: 1.4;
+  margin-top: 2px;
 }
 
 .exportConfirmationDialogTocControl {
-  gap: 6px;
+  gap: 12px;
 }
 
 .exportConfirmationDialogTocControl .exportConfirmationDialogIncludeSwitch {
@@ -12961,13 +12970,58 @@ body > .mermaidTooltip {
 
 .exportConfirmationDialogSelect {
   min-inline-size: 160px;
-  max-inline-size: min(240px, 48vw);
+  max-inline-size: min(260px, 48vw);
+  padding: 5px 10px;
+  border: 1px solid var(--pg-color-input-border);
+  border-radius: 4px;
+  background: var(--pg-color-input-background);
+  color: var(--pg-color-input-foreground);
+  font-size: 13px;
 }
 
 .exportConfirmationDialogEmpty {
   margin: 0;
   color: var(--workspace-sidebar-muted-foreground);
   font-size: 0.9rem;
+}
+
+/* #794: Overview summary between controls and table */
+.exportConfirmationDialogOverview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 2px;
+  font-size: 13px;
+}
+
+.exportConfirmationDialogHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.exportConfirmationDialogOverview .exportConfirmationDialogLabel {
+  font-weight: 600;
+  color: var(--app-dialog-foreground);
+  white-space: nowrap;
+}
+
+.exportConfirmationDialogOverview .exportConfirmationDialogValue {
+  color: var(--app-dialog-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exportConfirmationDialogStats {
+  white-space: nowrap;
+}
+
+.exportConfirmationDialogStatValue {
+  font-weight: 600;
+  color: var(--app-dialog-foreground);
 }
 
 .exportConfirmationDialogTableWrap {
@@ -15233,7 +15287,7 @@ body > .mermaidTooltip {
   color: var(--app-dialog-foreground, #25313d);
 }
 
-/* #523 Slice 10 follow-up: Export Wizard Layout and Modal CSS */
+/* #523 Slice 10 follow-up & #794 Refined Export Wizard Styles */
 .exportWizardStepActions {
   display: flex;
   justify-content: space-between;
@@ -15253,8 +15307,9 @@ body > .mermaidTooltip {
 .exportWizardFontSection {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--pg-color-panel-divider);
 }
 
 .exportOverwriteConfirmModal {
@@ -15297,13 +15352,153 @@ body > .mermaidTooltip {
   gap: 8px;
 }
 
-/* #523 Slice 10 UI Polish: Export Wizard Height Stability, Table Reload Button, Close Button & Footer Navigation */
+/* #523 Slice 10 UI Polish & #794 Export Wizard Height Stability & Layout */
 .exportWizardContainer {
-  min-block-size: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .exportWizardStep {
-  min-block-size: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exportWizardStepHeader {
+  margin: 0;
+}
+
+.exportWizardStepHeader h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--app-dialog-foreground);
+}
+
+/* #794: Step 1 Interpretation Preview Box & Sample */
+.exportInterpretationPreviewBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--pg-color-panel-divider);
+}
+
+.exportInterpretationPreviewHeader {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-dialog-foreground);
+}
+
+.exportInterpretationPreviewSample {
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border: 1px solid var(--app-dialog-border);
+  border-radius: 4px;
+  background: var(--pg-color-surface-background);
+  color: var(--app-dialog-foreground);
+  font-family: var(--pergamum-workbench-ui-font-family-list, monospace);
+}
+
+/* #794: Step 3 Destination Folder, Filename, Output Path */
+.exportWizardFolderRow {
+  display: flex;
+  width: 100%;
+}
+
+.exportWizardInputWithButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.exportWizardInputWithButton .exportConfirmationDialogInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.exportWizardFileNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.exportWizardFileNameRow .exportConfirmationDialogInput {
+  flex: 1;
+  min-width: 0;
+  max-width: 280px;
+}
+
+.exportWizardFixedExtension {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--workspace-sidebar-muted-foreground);
+}
+
+.exportWizardFullPathDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--app-dialog-border);
+  border-radius: 6px;
+  background: var(--pg-color-surface-background);
+  margin-block-start: 2px;
+  min-width: 0;
+}
+
+.exportWizardFullPathLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-dialog-foreground);
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.exportWizardFullPathValue {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--app-dialog-foreground);
+  word-break: break-all;
+  user-select: text;
+}
+
+/* #794: Step 4 Result Card */
+.exportWizardResultCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--app-dialog-border);
+  border-radius: 6px;
+  background: var(--pg-color-panel-background);
+}
+
+.exportWizardResultRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.exportWizardResultLabel {
+  font-weight: 600;
+  color: var(--app-dialog-foreground);
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.exportWizardResultValue {
+  color: var(--app-dialog-foreground);
+  word-break: break-all;
+  user-select: text;
 }
 
 .exportConfirmationDialogReloadButton {
@@ -15383,8 +15578,9 @@ body > .mermaidTooltip {
 .pdfPageNumberSection {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--pg-color-panel-divider);
 }
 
 .pdfPageNumberSummaryRow {

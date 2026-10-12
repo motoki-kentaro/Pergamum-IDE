@@ -596,10 +596,8 @@ describe("Application Settings core control translations (#195)", () => {
   it("defines File Explorer export confirmation labels for ja and en", () => {
     expect(t("ja", "explorer.contextMenu.export")).toBe("エクスポート...");
     expect(t("en", "explorer.contextMenu.export")).toBe("Export...");
-    expect(t("ja", "export.confirmation.title")).toBe(
-      "エクスポート確認ダイアログ"
-    );
-    expect(t("en", "export.confirmation.title")).toBe("Export Confirmation");
+    expect(t("ja", "export.confirmation.title")).toBe("エクスポート");
+    expect(t("en", "export.confirmation.title")).toBe("Export");
     expect(t("ja", "export.confirmation.candidateCount", { count: 3 })).toBe(
       "3ファイル"
     );
