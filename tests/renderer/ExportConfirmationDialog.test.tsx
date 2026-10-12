@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 // @vitest-environment happy-dom
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -464,6 +465,49 @@ describe("ExportConfirmationDialog (#523)", () => {
     expect(candidateRow("First/01.md")).not.toBeNull();
   });
 
+  it("swaps the folder chevron icon on collapse and keeps it sized (#802)", async () => {
+    await mountDialog({ candidates: groupedCandidates });
+    const chevronUrl = (): string =>
+      folderCollapseButton("First")
+        .querySelector<HTMLElement>(".exportConfirmationDialogChevronIcon")!
+        .style.getPropertyValue("--masked-icon-url");
+
+    const expanded = chevronUrl();
+    expect(expanded).toContain("chevrons-down");
+    act(() => folderCollapseButton("First").click());
+    expect(chevronUrl()).toContain("chevrons-right");
+    act(() => folderCollapseButton("First").click());
+    expect(chevronUrl()).toBe(expanded);
+
+    // A mask icon without an explicit box renders 0x0: the sizing rule must
+    // target the class the component really uses.
+    const css = readFileSync("src/renderer/styles.css", "utf8");
+    expect(css).toMatch(
+      /\.exportConfirmationDialogChevronIcon \{\s*inline-size: 16px;\s*block-size: 16px;/
+    );
+    expect(css).not.toContain("exportConfirmationDialogFolderChevron");
+  });
+
+  it("sizes every mask icon class used by the export dialogs (#802)", () => {
+    const css = readFileSync("src/renderer/styles.css", "utf8");
+    const source = readFileSync(
+      "src/renderer/dialog/ExportConfirmationDialog.tsx",
+      "utf8"
+    );
+    const classes = [
+      ...source.matchAll(/<MaskedIcon[^>]*?className="([^"]+)"/g)
+    ].map((match) => match[1]);
+
+    expect(classes.length).toBeGreaterThan(0);
+    for (const className of classes) {
+      expect(css, className).toMatch(
+        new RegExp(
+          `\\.${className}\\b[^{}]*\\{[^}]*(inline-size|width):[^}]*(block-size|height):`
+        )
+      );
+    }
+  });
+
   it("folder toggle updates child rows, folder summary, and overall summary", async () => {
     await mountDialog();
 
@@ -592,9 +636,9 @@ describe("ExportConfirmationDialog (#523)", () => {
     });
   });
 
-  it("does not export and reports a safe message when no files are included", async () => {
+  it("does not export when no files are included: Step 3 is unreachable (#802)", async () => {
     const onExportTxt = vi.fn<ExportConfirmationDialogProps["onExportTxt"]>(
-      async () => ({ ok: true, outputPath: "C:\\export\\manuscript.txt" })
+      async () => ({ ok: true, outputPath: "C:\export\manuscript.txt" })
     );
     const onExportUnavailable = vi.fn();
     await mountDialog({ onExportTxt, onExportUnavailable });
@@ -602,15 +646,13 @@ describe("ExportConfirmationDialog (#523)", () => {
     act(() => folderToggle("First").click());
 
     navigateToStep2();
-    navigateToStep3();
+    act(() =>
+      buttonByText(translate("export.wizard.goToOutputDestination")).click()
+    );
 
-    await act(async () => {
-      executeExportClick();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
-    expect(onExportUnavailable).toHaveBeenCalledTimes(1);
+    expect(
+      container!.querySelector("[data-export-execute-button='true']")
+    ).toBeNull();
     expect(onExportTxt).not.toHaveBeenCalled();
   });
 
@@ -1287,6 +1329,224 @@ describe("ExportConfirmationDialog (#523)", () => {
 
     expect(onExportTxt).toHaveBeenCalledTimes(1);
     expect(onExportTxt.mock.calls[0]?.[0]?.allowOverwrite).toBe(true);
+  });
+
+  describe("requires an adopted document to leave Step 2 (#802)", () => {
+    const withIncluded = (
+      included: readonly boolean[],
+      characterCount = 10
+    ): readonly ExportCandidateListItem[] =>
+      included.map((flag, index) => ({
+        documentKey: `Doc/${index}.md`,
+        filePath: `Doc/${index}.md`,
+        parentPath: "Doc",
+        fileName: `${index}.md`,
+        kind: "markdown" as const,
+        rawText: "x".repeat(characterCount),
+        previewStart: "",
+        previewEnd: "",
+        previewStartHover: "",
+        previewEndHover: "",
+        characterCount,
+        included: flag
+      }));
+    const nextButton = (): HTMLButtonElement =>
+      buttonByText(translate("export.wizard.goToOutputDestination"));
+
+    it("keeps Step 1 -> Step 2 open with no adopted document", async () => {
+      await mountDialog({ candidates: withIncluded([false]) });
+
+      expect(
+        buttonByText(translate("export.wizard.goToOutputFormat")).disabled
+      ).toBe(false);
+      navigateToStep2();
+      expect(nextButton()).not.toBeNull();
+    });
+
+    it.each([[[false]], [[false, false, false]]])(
+      "disables the Step 2 next button for %j",
+      async (flags) => {
+        await mountDialog({ candidates: withIncluded(flags) });
+        navigateToStep2();
+
+        expect(nextButton().disabled).toBe(true);
+        act(() => nextButton().click());
+        expect(
+          container!.querySelector("[data-export-execute-button='true']")
+        ).toBeNull();
+        // Back stays available.
+        expect(
+          buttonByText(translate("export.wizard.backToSourceInterpretation"))
+            .disabled
+        ).toBe(false);
+      }
+    );
+
+    it("follows adoption changes 0 -> 1 -> 0 immediately", async () => {
+      await mountDialog({ candidates: withIncluded([false]) });
+      navigateToStep2();
+      expect(nextButton().disabled).toBe(true);
+
+      act(() => includeToggle("Doc/0.md").click());
+      expect(nextButton().disabled).toBe(false);
+
+      act(() => includeToggle("Doc/0.md").click());
+      expect(nextButton().disabled).toBe(true);
+    });
+
+    it("lets an adopted empty (0 character) document proceed to Step 3", async () => {
+      await mountDialog({ candidates: withIncluded([true], 0) });
+      navigateToStep2();
+
+      expect(summaryText()).toContain("Approx. characters: 0");
+      expect(nextButton().disabled).toBe(false);
+      navigateToStep3();
+      expect(
+        container!.querySelector<HTMLButtonElement>(
+          "[data-export-execute-button='true']"
+        )
+      ).not.toBeNull();
+    });
+
+    it("guards the Step 3 export button and handler against zero adopted documents", () => {
+      const source = readFileSync(
+        "src/renderer/dialog/ExportConfirmationDialog.tsx",
+        "utf8"
+      );
+
+      expect(source).toContain("const hasIncludedDocuments = summary.includedCount > 0;");
+      expect(source).toMatch(/!hasIncludedDocuments \|\|\s+isExporting/);
+      expect(source).toContain("if (!isValidFileName || !hasIncludedDocuments) return;");
+      // Existing last-line guard in the export routine stays in place.
+      expect(source).toMatch(/includedRows\.length === 0\) \{\s+onExportUnavailable\(\);/);
+    });
+  });
+
+  it("locks adoption toggles on Step 3 only, keeping their state (#802)", async () => {
+    await mountDialog({ candidates: groupedCandidates });
+
+    // Step 1 / 2: operable. Turn one document off to have a mixed state.
+    expect(includeToggle("First/01.md").disabled).toBe(false);
+    act(() => includeToggle("First/01.md").click());
+    navigateToStep2();
+    expect(includeToggle("Second/01.md").disabled).toBe(false);
+    expect(folderToggle("Second").disabled).toBe(false);
+
+    navigateToStep3();
+    const stateOf = (): string =>
+      JSON.stringify([
+        includeToggle("First/01.md").checked,
+        includeToggle("First/notes.txt").checked,
+        includeToggle("Second/01.md").checked,
+        folderToggle("First").checked,
+        folderToggle("Second").checked
+      ]);
+    const lockedState = stateOf();
+
+    // Individual and folder toggles are natively disabled; ON/OFF stays readable.
+    for (const toggle of [
+      includeToggle("First/01.md"),
+      includeToggle("First/notes.txt"),
+      includeToggle("Second/01.md"),
+      folderToggle("First"),
+      folderToggle("Second")
+    ]) {
+      expect(toggle.disabled).toBe(true);
+    }
+    expect(includeToggle("First/01.md").checked).toBe(false);
+    expect(includeToggle("First/notes.txt").checked).toBe(true);
+
+    // Clicking a disabled control changes nothing.
+    act(() => includeToggle("First/notes.txt").click());
+    act(() => folderToggle("Second").click());
+    expect(stateOf()).toBe(lockedState);
+
+    // Back to Step 2: operable again, adoption state preserved.
+    act(() => {
+      buttonByText(translate("export.wizard.backToOutputFormat")).click();
+    });
+    expect(includeToggle("First/notes.txt").disabled).toBe(false);
+    expect(folderToggle("Second").disabled).toBe(false);
+    expect(stateOf()).toBe(lockedState);
+  });
+
+  it("styles a disabled adoption switch distinctly from the active blue one (#802)", () => {
+    const css = readFileSync("src/renderer/styles.css", "utf8");
+
+    expect(css).toMatch(
+      /IncludeInput:disabled\s*\+ \.exportConfirmationDialogIncludeTrack \{\s*opacity: 0\.6;\s*cursor: not-allowed;/
+    );
+    expect(css).toMatch(
+      /IncludeInput:checked:disabled\s*\+ \.exportConfirmationDialogIncludeTrack \{[^}]*background: var\(--pg-color-surface-muted\)/
+    );
+  });
+
+  it("titles the overwrite confirmation and keeps it safe (#802)", async () => {
+    const onExportTxt = vi.fn<ExportConfirmationDialogProps["onExportTxt"]>(
+      async () => ({ ok: true, outputPath: "C:\Users\User\Documents\First.txt" })
+    );
+    const onCheckFileExists = vi.fn<
+      NonNullable<ExportConfirmationDialogProps["onCheckFileExists"]>
+    >(async () => ({ exists: true }));
+
+    await mountDialog({ onExportTxt, onCheckFileExists });
+    navigateToStep2();
+    navigateToStep3();
+    await act(async () => {
+      executeExportClick();
+      await Promise.resolve();
+    });
+
+    const modal = container!.querySelector<HTMLElement>(
+      "[data-export-overwrite-modal='true']"
+    )!;
+    const dialog = modal.querySelector<HTMLElement>("[role='alertdialog']")!;
+    expect(dialog).not.toBeNull();
+
+    // Title is rendered and wired as the accessible name; message is separate.
+    const title = dialog.querySelector("h2")!;
+    expect(title.textContent).toBe("Overwrite the file?");
+    expect(dialog.getAttribute("aria-labelledby")).toBe(title.id);
+    expect(
+      dialog.querySelector(".exportOverwriteConfirmMessage")?.textContent
+    ).toBe(translate("export.wizard.overwriteConfirmMessage"));
+    expect(t("ja", "export.wizard.overwriteConfirmTitle")).toBe(
+      "ファイルを上書きしますか？"
+    );
+
+    // Warning header: icon and title share one .appDialogHeader, styled by the
+    // same .appDialog-warning rule the other warning dialogs use.
+    const header = dialog.querySelector(".appDialogHeader")!;
+    expect(dialog.classList.contains("appDialog-warning")).toBe(true);
+    expect(header.contains(title)).toBe(true);
+    const icon = header.querySelector(".appDialogIcon-warning")!;
+    expect(icon.querySelector("svg")).not.toBeNull();
+    expect(icon.getAttribute("aria-label")).toBe(translate("dialog.icon.warning"));
+    expect(dialog.getAttribute("aria-describedby")).toBe(
+      dialog.querySelector(".appDialogBody .exportOverwriteConfirmMessage")!.id
+    );
+
+    // Cancel on the left and focused; Overwrite on the right, destructive.
+    const buttons = Array.from(dialog.querySelectorAll("button"));
+    expect(buttons.map((b) => b.textContent)).toEqual([
+      "Cancel",
+      translate("export.wizard.overwriteConfirmButton")
+    ]);
+    expect(buttons[1].className).toContain("appDialogButton-choice-destructive");
+    expect(document.activeElement).toBe(buttons[0]);
+
+    // Escape closes only the confirmation: nothing is written and the wizard stays.
+    await act(async () => {
+      buttons[0].dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
+      );
+      await Promise.resolve();
+    });
+    expect(
+      container!.querySelector("[data-export-overwrite-modal='true']")
+    ).toBeNull();
+    expect(onExportTxt).not.toHaveBeenCalled();
+    expect(container!.querySelector("[data-export-execute-button='true']")).not.toBeNull();
   });
 
   it("dynamically updates extension label in Step 3 based on selected format (#523 Slice 10)", async () => {

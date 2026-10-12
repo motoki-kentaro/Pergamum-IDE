@@ -105,32 +105,10 @@ describe("ConfirmDialog action button ordering (#801)", () => {
     cancelLabel: "キャンセル"
   };
 
-  it("follows platform actionOrder when options.actionOrder is omitted", () => {
+  it("always renders cancel before confirm (#802)", () => {
     const markup = renderToStaticMarkup(
       React.createElement(ConfirmDialog, {
         options: baseOptions,
-        actionOrder: "confirmCancel",
-        translate: (k) => k,
-        clipboardAdapter: dummyClipboard,
-        opener: null,
-        onResult: () => undefined
-      })
-    );
-
-    const confirmIndex = markup.indexOf("appDialogButton-confirm");
-    const cancelIndex = markup.indexOf("appDialogButton-cancel");
-
-    expect(confirmIndex).toBeLessThan(cancelIndex);
-  });
-
-  it("overrides platform actionOrder with options.actionOrder (e.g. cancelConfirm for external URL dialogs)", () => {
-    const markup = renderToStaticMarkup(
-      React.createElement(ConfirmDialog, {
-        options: {
-          ...baseOptions,
-          actionOrder: "cancelConfirm"
-        },
-        actionOrder: "confirmCancel",
         translate: (k) => k,
         clipboardAdapter: dummyClipboard,
         opener: null,

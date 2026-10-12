@@ -139,31 +139,6 @@ export class AppDialogError extends Error {
 }
 
 // ---------------------------------------------------------------------------
-// Platform-specific action order (#182 D-11)
-// ---------------------------------------------------------------------------
-
-export type AppDialogActionOrder = "confirmCancel" | "cancelConfirm";
-
-/**
- * DOM/action order follows platform convention: Windows/Linux order the
- * affirmative action before cancel, while macOS-style convention orders
- * cancel before confirm. Visual placement is resolved by CSS and the
- * effective writing direction, so RTL support must not reverse this array in
- * JS. `macos` is resolved the same as `other` today but is kept as its own
- * `AppPlatform` value (not collapsed into `other`) so future macOS-specific
- * handling doesn't require widening this closed set again.
- */
-export function getDialogActionOrder(
-  platform: AppPlatform
-): AppDialogActionOrder {
-  if (platform === "windows" || platform === "linux") {
-    return "confirmCancel";
-  }
-
-  return "cancelConfirm";
-}
-
-// ---------------------------------------------------------------------------
 // Confirm dialog options (#182 D-10)
 // ---------------------------------------------------------------------------
 
@@ -174,11 +149,6 @@ type AppConfirmDialogBaseOptions = {
   clipboardText: string | null;
   clipboardTextTitle?: string;
   cancelLabel?: string | null;
-  /**
-   * Optional action button order override. When omitted, platform action order
-   * (`actionOrder` prop) is used.
-   */
-  actionOrder?: AppDialogActionOrder;
   dismissOnBackdropClick?: boolean;
 };
 
@@ -205,13 +175,15 @@ export function confirmDialogTone(
 }
 
 /**
- * Resolves `dismissOnBackdropClick` to its effective boolean, defaulting to
- * `true` (backdrop click cancels) when the caller does not specify it.
+ * Resolves `dismissOnBackdropClick` to its effective boolean. When the caller
+ * does not specify it, a default-tone dialog is dismissed by a backdrop click
+ * (it resolves "cancel"), while a destructive dialog ignores backdrop clicks so
+ * a stray click never reads as a decision on an irreversible action (#802).
  */
 export function confirmDialogDismissesOnBackdropClick(
   options: AppConfirmDialogOptions
 ): boolean {
-  return options.dismissOnBackdropClick ?? true;
+  return options.dismissOnBackdropClick ?? confirmDialogTone(options) !== "destructive";
 }
 
 export function choiceDialogDismissesOnBackdropClick(

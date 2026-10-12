@@ -12,8 +12,7 @@ import {
   confirmDialogDismissesOnBackdropClick,
   confirmDialogTone,
   type AppConfirmDialogOptions,
-  type AppConfirmDialogResult,
-  type AppDialogActionOrder
+  type AppConfirmDialogResult
 } from "./appDialogTypes";
 import {
   handleConfirmDialogBackdropClick,
@@ -32,7 +31,6 @@ import { DialogMessage } from "./DialogMessage";
 
 export interface ConfirmDialogProps {
   options: AppConfirmDialogOptions;
-  actionOrder: AppDialogActionOrder;
   translate: Translate;
   clipboardAdapter: ClipboardAdapter;
   /**
@@ -78,7 +76,6 @@ const TECHNICAL_INFO_COPY_FEEDBACK_MS = 5000;
 
 export function ConfirmDialog({
   options,
-  actionOrder,
   translate,
   clipboardAdapter,
   opener,
@@ -203,17 +200,12 @@ export function ConfirmDialog({
       </button>
     );
 
-  // D-11 / D-15 / #187 / #801: DOM order follows the platform action order
-  // unless explicitly overridden by options.actionOrder. Visual
-  // order is resolved by CSS and the effective writing direction; in LTR
-  // contexts, DOM order and visual order match. Result semantics never
-  // change — the confirm button always resolves "confirm" and the cancel
-  // button always resolves "cancel" regardless of placement.
-  const effectiveActionOrder = options.actionOrder ?? actionOrder;
-  const actionButtons =
-    effectiveActionOrder === "confirmCancel"
-      ? [confirmButton, cancelButton].filter(Boolean)
-      : [cancelButton, confirmButton].filter(Boolean);
+  // #802: Pergamum-owned dialogs place the non-executing action (cancel) at
+  // the start and the executing action (confirm) at the end, on every
+  // platform. DOM order follows visual order in LTR; RTL mirrors via CSS flex.
+  // Result semantics never change — the confirm button always resolves
+  // "confirm" and the cancel button always resolves "cancel".
+  const actionButtons = [cancelButton, confirmButton].filter(Boolean);
 
   const titleId = "appDialogTitle";
   const messageId = "appDialogMessage";

@@ -77,6 +77,15 @@ export function FileExplorerDragDropDialog({
       footer={
         <div className="appDialogActions fileExplorerDragDropDialogActions">
           <button
+            ref={cancelButtonRef}
+            type="button"
+            className="appDialogButton fileExplorerDragDropCancelButton"
+            autoFocus
+            onClick={onCancel}
+          >
+            {translate("explorer.dnd.dialog.cancel")}
+          </button>
+          <button
             type="button"
             className="appDialogButton appDialogButton-choice fileExplorerDragDropMoveButton"
             disabled={busy}
@@ -93,15 +102,6 @@ export function FileExplorerDragDropDialog({
             onClick={onCopy}
           >
             {translate("explorer.dnd.dialog.copy")}
-          </button>
-          <button
-            ref={cancelButtonRef}
-            type="button"
-            className="appDialogButton fileExplorerDragDropCancelButton"
-            autoFocus
-            onClick={onCancel}
-          >
-            {translate("explorer.dnd.dialog.cancel")}
           </button>
         </div>
       }

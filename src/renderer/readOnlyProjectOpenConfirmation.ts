@@ -68,7 +68,7 @@ export function buildReadOnlyProjectOpenChoiceDialogOptions(
     ],
     primaryChoiceId: readOnlyProjectOpenChoiceIds.open,
     cancelChoiceId: readOnlyProjectOpenChoiceIds.cancel,
-    initialFocusChoiceId: readOnlyProjectOpenChoiceIds.cancel,
+    initialFocusChoiceId: readOnlyProjectOpenChoiceIds.open,
     clipboardText: null,
     dismissOnBackdropClick: false
   };

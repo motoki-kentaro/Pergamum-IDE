@@ -20,7 +20,6 @@ import {
   type AppChoiceDialogResult,
   type AppConfirmDialogOptions,
   type AppConfirmDialogResult,
-  type AppDialogActionOrder
 } from "./appDialogTypes";
 import { ChoiceDialog } from "./ChoiceDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -46,7 +45,6 @@ export interface DialogProviderProps {
    * platform (see `src/preload/platform.ts`) and injected here — the
    * dialog components themselves never read platform directly (D-11).
    */
-  actionOrder: AppDialogActionOrder;
   platform?: AppPlatform;
   translate: Translate;
   clipboardAdapter?: ClipboardAdapter;
@@ -56,7 +54,6 @@ export interface DialogProviderProps {
 }
 
 export function DialogProvider({
-  actionOrder,
   platform = "other",
   translate,
   clipboardAdapter = navigatorClipboardAdapter,
@@ -138,7 +135,6 @@ export function DialogProvider({
       {pending?.kind === "confirm" ? (
         <ConfirmDialog
           options={pending.options}
-          actionOrder={actionOrder}
           translate={translate}
           clipboardAdapter={clipboardAdapter}
           opener={openerRef.current}

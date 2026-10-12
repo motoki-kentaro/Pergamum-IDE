@@ -39,13 +39,11 @@ import {
   type FormEvent
 } from "react";
 import type { Translate, TranslationKey } from "../../shared/i18n";
-import type { AppPlatform } from "../../shared/platform";
 import {
   validateAttachedImageSaveDestination,
   type SaveDestinationValidationResult
 } from "../../shared/attachedImageSaveDestination";
 import { destinationHasMarkdownRiskyCharacters } from "../../shared/markdownImageLink";
-import { getDialogActionOrder } from "./appDialogTypes";
 import { InfoDialog } from "./InfoDialog";
 
 export interface SaveDestinationDialogResult {
@@ -58,7 +56,6 @@ export interface SaveDestinationDialogProps {
   readonly mode?: "settings" | "pastePrompt";
   readonly allowEmpty?: boolean;
   readonly translate: Translate;
-  readonly platform?: AppPlatform;
   readonly opener?: Element | null;
   readonly onSave: (result: SaveDestinationDialogResult) => void;
   readonly onDismiss: () => void;
@@ -70,7 +67,6 @@ export function SaveDestinationDialog({
   mode = "settings",
   allowEmpty,
   translate,
-  platform,
   opener,
   onSave,
   onDismiss
@@ -124,14 +120,6 @@ export function SaveDestinationDialog({
   const showValidationError =
     (submitAttempted || (!isTrimmedEmpty && !rawValidation.ok)) && !isValid;
 
-  const resolvedPlatform: AppPlatform =
-    platform ??
-    (typeof window !== "undefined" && window.pergamum?.platform
-      ? window.pergamum.platform
-      : "windows");
-
-  const actionOrder = getDialogActionOrder(resolvedPlatform);
-
   const handleSave = useCallback(() => {
     setSubmitAttempted(true);
     if (!isValid) {
@@ -175,10 +163,7 @@ export function SaveDestinationDialog({
     </button>
   );
 
-  const actionButtons =
-    actionOrder === "confirmCancel"
-      ? [saveButton, cancelButton]
-      : [cancelButton, saveButton];
+  const actionButtons = [cancelButton, saveButton];
 
   return (
     <InfoDialog

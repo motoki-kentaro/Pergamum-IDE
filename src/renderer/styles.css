@@ -13201,7 +13201,7 @@ body > .mermaidTooltip {
 .exportConfirmationDialogHandleIcon,
 .exportConfirmationDialogKindIcon,
 .exportConfirmationDialogFolderIcon,
-.exportConfirmationDialogFolderChevron {
+.exportConfirmationDialogChevronIcon {
   inline-size: 16px;
   block-size: 16px;
   display: inline-block;
@@ -13428,6 +13428,27 @@ body > .mermaidTooltip {
   + .exportConfirmationDialogIncludeTrack
   .exportConfirmationDialogIncludeThumb {
   inset-inline-start: 18px;
+}
+
+/* #802: a locked switch (Step 3 keeps the adoption state read-only) must not
+   look like the active blue control. ON stays distinguishable by the thumb
+   position and a neutral fill; OFF keeps its normal track, only dimmed. */
+.exportConfirmationDialogIncludeInput:disabled
+  + .exportConfirmationDialogIncludeTrack {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.exportConfirmationDialogIncludeInput:checked:disabled
+  + .exportConfirmationDialogIncludeTrack {
+  border-color: var(--app-dialog-border);
+  background: var(--pg-color-surface-muted);
+}
+
+.exportConfirmationDialogIncludeSwitch:has(
+    .exportConfirmationDialogIncludeInput:disabled
+  ) {
+  cursor: not-allowed;
 }
 
 .exportConfirmationDialogIncludeInput:focus-visible
@@ -15342,16 +15363,12 @@ body > .mermaidTooltip {
 }
 
 .exportOverwriteConfirmContent {
-  background: var(--app-dialog-background, #ffffff);
-  border: 1px solid var(--app-dialog-border, #d3dae2);
-  border-radius: 8px;
-  padding: 24px;
   max-width: 440px;
   width: 90%;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+}
+
+.exportOverwriteConfirmContent .appDialogFooter {
+  justify-content: flex-end;
 }
 
 .exportOverwriteConfirmMessage {

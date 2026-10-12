@@ -5,7 +5,6 @@ import { t, type Translate } from "../../../src/shared/i18n";
 import { ConfirmDialog } from "../../../src/renderer/dialog/ConfirmDialog";
 import type {
   AppConfirmDialogOptions,
-  AppDialogActionOrder
 } from "../../../src/renderer/dialog/appDialogTypes";
 import type { ClipboardAdapter } from "../../../src/renderer/dialog/clipboardAdapter";
 
@@ -30,14 +29,12 @@ function baseOptions(
 
 function renderDialog(overrides: {
   options?: AppConfirmDialogOptions;
-  actionOrder?: AppDialogActionOrder;
   translate?: Translate;
   clipboardAdapter?: ClipboardAdapter;
 } = {}): string {
   return renderToStaticMarkup(
     React.createElement(ConfirmDialog, {
       options: overrides.options ?? baseOptions(),
-      actionOrder: overrides.actionOrder ?? "confirmCancel",
       translate: overrides.translate ?? translateJa,
       clipboardAdapter: overrides.clipboardAdapter ?? noopClipboardAdapter,
       opener: null,
@@ -333,39 +330,17 @@ describe("ConfirmDialog clipboard copy button (#182 D-9)", () => {
   });
 });
 
-describe("ConfirmDialog platform action order and DOM structure (#182 D-11 / D-15)", () => {
-  it('actionOrder "confirmCancel" renders the confirm button before the cancel button', () => {
-    const markup = renderDialog({ actionOrder: "confirmCancel" });
-    const confirmIndex = markup.indexOf("appDialogButton-confirm");
-    const cancelIndex = markup.indexOf("appDialogButton-cancel");
-
-    expect(confirmIndex).toBeLessThan(cancelIndex);
-  });
-
-  it('actionOrder "cancelConfirm" renders the cancel button before the confirm button', () => {
-    const markup = renderDialog({ actionOrder: "cancelConfirm" });
+describe("ConfirmDialog action order and DOM structure (#802)", () => {
+  it("renders the cancel button before the confirm button on every platform", () => {
+    const markup = renderDialog();
     const confirmIndex = markup.indexOf("appDialogButton-confirm");
     const cancelIndex = markup.indexOf("appDialogButton-cancel");
 
     expect(cancelIndex).toBeLessThan(confirmIndex);
   });
 
-  it("LTR DOM order matches visual order: copy -> confirm -> cancel for confirmCancel", () => {
+  it("LTR DOM order matches visual order: copy -> cancel -> confirm", () => {
     const markup = renderDialog({
-      actionOrder: "confirmCancel",
-      options: baseOptions({ clipboardText: "diagnostic" })
-    });
-    const copyIndex = markup.indexOf("appDialogCopyButton");
-    const confirmIndex = markup.indexOf("appDialogButton-confirm");
-    const cancelIndex = markup.indexOf("appDialogButton-cancel");
-
-    expect(copyIndex).toBeLessThan(confirmIndex);
-    expect(confirmIndex).toBeLessThan(cancelIndex);
-  });
-
-  it("LTR DOM order matches visual order: copy -> cancel -> confirm for cancelConfirm", () => {
-    const markup = renderDialog({
-      actionOrder: "cancelConfirm",
       options: baseOptions({ clipboardText: "diagnostic" })
     });
     const copyIndex = markup.indexOf("appDialogCopyButton");
@@ -376,105 +351,16 @@ describe("ConfirmDialog platform action order and DOM structure (#182 D-11 / D-1
     expect(cancelIndex).toBeLessThan(confirmIndex);
   });
 
-  it("visual button order does not change confirm/cancel result semantics (both classes always present with fixed meaning)", () => {
-    const confirmCancelMarkup = renderDialog({ actionOrder: "confirmCancel" });
-    const cancelConfirmMarkup = renderDialog({ actionOrder: "cancelConfirm" });
-
-    for (const markup of [confirmCancelMarkup, cancelConfirmMarkup]) {
-      expect(markup).toContain("appDialogButton-confirm");
-      expect(markup).toContain("appDialogButton-cancel");
-    }
-  });
-
-  it("documents actionOrder as DOM order while leaving visual order to CSS and writing direction", async () => {
+  it("documents the fixed cancel-then-confirm order and no platform override", async () => {
     const { readFileSync } = await import("node:fs");
     const source = readFileSync("src/renderer/dialog/ConfirmDialog.tsx", "utf8");
 
-    expect(source).toContain(
-      "DOM order follows the platform action order"
-    );
-    expect(source).toContain(
-      "order is resolved by CSS and the effective writing direction"
-    );
-    expect(source).not.toContain("visual (and DOM) order");
+    expect(source).toContain("[cancelButton, confirmButton]");
+    expect(source).not.toContain("actionOrder");
   });
 
-  it("does not manually reverse action button arrays for RTL in JS", async () => {
-    const { readFileSync } = await import("node:fs");
-    const source = readFileSync("src/renderer/dialog/ConfirmDialog.tsx", "utf8");
-
-    expect(source).not.toContain("TextDirection");
-    expect(source).not.toContain("getLanguageDirection");
-    expect(source).not.toContain("languageMetadata");
-    expect(source).not.toContain(".reverse(");
-  });
-});
-
-describe("ConfirmDialog footer CSS direction-safety (#187)", () => {
-  it("uses logical spacing in the dialog footer/action area", async () => {
-    const { readFileSync } = await import("node:fs");
-    const styles = readFileSync("src/renderer/styles.css", "utf8");
-    const dialogFooterCss = styles.slice(
-      styles.indexOf(".appDialogFooter"),
-      styles.indexOf(".appDialogButton-confirm")
-    );
-
-    expect(dialogFooterCss).toContain("padding-block");
-    expect(dialogFooterCss).toContain("padding-inline");
-    expect(dialogFooterCss).toContain("margin-inline-start: auto");
-    expect(dialogFooterCss).toContain("text-align: start");
-    expect(dialogFooterCss).not.toMatch(/\b(?:margin-left|margin-right)\b/);
-    expect(dialogFooterCss).not.toMatch(/\b(?:left|right)\s*:/);
-  });
-});
-
-describe("ConfirmDialog initial focus (#182 D-15 / D-16, via the autoFocus prop)", () => {
-  it("default tone: the confirm button carries autofocus, the cancel button does not", () => {
-    const markup = renderDialog({ options: baseOptions() });
-    const confirmTag = markup.slice(
-      markup.indexOf("appDialogButton-confirm") - 40,
-      markup.indexOf(">", markup.indexOf("appDialogButton-confirm"))
-    );
-    const cancelTag = markup.slice(
-      markup.indexOf("appDialogButton-cancel") - 40,
-      markup.indexOf(">", markup.indexOf("appDialogButton-cancel"))
-    );
-
-    expect(confirmTag).toContain("autofocus");
-    expect(cancelTag).not.toContain("autofocus");
-  });
-
-  it("destructive tone: the cancel button carries autofocus, the confirm button does not", () => {
-    const markup = renderDialog({
-      options: baseOptions({ tone: "destructive", confirmLabel: "削除" })
-    });
-    const confirmTag = markup.slice(
-      markup.indexOf("appDialogButton-confirm") - 40,
-      markup.indexOf(">", markup.indexOf("appDialogButton-confirm"))
-    );
-    const cancelTag = markup.slice(
-      markup.indexOf("appDialogButton-cancel") - 40,
-      markup.indexOf(">", markup.indexOf("appDialogButton-cancel"))
-    );
-
-    expect(cancelTag).toContain("autofocus");
-    expect(confirmTag).not.toContain("autofocus");
-  });
-
-  it("default tone initial focus is confirm even when a copy button is present", () => {
-    const markup = renderDialog({
-      options: baseOptions({ clipboardText: "diagnostic" })
-    });
-    const copyTag = markup.slice(
-      markup.indexOf("appDialogCopyButton") - 20,
-      markup.indexOf(">", markup.indexOf("appDialogCopyButton"))
-    );
-
-    expect(copyTag).not.toContain("autofocus");
-  });
-
-  it("initial focus is independent from DOM order (confirm is still initial focus under cancelConfirm order)", () => {
-    const markup = renderDialog({ actionOrder: "cancelConfirm" });
+  it("initial focus is independent from DOM order (confirm is still initial focus although it renders last)", () => {
+    const markup = renderDialog();
     const confirmTag = markup.slice(
       markup.indexOf("appDialogButton-confirm") - 40,
       markup.indexOf(">", markup.indexOf("appDialogButton-confirm"))

@@ -326,7 +326,18 @@ export function FileExplorerDeleteDialog({
       }
       footer={
         <div className="appDialogActions fileExplorerDeleteDialogActions">
-          {/* Destructive action on the LEFT, the escape hatch on the RIGHT. */}
+          <button
+            ref={dismissButtonRef}
+            type="button"
+            className="appDialogButton"
+            disabled={phase === "running"}
+            aria-disabled={phase === "running"}
+            autoFocus={phase === "confirm"}
+            onClick={onDismiss}
+          >
+            {dismissLabel}
+          </button>
+          {/* #802: escape hatch on the LEFT, the destructive action on the RIGHT. */}
           {phase === "running" ? (
             <button
               ref={abortButtonRef}
@@ -356,17 +367,6 @@ export function FileExplorerDeleteDialog({
               <span>{translate("explorer.delete.dialog.confirm")}</span>
             </button>
           )}
-          <button
-            ref={dismissButtonRef}
-            type="button"
-            className="appDialogButton"
-            disabled={phase === "running"}
-            aria-disabled={phase === "running"}
-            autoFocus={phase === "confirm"}
-            onClick={onDismiss}
-          >
-            {dismissLabel}
-          </button>
         </div>
       }
     >
@@ -378,11 +378,6 @@ export function FileExplorerDeleteDialog({
         {hasFolders ? (
           <p className="fileExplorerDeleteDialogFolderNote">
             {translate("explorer.delete.dialog.folderNote")}
-          </p>
-        ) : null}
-        {phase === "confirm" ? (
-          <p className="fileExplorerDeleteDialogQuestion">
-            {translate("explorer.delete.dialog.question")}
           </p>
         ) : null}
         {/* #351: the 5s wait state is shown ONLY by the button (disabled +

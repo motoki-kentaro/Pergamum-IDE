@@ -413,6 +413,14 @@ export function RecoveryCandidateDialog({
           <div className="appDialogActions recoveryCandidateDialogActions">
             <button
               type="button"
+              className="appDialogButton"
+              autoFocus
+              onClick={onClose}
+            >
+              {closeButtonLabel}
+            </button>
+            <button
+              type="button"
               className={recoveryDiscardButtonClassName(
                 discardSelectedIconState !== null
               )}
@@ -458,14 +466,6 @@ export function RecoveryCandidateDialog({
               }}
             >
               {translate("dialog.recovery.restoreSelected")}
-            </button>
-            <button
-              type="button"
-              className="appDialogButton"
-              autoFocus
-              onClick={onClose}
-            >
-              {closeButtonLabel}
             </button>
           </div>
         </div>

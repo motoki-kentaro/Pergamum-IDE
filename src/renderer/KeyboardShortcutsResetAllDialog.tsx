@@ -47,6 +47,14 @@ export function KeyboardShortcutsResetAllDialog({
         <div className="appDialogActions">
           <button
             type="button"
+            className="appDialogButton"
+            autoFocus
+            onClick={onCancel}
+          >
+            {translate("common.cancel")}
+          </button>
+          <button
+            type="button"
             className="appDialogButton appDialogButton-choice-destructive keyboardShortcutsResetAllConfirm"
             disabled={!armed}
             aria-disabled={!armed}
@@ -65,14 +73,6 @@ export function KeyboardShortcutsResetAllDialog({
               />
             )}
             <span>{translate("keyboardShortcuts.resetAll.confirm")}</span>
-          </button>
-          <button
-            type="button"
-            className="appDialogButton"
-            autoFocus
-            onClick={onCancel}
-          >
-            {translate("common.cancel")}
           </button>
         </div>
       }

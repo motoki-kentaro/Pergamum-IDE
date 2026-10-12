@@ -75,10 +75,10 @@ describe("RecoveryCandidateDialog markup", () => {
     expect(markup).toMatch(
       /aboutDialogTechnicalInfoControl[^]*復旧レポートをコピー/
     );
-    // The lower-right action stack contains explicit discard actions,
-    // restore, then Close.
+    // The lower-right action stack leads with the non-executing Close
+    // (#802), then the explicit discard actions, then restore.
     expect(markup).toMatch(
-      /recoveryCandidateDialogActions[^]*選択した復旧候補を破棄\.\.\.[^]*すべての復旧候補を破棄\.\.\.[^]*選択したものを復元[^]*後で決める/
+      /recoveryCandidateDialogActions[^]*後で決める[^]*選択した復旧候補を破棄\.\.\.[^]*すべての復旧候補を破棄\.\.\.[^]*選択したものを復元/
     );
     // The report button is NOT inside the action stack.
     const actions = markup.slice(markup.indexOf("recoveryCandidateDialogActions"));
@@ -233,7 +233,7 @@ describe("RecoveryCandidateDialog markup", () => {
   });
 
   it("gives disabled dialog buttons a visible disabled style", () => {
-    // Regression guard: a disabled Restore Selected button must not keep the
+    // Regression guard: a disabled Restore selected button must not keep the
     // full-strength confirm fill and read as enabled.
     const css = readFileSync("src/renderer/styles.css", "utf8");
     const start = css.indexOf(".appDialogButton:disabled {");
@@ -265,7 +265,7 @@ describe("RecoveryCandidateDialog markup", () => {
     expect(markup).not.toContain('role="grid"');
   });
 
-  it("uses Decide Later while candidates remain and Close when there are none", () => {
+  it("uses Decide later while candidates remain and Close when there are none", () => {
     const withCandidates = renderToStaticMarkup(
       <RecoveryCandidateDialog {...baseProps()} />
     );
@@ -281,7 +281,7 @@ describe("RecoveryCandidateDialog markup", () => {
     const withCandidatesEn = renderToStaticMarkup(
       <RecoveryCandidateDialog {...baseProps()} translate={translateEn} />
     );
-    expect(withCandidatesEn).toContain("Decide Later");
+    expect(withCandidatesEn).toContain("Decide later");
     expect(withCandidatesEn).not.toMatch(/<button[^>]*>Close<\/button>/);
   });
 });
@@ -371,7 +371,7 @@ describe("RecoveryCandidateDialog behavior", () => {
     expect(footerButton("選択したものを復元").disabled).toBe(true);
   });
 
-  describe("Restore Selected enabled state (#288 follow-up)", () => {
+  describe("Restore selected enabled state (#288 follow-up)", () => {
     const RESTORE_LABEL = "選択したものを復元";
 
     it("zero candidates: disabled, and a click never restores", async () => {
@@ -605,7 +605,7 @@ describe("RecoveryCandidateDialog behavior", () => {
     expect(rowCheckboxes()[0].checked).toBe(false);
   });
 
-  it("Decide Later calls onClose and never a restore / delete path", () => {
+  it("Decide later calls onClose and never a restore / delete path", () => {
     const props = baseProps();
     render(props);
     act(() => footerButton("後で決める").click());
@@ -626,7 +626,7 @@ describe("RecoveryCandidateDialog behavior", () => {
     expect(props.onDiscardAll).not.toHaveBeenCalled();
   });
 
-  it("Restore Selected passes the selected recoveryIds", async () => {
+  it("Restore selected passes the selected recoveryIds", async () => {
     const props = baseProps();
     render(props);
     // Row 0 in the initial (updatedAt desc) order is the newer Untitled row.

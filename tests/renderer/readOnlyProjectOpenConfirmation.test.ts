@@ -52,11 +52,11 @@ describe("buildReadOnlyProjectOpenChoiceDialogOptions", () => {
     const enOptions = buildReadOnlyProjectOpenChoiceDialogOptions(translateEn);
 
     expect(jaOptions.choices.map((choice) => choice.label)).toEqual([
-      "理解したうえで読み取り専用で開く",
+      "読み取り専用で開く",
       "キャンセル"
     ]);
     expect(enOptions.choices.map((choice) => choice.label)).toEqual([
-      "Open Read-Only, I Understand",
+      "Open read-only",
       "Cancel"
     ]);
     expect(jaOptions.choices.map((choice) => choice.label)).not.toContain("OK");
@@ -73,13 +73,13 @@ describe("buildReadOnlyProjectOpenChoiceDialogOptions", () => {
     expect(enOptions.choices.map((choice) => choice.label)).not.toContain("No");
   });
 
-  it("marks open as primary and cancel as cancel with safe initial focus", () => {
+  it("marks open as primary and cancel as cancel with primary initial focus", () => {
     const options = buildReadOnlyProjectOpenChoiceDialogOptions(translateEn);
 
     expect(options.choices).toEqual([
       {
         id: readOnlyProjectOpenChoiceIds.open,
-        label: "Open Read-Only, I Understand",
+        label: "Open read-only",
         role: "primary"
       },
       {
@@ -90,8 +90,10 @@ describe("buildReadOnlyProjectOpenChoiceDialogOptions", () => {
     ]);
     expect(options.primaryChoiceId).toBe(readOnlyProjectOpenChoiceIds.open);
     expect(options.cancelChoiceId).toBe(readOnlyProjectOpenChoiceIds.cancel);
+    // #802: opening read-only is non-destructive, so the primary action
+    // takes the initial focus like other non-destructive confirmations.
     expect(options.initialFocusChoiceId).toBe(
-      readOnlyProjectOpenChoiceIds.cancel
+      readOnlyProjectOpenChoiceIds.open
     );
     expect(choiceDialogDismissesOnBackdropClick(options)).toBe(false);
   });

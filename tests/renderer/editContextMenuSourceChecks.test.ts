@@ -66,6 +66,10 @@ function allSourceText(): string {
  * resolves dismissed and Tab stays inside the modal focus trap; it does not
  * implement app/global shortcut suppression.
  *
+ * ExportConfirmationDialog.tsx (#802) is the same dialog-local exception: the
+ * wizard's nested overwrite confirmation handles Escape (cancel only that
+ * confirmation, not the wizard) and its own two-button Tab loop.
+ *
  * InfoDialog.tsx (#221) is the same dialog-local exception: Escape closes the
  * information modal and Tab stays inside the modal focus trap.
  *
@@ -214,6 +218,7 @@ const onKeyDownExemptFileNames = new Set([
   "ChoiceDialog.tsx",
   "ConfirmDialog.tsx",
   "InfoDialog.tsx",
+  "ExportConfirmationDialog.tsx",
   "UsageTour.tsx",
   "DocumentTabBar.tsx",
   "FileExplorer.tsx",

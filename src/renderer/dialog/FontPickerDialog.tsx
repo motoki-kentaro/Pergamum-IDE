@@ -404,7 +404,7 @@ export function FontPickerDialog({
           </button>
           <button
             type="button"
-            className="appDialogButton appDialogButton-primary"
+            className="appDialogButton appDialogButton-confirm"
             onClick={() => {
               onSave(selectedFonts);
               onClose();

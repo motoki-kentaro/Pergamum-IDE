@@ -37,7 +37,7 @@ function Harness({ blocked = false, ready = true, documentKey = "project-a/tab-a
       onDictionaryMissing={() => { notice.beginAttempt(); notice.notify(); }}
     /> : null}
     {pending?.kind === "confirm" ? <ConfirmDialog
-      options={pending.options} actionOrder="confirmCancel" translate={translate}
+      options={pending.options} translate={translate}
       clipboardAdapter={{ writeText: async () => undefined }} opener={null}
       onResult={(result) => controller.resolve(result)}
     /> : null}

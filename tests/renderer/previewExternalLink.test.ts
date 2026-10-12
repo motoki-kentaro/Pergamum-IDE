@@ -132,7 +132,7 @@ describe("external link confirmation dialog wiring", () => {
     expect(t("en", "common.open")).toBe("Open");
   });
 
-  it("uses the external-link icon, plainTextWithUrlRow message, and cancelConfirm order in App", () => {
+  it("uses the external-link icon, plainTextWithUrlRow message, message; order is fixed cancel-then-open by ConfirmDialog (#802)", () => {
     const app = readFileSync("src/renderer/App.tsx", "utf8");
     const block = app.slice(app.indexOf("previewExternalLinkDepsRef.current = {"));
     const code = block.slice(0, block.indexOf("useEffect(() => {"));
@@ -141,7 +141,7 @@ describe("external link confirmation dialog wiring", () => {
     expect(code).toContain('kind: "plainTextWithUrlRow"');
     expect(code).toContain('translate("common.open")');
     expect(code).toContain('translate("common.cancel")');
-    expect(code).toContain('actionOrder: "cancelConfirm"');
+    expect(code).not.toContain("actionOrder");
     expect(code).not.toContain('kind: "warning"');
     expect(code).not.toContain('kind: "error"');
     expect(readFileSync("src/renderer/dialog/dialogIcons.ts", "utf8")).toContain(

@@ -18,8 +18,6 @@ import type {
   JapaneseMachineCheckTarget,
   JapaneseMachineCheckSummary
 } from "../../shared/japaneseMachineCheck";
-import type { AppPlatform } from "../../shared/platform";
-import { getDialogActionOrder } from "./appDialogTypes";
 import { InfoDialog } from "./InfoDialog";
 
 /**
@@ -41,7 +39,6 @@ export interface JapaneseMachineCheckDialogProps {
   readonly target: JapaneseMachineCheckTarget;
   readonly translate: Translate;
   readonly uiLanguage?: Language;
-  readonly platform?: AppPlatform;
   readonly opener?: Element | null;
   readonly onClose: () => void;
   /** Replace this wizard with the shared installation-error dialog. */
@@ -109,7 +106,6 @@ export function JapaneseMachineCheckDialog({
   target,
   translate,
   uiLanguage,
-  platform,
   opener = null,
   onClose,
   onDictionaryMissing,
@@ -298,21 +294,11 @@ export function JapaneseMachineCheckDialog({
     }
   }, [cancelRun, onClose]);
 
-  const resolvedPlatform: AppPlatform =
-    platform ??
-    (typeof window !== "undefined" && window.pergamum?.platform
-      ? window.pergamum.platform
-      : "windows");
-  const actionOrder = getDialogActionOrder(resolvedPlatform);
-
   function arrange(
     confirm: JSX.Element | null,
     cancel: JSX.Element | null
   ): JSX.Element {
-    const buttons =
-      actionOrder === "confirmCancel" ? [confirm, cancel] : [cancel, confirm];
-
-    return <div className="appDialogActions">{buttons}</div>;
+    return <div className="appDialogActions">{[cancel, confirm]}</div>;
   }
 
   const cancelButton = (

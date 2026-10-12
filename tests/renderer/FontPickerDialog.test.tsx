@@ -788,7 +788,7 @@ describe("FontPickerDialog (#494 D&D-only remediation)", () => {
       await renderDialog({
         initialValue: [{ family: "Cascadia Code", displayName: "Cascadia Code" }]
       });
-      const applyBtn = container.querySelector(".appDialogButton-primary");
+      const applyBtn = container.querySelector(".appDialogButton-confirm");
       const cancelBtn = container.querySelector(".appDialogButton-cancel");
       expect(applyBtn?.getAttribute("draggable")).toBeNull();
       expect(cancelBtn?.getAttribute("draggable")).toBeNull();
@@ -1007,7 +1007,7 @@ describe("FontPickerDialog (#494 D&D-only remediation)", () => {
       );
       await performDrag(draggedLi, targetLi, 0);
 
-      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-primary");
+      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-confirm");
       await step(() => applyBtn?.click());
 
       expect(onSaveMock).toHaveBeenCalledWith([
@@ -1019,7 +1019,7 @@ describe("FontPickerDialog (#494 D&D-only remediation)", () => {
     it("allows an empty selected list (no drags performed) to be applied", async () => {
       const onSaveMock = vi.fn();
       await renderDialog({ initialValue: [], onSave: onSaveMock });
-      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-primary");
+      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-confirm");
       await step(() => applyBtn?.click());
       expect(onSaveMock).toHaveBeenCalledWith([]);
     });
@@ -1094,7 +1094,7 @@ describe("FontPickerDialog (#494 D&D-only remediation)", () => {
       expect(onSaveMock).not.toHaveBeenCalled();
       expect(onCloseMock).not.toHaveBeenCalled();
 
-      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-primary");
+      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-confirm");
       await step(() => applyBtn?.click());
       expect(onSaveMock).toHaveBeenCalledWith(initialValue);
     });
@@ -1166,7 +1166,7 @@ describe("FontPickerDialog (#494 D&D-only remediation)", () => {
       const preview = container.querySelector<HTMLElement>(".fontPickerSamplePreview");
       expect(preview?.textContent).toBe("カスタム見本文");
 
-      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-primary");
+      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-confirm");
       await step(() => applyBtn?.click());
 
       expect(onSaveMock).toHaveBeenCalledWith([
@@ -1572,7 +1572,7 @@ describe("FontPickerDialog (#494 D&D-only remediation)", () => {
       const selectedBox = container.querySelector<HTMLElement>(".fontPickerSelectedListBox");
       await performDrag(availableLi, selectedBox);
 
-      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-primary");
+      const applyBtn = container.querySelector<HTMLButtonElement>(".appDialogButton-confirm");
       await step(() => applyBtn?.click());
 
       expect(onSaveMock).toHaveBeenCalledWith([

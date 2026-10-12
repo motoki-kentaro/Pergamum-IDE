@@ -238,13 +238,13 @@ describe("FileExplorerDeleteDialog (#351)", () => {
     );
   });
 
-  it("orders the footer buttons [削除] then [キャンセル] and focuses キャンセル", () => {
+  it("orders the footer buttons [キャンセル] then [削除] and focuses キャンセル (#802)", () => {
     render(props());
     const [left, right] = footerButtons();
-    expect(left.textContent).toContain("削除");
-    expect(left.textContent).not.toContain("中止");
-    expect(right.textContent?.trim()).toBe("キャンセル");
-    expect(document.activeElement).toBe(right);
+    expect(right.textContent).toContain("削除");
+    expect(right.textContent).not.toContain("中止");
+    expect(left.textContent?.trim()).toBe("キャンセル");
+    expect(document.activeElement).toBe(left);
   });
 
   it("keeps focus on キャンセル after the 5s arm — never auto-focuses 削除", () => {
@@ -303,9 +303,9 @@ describe("FileExplorerDeleteDialog (#351)", () => {
     });
 
     const [left, right] = footerButtons();
-    expect(left.textContent?.trim()).toBe("中止");
-    expect(right.disabled).toBe(true);
-    expect(document.activeElement).toBe(left);
+    expect(right.textContent?.trim()).toBe("中止");
+    expect(left.disabled).toBe(true);
+    expect(document.activeElement).toBe(right);
 
     await act(async () => {
       release?.();
@@ -326,11 +326,11 @@ describe("FileExplorerDeleteDialog (#351)", () => {
     });
 
     const [left, right] = footerButtons();
-    expect(left.textContent).toContain("削除");
-    expect(left.disabled).toBe(true);
-    expect(right.textContent?.trim()).toBe("閉じる");
-    expect(right.disabled).toBe(false);
-    expect(document.activeElement).toBe(right);
+    expect(right.textContent).toContain("削除");
+    expect(right.disabled).toBe(true);
+    expect(left.textContent?.trim()).toBe("閉じる");
+    expect(left.disabled).toBe(false);
+    expect(document.activeElement).toBe(left);
     expect(rowStatuses()).toEqual(["deleted", "deleted"]);
   });
 

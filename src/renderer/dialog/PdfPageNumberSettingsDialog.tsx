@@ -94,14 +94,14 @@ export function PdfPageNumberSettingsDialog({
             className="appDialogButton appDialogButton-cancel"
             onClick={onClose}
           >
-            {translate("fontPicker.button.cancel")}
+            {translate("common.cancel")}
           </button>
           <button
             type="button"
-            className="appDialogButton appDialogButton-primary"
+            className="appDialogButton appDialogButton-confirm"
             onClick={handleApply}
           >
-            {translate("fontPicker.button.apply")}
+            {translate("common.apply")}
           </button>
         </div>
       }

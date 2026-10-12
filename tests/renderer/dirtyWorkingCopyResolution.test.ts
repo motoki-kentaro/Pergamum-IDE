@@ -250,12 +250,12 @@ describe("buildLifecycleDirtyChoiceDialogOptions (#271)", () => {
       choices: [
         {
           id: lifecycleDirtyChoiceIds.saveAll,
-          label: "Save All and Close",
+          label: "Save all and close",
           role: "primary"
         },
         {
           id: lifecycleDirtyChoiceIds.discardAll,
-          label: "Discard Changes and Close",
+          label: "Discard changes and close",
           role: "destructive",
           icon: { kind: "alertTriangle" }
         },

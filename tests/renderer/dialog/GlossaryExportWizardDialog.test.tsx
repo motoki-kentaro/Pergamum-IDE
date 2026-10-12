@@ -15,6 +15,9 @@ const translate: Translate = (key, params) => {
   if (key === "glossaryExportWizard.selectedCount" && params) {
     return `Export targets: ${params.selectedCount} / ${params.totalCount}`;
   }
+  if (key === "glossaryExportWizard.summaryCountValue" && params) {
+    return `${params.count}件`;
+  }
   if (params && typeof params.path === "string") {
     return `${key}:${params.path}`;
   }
