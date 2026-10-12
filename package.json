@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.main.json && tsc --noEmit -p tsconfig.preload.json && tsc --noEmit -p tsconfig.renderer.json && tsc --noEmit -p tsconfig.tests.json",
     "test": "vitest run",
     "build": "npm run typecheck && electron-forge package",
-    "build:installer": "npm run typecheck && electron-forge package && electron-builder --win nsis",
+    "build:installer": "npm run typecheck && electron-forge package && electron-builder --win nsis --publish never",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
