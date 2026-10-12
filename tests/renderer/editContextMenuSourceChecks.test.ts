@@ -242,6 +242,7 @@ const onKeyDownExemptFileNames = new Set([
   "KeyboardShortcutCaptureDialog.tsx",
   "ApplicationMenuBar.tsx",
   "EditContextMenu.tsx",
+  "PreviewContextMenu.tsx",
   "App.tsx",
   "EditorSurface.tsx"
 ]);
@@ -253,15 +254,20 @@ function allSourceTextExcludingCommandPalette(): string {
 }
 
 /**
- * `clipboardAdapter.ts` (#182 D-9) is a deliberate, isolated exception to
- * the no-`navigator.clipboard` rule below: the dialog foundation's copy
- * diagnostic button writes through this single testable adapter — never
- * called directly from `ConfirmDialog.tsx` — and is unrelated to the
+ * `clipboardAdapter.ts` (#182 D-9) and `previewClipboard.ts` (#799) are
+ * deliberate, isolated exceptions to the no-`navigator.clipboard` rule below:
+ * the dialog foundation's copy diagnostic button and the Markdown preview's
+ * rich text/SVG clipboard exports write through these testable adapters — never
+ * called directly from general components — and are unrelated to the
  * Markdown editor's native cut/copy/paste delegation this guard otherwise
  * protects against ad-hoc reimplementation.
  */
 function allSourceTextExcludingClipboardAdapter(): string {
-  return joinSourceText((entry) => entry.basename !== "clipboardAdapter.ts");
+  return joinSourceText(
+    (entry) =>
+      entry.basename !== "clipboardAdapter.ts" &&
+      entry.basename !== "previewClipboard.ts"
+  );
 }
 
 function sourceText(filePath: string): string {

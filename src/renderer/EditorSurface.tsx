@@ -62,6 +62,10 @@ import type { PendingMarkdownSelection } from "./pendingMarkdownSelection";
 import { GlossaryPreviewDecorator } from "./GlossaryPreviewDecorator";
 import { emptyGlossarySurfaceIndex } from "../shared/glossarySurfaceMatching";
 import {
+  extractRichTextFromRange,
+  writeRichTextToClipboard
+} from "./preview/previewClipboard";
+import {
   collectPreviewAnchors,
   collectPreviewBlockRefs,
   computeSourceLineForVerticalScrollLeft,
@@ -3508,6 +3512,55 @@ function MarkdownEditorSurface({
     return () => window.removeEventListener("resize", handleWindowResize);
   }, [ratio, onChangeRatio]);
 
+  function handlePreviewPaneKeyDown(
+    event: React.KeyboardEvent<HTMLElement>
+  ): void {
+    if (event.nativeEvent.isComposing) {
+      return;
+    }
+    const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+    if (!isCtrlOrCmd) {
+      return;
+    }
+
+    if (event.key === "a" || event.key === "A") {
+      const container =
+        previewContainer ??
+        previewPaneRef.current?.querySelector<HTMLElement>(".preview");
+      if (container) {
+        event.preventDefault();
+        const selection = window.getSelection();
+        selection?.selectAllChildren(container);
+      }
+      return;
+    }
+
+    if (event.key === "c" || event.key === "C") {
+      const container =
+        previewContainer ??
+        previewPaneRef.current?.querySelector<HTMLElement>(".preview");
+      const selection = window.getSelection();
+      if (
+        container &&
+        selection &&
+        !selection.isCollapsed &&
+        selection.rangeCount > 0
+      ) {
+        const range = selection.getRangeAt(0);
+        const common = range.commonAncestorContainer;
+        if (
+          container.contains(common) ||
+          (container.contains(range.startContainer) &&
+            container.contains(range.endContainer))
+        ) {
+          event.preventDefault();
+          const { html, text } = extractRichTextFromRange(range);
+          void writeRichTextToClipboard(html, text);
+        }
+      }
+    }
+  }
+
   return (
     <section
       className="workspace"
@@ -3671,6 +3724,7 @@ function MarkdownEditorSurface({
           ref={previewPaneRef}
           aria-busy={isPreviewRendererSwitching ? "true" : undefined}
           data-usage-tour-target={USAGE_TOUR_TARGETS.previewSurface}
+          onKeyDown={handlePreviewPaneKeyDown}
         >
           <div className="paneHeader">
             {translate("workspace.preview")}
