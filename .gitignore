@@ -14,6 +14,7 @@ scripts/*
 !scripts/electronBuilderAfterPack.js
 !scripts/verifyPackagedKuromojiDict.js
 !scripts/generateThirdPartyLicenses.js
+!scripts/validateReleaseVersion.js
 !scripts/thirdPartyLicenseOverrides.json
 !scripts/thirdPartyLicenses/
 *.ps1
