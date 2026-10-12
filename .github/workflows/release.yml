@@ -82,7 +82,7 @@ jobs:
           subject-path: "dist-installer/*.exe"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pergamum-release-assets
           path: |
@@ -104,7 +104,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pergamum-release-assets
           path: release-assets
