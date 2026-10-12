@@ -78,6 +78,7 @@ export interface GlossaryDescriptionRecoveryConflict {
 export interface BuiltinMarkdownCurrentEditor {
   kind: "builtinMarkdown";
   builtinId: BuiltinMarkdownId;
+  text?: string;
 }
 
 /**
@@ -115,9 +116,10 @@ export function createMarkdownCurrentEditor(
 }
 
 export function createBuiltinMarkdownCurrentEditor(
-  builtinId: BuiltinMarkdownId
+  builtinId: BuiltinMarkdownId,
+  text?: string
 ): BuiltinMarkdownCurrentEditor {
-  return { kind: "builtinMarkdown", builtinId };
+  return { kind: "builtinMarkdown", builtinId, ...(text !== undefined ? { text } : {}) };
 }
 
 export function createProjectImageCurrentEditor(

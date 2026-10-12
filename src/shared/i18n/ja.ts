@@ -343,7 +343,7 @@ export const jaTranslations = {
   "dialog.manualOpen.title": "マニュアルを開く",
   "dialog.manualOpen.message": "以下のマニュアルURLをブラウザで開きます。よろしいですか？",
   "dialog.externalLink.title": "外部サイトを開く",
-  "dialog.externalLink.message": "外部サイトを開きます。\n\nURL: {url}",
+  "dialog.externalLink.message": "外部サイトを開きます。",
   "dialog.icon.externalLink": "外部リンク",
   "dialog.icon.error": "エラー",
   "dialog.icon.info": "情報",

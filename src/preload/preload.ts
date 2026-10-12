@@ -435,6 +435,8 @@ const pergamumApi: PergamumApi = {
     openRepository: () => ipcRenderer.invoke(APP_INFO_CHANNELS.openRepository),
     openLegalDocument: (id: LegalDocumentId) =>
       ipcRenderer.invoke(APP_INFO_CHANNELS.openLegalDocument, id),
+    readLegalDocumentContent: (id: LegalDocumentId) =>
+      ipcRenderer.invoke(APP_INFO_CHANNELS.readLegalDocumentContent, id),
     openExternalUrl: (url) =>
       ipcRenderer.invoke(APP_INFO_CHANNELS.openExternalUrl, url)
   },

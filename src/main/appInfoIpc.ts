@@ -105,6 +105,24 @@ export async function openLegalDocument(
   }
 }
 
+/** Reads a legal document as a UTF-8 string; null on missing file or read error. */
+export function readLegalDocumentContent(
+  id: unknown,
+  location: LegalDocumentLocation
+): string | null {
+  const documentPath = resolveLegalDocumentPath(id, location);
+
+  if (documentPath === null || !existsSync(documentPath)) {
+    return null;
+  }
+
+  try {
+    return readFileSync(documentPath, "utf8");
+  } catch {
+    return null;
+  }
+}
+
 const electronLegalDocumentLocation = (): LegalDocumentLocation => ({
   isPackaged: app.isPackaged,
   resourcesPath: process.resourcesPath,
@@ -204,6 +222,9 @@ export function registerAppInfoIpc(options: {
   ipcMain.handle(APP_INFO_CHANNELS.openLegalDocument, (_event, id: unknown) =>
     // Only a fixed document id is accepted; main resolves the file itself.
     openLegalDocument(id, legalDocumentLocation(), legalDocumentOpener)
+  );
+  ipcMain.handle(APP_INFO_CHANNELS.readLegalDocumentContent, (_event, id: unknown) =>
+    readLegalDocumentContent(id, legalDocumentLocation())
   );
   ipcMain.handle(APP_INFO_CHANNELS.openExternalUrl, (_event, url: unknown) => {
     // The renderer classifies too, but main never trusts that: parse and

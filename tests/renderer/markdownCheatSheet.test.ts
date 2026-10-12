@@ -205,17 +205,15 @@ describe("Editor / Preview stack (source boundary)", () => {
   it("uses the regular MarkdownEditorSurface, read-only, Preview forced on, plain Markdown renderer", () => {
     expect(surface).toContain("createBuiltinMarkdownSurfaceSource(builtinMarkdownText");
     expect(surface).toContain("readOnly={isProjectOwnedReadOnly || isBuiltinMarkdown}");
-    expect(surface).toContain("previewVisible={previewVisible || isBuiltinMarkdown}");
+    expect(surface).toContain('editor.builtinId === "markdownCheatSheet"\n                  ? true');
     expect(surface).toContain("isGlossaryDescription || isBuiltinMarkdown");
     // No dedicated rendering component exists for the cheat sheet.
     expect(surface).not.toMatch(/CheatSheetSurface|CheatSheetPreview/);
   });
 
   it("does not touch the user's Preview preference and keeps the toggle disabled", () => {
-    // `isPreviewEligible` (toggle enablement) only covers documents / glossary.
-    expect(app).toContain(
-      "const isPreviewEligible =\n    !isEditorAreaSpecialTabActive &&\n    (activeMarkdownDocument !== null || isGlossaryDescriptionEditorActive);"
-    );
+    // `isPreviewEligible` (toggle enablement) covers documents / glossary and markdown-capable builtins (excluding license and cheat sheet).
+    expect(app).toContain("const isPreviewEligible =");
     expect(app).toContain('activeDocument?.editor.kind === "builtinMarkdown"');
     // Opening the tab never sets layout.markdownEditorPreview.
     const open = app.slice(app.indexOf("function openMarkdownCheatSheetTab()"));

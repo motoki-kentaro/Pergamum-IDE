@@ -696,6 +696,7 @@ export const APP_INFO_CHANNELS = {
   getAppInfo: "appInfo:getAppInfo",
   openRepository: "appInfo:openRepository",
   openLegalDocument: "appInfo:openLegalDocument",
+  readLegalDocumentContent: "appInfo:readLegalDocumentContent",
   openExternalUrl: "appInfo:openExternalUrl"
 } as const;
 
@@ -1867,6 +1868,8 @@ export interface PergamumApi {
     openRepository: () => Promise<void>;
     /** Resolves false when the document is missing or could not be opened. */
     openLegalDocument: (id: LegalDocumentId) => Promise<boolean>;
+    /** Resolves null when the document id is invalid or the file cannot be read. */
+    readLegalDocumentContent: (id: LegalDocumentId) => Promise<string | null>;
     openExternalUrl: (url: string) => Promise<void>;
   };
   imageAttachment: {
