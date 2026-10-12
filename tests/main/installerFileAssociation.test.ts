@@ -48,7 +48,7 @@ describe("Windows installer file association config", () => {
     const packageJson = readPackageJson();
 
     expect(packageJson.scripts?.["build:installer"]).toBe(
-      "npm run typecheck && electron-forge package && electron-builder --win nsis"
+      "npm run typecheck && electron-forge package && electron-builder --win nsis --publish never"
     );
     expect(packageJson.build?.directories?.output).toBe("dist-installer");
     expect(packageJson.build?.files).toEqual([".vite/**/*"]);
