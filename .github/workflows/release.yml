@@ -146,4 +146,5 @@ jobs:
           gh release create "$TAG" release-assets/* \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
-            --generate-notes
+            --generate-notes \
+            --prerelease
