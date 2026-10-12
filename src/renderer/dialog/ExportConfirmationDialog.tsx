@@ -1483,7 +1483,11 @@ export function ExportConfirmationDialog({
           {wizardStep === "result" && (
             <div className="exportWizardStep exportWizardStep4" data-export-result-step="true">
               <div className="exportWizardStepHeader">
-                <h3>{translate("export.wizard.resultSavedPath")}</h3>
+                <h3>
+                  {exportResultInfo
+                    ? translate("export.wizard.resultComplete")
+                    : translate("export.wizard.resultSavedPath")}
+                </h3>
               </div>
               <div className="exportWizardResultCard">
                 <div className="exportWizardResultRow">
