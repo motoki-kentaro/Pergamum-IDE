@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -114,5 +115,31 @@ describe("ResumeHub Component", () => {
     expect(html).toContain("doc-1.md");
     expect(html).toContain("doc-5.md");
     expect(html).not.toContain("doc-6.md");
+  });
+
+  it("defines consistent fixed-width alignment styles for the button column (#801)", () => {
+    const css = readFileSync("src/renderer/styles.css", "utf8");
+
+    const metaMatch = css.match(/\.resumeHubItemMeta\s*\{([^}]+)\}/);
+    expect(metaMatch).not.toBeNull();
+    const metaRules = metaMatch![1];
+    expect(metaRules).toContain("flex: 0 0 200px;");
+    expect(metaRules).toContain("min-width: 200px;");
+    expect(metaRules).toContain("justify-content: flex-end;");
+
+    const buttonMatch = css.match(/\.resumeHubOpenButton\s*\{([^}]+)\}/);
+    expect(buttonMatch).not.toBeNull();
+    const buttonRules = buttonMatch![1];
+    expect(buttonRules).toContain("width: 60px;");
+    expect(buttonRules).toContain("min-width: 60px;");
+    expect(buttonRules).toContain("text-align: center;");
+
+    const dateMatch = css.match(/\.resumeHubItemDate\s*\{([^}]+)\}/);
+    expect(dateMatch).not.toBeNull();
+    const dateRules = dateMatch![1];
+    expect(dateRules).toContain("flex: 0 0 124px;");
+    expect(dateRules).toContain("text-align: right;");
+    expect(dateRules).toContain("font-variant-numeric: tabular-nums;");
+    expect(dateRules).toContain("white-space: nowrap;");
   });
 });

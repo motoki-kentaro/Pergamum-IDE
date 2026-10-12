@@ -179,11 +179,11 @@ describe("manual confirmation flow (#737)", () => {
   });
 
   it.each([
-    ["ja", "マニュアルを開く", "以下のマニュアルURLをブラウザで開きます。よろしいですか？", "はい", "キャンセル", "https://pergamum-ide.github.io/ja/"],
-    ["en", "Open Manual", "Open the following manual URL in your browser?", "Yes", "Cancel", "https://pergamum-ide.github.io/en/"]
+    ["ja", "マニュアルを開く", "以下のマニュアルURLをブラウザで開きます。", "開く", "キャンセル", "https://pergamum-ide.github.io/ja/"],
+    ["en", "Open Manual", "The following manual URL will be opened in your browser.", "Open", "Cancel", "https://pergamum-ide.github.io/en/"]
   ] as const)(
     "%s dialog: title, message, URL row and buttons",
-    async (language, title, message, yes, cancel, url) => {
+    async (language, title, message, open, cancel, url) => {
       const { done, calls } = run(language, "cancel");
       await done;
 
@@ -194,8 +194,9 @@ describe("manual confirmation flow (#737)", () => {
         beforeText: message,
         url
       });
-      expect(calls[0].confirmLabel).toBe(yes);
+      expect(calls[0].confirmLabel).toBe(open);
       expect(calls[0].cancelLabel).toBe(cancel);
+      expect(calls[0].actionOrder).toBe("cancelConfirm");
       expect(calls[0].icon?.kind).toBe("externalLink");
     }
   );
@@ -203,7 +204,7 @@ describe("manual confirmation flow (#737)", () => {
   it.each([
     ["ja", "https://pergamum-ide.github.io/ja/"],
     ["en", "https://pergamum-ide.github.io/en/"]
-  ] as const)("Yes opens the %s URL through the existing openExternalUrl path", async (language, url) => {
+  ] as const)("Open opens the %s URL through the existing openExternalUrl path", async (language, url) => {
     const { done, openExternalUrl } = run(language, "confirm");
     await done;
 
@@ -211,14 +212,17 @@ describe("manual confirmation flow (#737)", () => {
     expect(openExternalUrl).toHaveBeenCalledWith(url);
   });
 
-  it("uses the shared Yes label (common.yes) and defines common.no", () => {
-    expect(t("ja", "common.yes")).toBe("はい");
-    expect(t("en", "common.yes")).toBe("Yes");
-    expect(t("ja", "common.no")).toBe("いいえ");
-    expect(t("en", "common.no")).toBe("No");
+  it("uses the shared Open label (common.open) and Cancel label (common.cancel) (#801)", () => {
+    expect(t("ja", "common.open")).toBe("開く");
+    expect(t("en", "common.open")).toBe("Open");
+    expect(t("ja", "common.cancel")).toBe("キャンセル");
+    expect(t("en", "common.cancel")).toBe("Cancel");
     expect(
       readFileSync("src/renderer/manualOpen.ts", "utf8")
-    ).toContain(`translate("common.yes")`);
+    ).toContain(`translate("common.open")`);
+    expect(
+      readFileSync("src/renderer/manualOpen.ts", "utf8")
+    ).toContain(`actionOrder: "cancelConfirm"`);
   });
 
   it("Cancel and Escape (resolved as cancel) open nothing", async () => {
@@ -259,7 +263,7 @@ describe("manual dialog body: display-only URL row (#737)", () => {
 
   const message = {
     kind: "plainTextWithUrlRow",
-    beforeText: "以下のマニュアルURLをブラウザで開きます。よろしいですか？",
+    beforeText: "以下のマニュアルURLをブラウザで開きます。",
     url: "https://pergamum-ide.github.io/ja/"
   } as const;
 
@@ -311,5 +315,16 @@ describe("manual dialog body: display-only URL row (#737)", () => {
     expect(readFileSync("src/renderer/dialog/DialogMessage.tsx", "utf8")).toContain(
       "assets/icons/codicons/dialog/link-external.svg?url"
     );
+  });
+
+  it("styles .appDialogUrlText with single-line no-wrap and horizontal scrolling (#801)", () => {
+    const css = readFileSync("src/renderer/styles.css", "utf8");
+    const blockMatch = css.match(/\.appDialogUrlText\s*\{([^}]+)\}/);
+    expect(blockMatch).not.toBeNull();
+    const rules = blockMatch![1];
+    expect(rules).toContain("white-space: nowrap;");
+    expect(rules).toContain("overflow-x: auto;");
+    expect(rules).not.toContain("overflow-wrap: anywhere;");
+    expect(rules).toContain("min-width: 0;");
   });
 });

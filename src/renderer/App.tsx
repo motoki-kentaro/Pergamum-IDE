@@ -3844,7 +3844,8 @@ export function App(): JSX.Element {
         },
         clipboardText: null,
         confirmLabel: translate("common.open"),
-        cancelLabel: translate("common.cancel")
+        cancelLabel: translate("common.cancel"),
+        actionOrder: "cancelConfirm"
       })) === "confirm",
     openExternal: (url) => window.pergamum.appInfo.openExternalUrl(url)
   };
@@ -7049,7 +7050,8 @@ export function App(): JSX.Element {
         },
         clipboardText: null,
         confirmLabel: translate("common.open"),
-        cancelLabel: translate("common.cancel")
+        cancelLabel: translate("common.cancel"),
+        actionOrder: "cancelConfirm"
       })) === "confirm";
 
     if (!confirmed) {

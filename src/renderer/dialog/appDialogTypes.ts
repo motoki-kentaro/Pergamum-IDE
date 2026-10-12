@@ -175,13 +175,10 @@ type AppConfirmDialogBaseOptions = {
   clipboardTextTitle?: string;
   cancelLabel?: string | null;
   /**
-   * Whether clicking the backdrop resolves `"cancel"` (#184 follow-up).
-   * Defaults to `true` when omitted, preserving every existing call site's
-   * behavior. Set `false` for a dialog where an accidental backdrop click
-   * dismissing it would be confusing even though it is safe — e.g. the
-   * dirty-close confirmation, where backdrop click doing nothing is
-   * deliberate; `Escape` and the Cancel button remain unaffected.
+   * Optional action button order override. When omitted, platform action order
+   * (`actionOrder` prop) is used.
    */
+  actionOrder?: AppDialogActionOrder;
   dismissOnBackdropClick?: boolean;
 };
 
