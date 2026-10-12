@@ -1,4 +1,8 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { ConfirmDialog } from "../../../src/renderer/dialog/ConfirmDialog";
+import type { AppConfirmDialogOptions } from "../../../src/renderer/dialog/appDialogTypes";
 import {
   handleConfirmDialogBackdropClick,
   handleConfirmDialogKeyDown
@@ -83,5 +87,61 @@ describe("handleConfirmDialogKeyDown (#182 D-15)", () => {
 
     expect(onResult).not.toHaveBeenCalled();
     expect(handled).toBe(false);
+  });
+});
+
+describe("ConfirmDialog action button ordering (#801)", () => {
+  const dummyClipboard = {
+    readText: async () => "",
+    writeText: async () => undefined
+  };
+
+  const baseOptions: AppConfirmDialogOptions = {
+    title: "Test Dialog",
+    message: { kind: "plainText", text: "Message" },
+    icon: { kind: "externalLink", tooltip: "Link" },
+    clipboardText: null,
+    confirmLabel: "開く",
+    cancelLabel: "キャンセル"
+  };
+
+  it("follows platform actionOrder when options.actionOrder is omitted", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(ConfirmDialog, {
+        options: baseOptions,
+        actionOrder: "confirmCancel",
+        translate: (k) => k,
+        clipboardAdapter: dummyClipboard,
+        opener: null,
+        onResult: () => undefined
+      })
+    );
+
+    const confirmIndex = markup.indexOf("appDialogButton-confirm");
+    const cancelIndex = markup.indexOf("appDialogButton-cancel");
+
+    expect(confirmIndex).toBeLessThan(cancelIndex);
+  });
+
+  it("overrides platform actionOrder with options.actionOrder (e.g. cancelConfirm for external URL dialogs)", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(ConfirmDialog, {
+        options: {
+          ...baseOptions,
+          actionOrder: "cancelConfirm"
+        },
+        actionOrder: "confirmCancel",
+        translate: (k) => k,
+        clipboardAdapter: dummyClipboard,
+        opener: null,
+        onResult: () => undefined
+      })
+    );
+
+    const confirmIndex = markup.indexOf("appDialogButton-confirm");
+    const cancelIndex = markup.indexOf("appDialogButton-cancel");
+
+    // Left: cancel, Right: confirm (cancel appears first in DOM order)
+    expect(cancelIndex).toBeLessThan(confirmIndex);
   });
 });

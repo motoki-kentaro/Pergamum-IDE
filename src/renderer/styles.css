@@ -5074,12 +5074,19 @@ label.settingsItemHeader {
 .resumeHubItemMeta {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
-  flex-shrink: 0;
+  flex: 0 0 200px;
+  min-width: 200px;
 }
 
 .resumeHubOpenButton {
-  padding: 4px 12px;
+  flex: 0 0 auto;
+  width: 60px;
+  min-width: 60px;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 4px 10px;
   font-size: 12px;
   font-weight: 500;
   color: var(--pg-color-link);
@@ -5095,6 +5102,11 @@ label.settingsItemHeader {
 }
 
 .resumeHubItemDate {
+  flex: 0 0 124px;
+  min-width: 124px;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
   font-size: 12px;
   color: var(--pg-color-surface-faint);
 }
@@ -11349,7 +11361,10 @@ body > .mermaidTooltip {
 
 .appDialogUrlText {
   min-width: 0;
-  overflow-wrap: anywhere;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
   user-select: text;
 }
 

@@ -38,8 +38,9 @@ export async function openManualWithConfirmation(
       tooltip: deps.translate("dialog.icon.externalLink")
     },
     clipboardText: null,
-    confirmLabel: deps.translate("common.yes"),
-    cancelLabel: deps.translate("common.cancel")
+    confirmLabel: deps.translate("common.open"),
+    cancelLabel: deps.translate("common.cancel"),
+    actionOrder: "cancelConfirm"
   });
 
   if (result === "confirm") {

@@ -203,13 +203,15 @@ export function ConfirmDialog({
       </button>
     );
 
-  // D-11 / D-15 / #187: DOM order follows the platform action order. Visual
+  // D-11 / D-15 / #187 / #801: DOM order follows the platform action order
+  // unless explicitly overridden by options.actionOrder. Visual
   // order is resolved by CSS and the effective writing direction; in LTR
   // contexts, DOM order and visual order match. Result semantics never
   // change — the confirm button always resolves "confirm" and the cancel
   // button always resolves "cancel" regardless of placement.
+  const effectiveActionOrder = options.actionOrder ?? actionOrder;
   const actionButtons =
-    actionOrder === "confirmCancel"
+    effectiveActionOrder === "confirmCancel"
       ? [confirmButton, cancelButton].filter(Boolean)
       : [cancelButton, confirmButton].filter(Boolean);
 
