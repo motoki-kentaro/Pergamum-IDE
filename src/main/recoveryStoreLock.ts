@@ -213,18 +213,17 @@ export function createRecoveryStoreLock(
   );
 
   let held = false;
+  let currentOwner: RecoveryStoreOwnerInfo | null = null;
 
   async function bestEffortCleanupOwnDirectory(): Promise<void> {
     try {
-      await fileSystem.rm(ownerFilePath, { force: true });
-    } catch {
-      // Only ever our own just-created marker.
-    }
-
-    try {
       await fileSystem.rmdir(lockDirectoryPath);
     } catch {
-      // Our own just-created empty directory; a failure here is harmless.
+      // Harmless if directory does not exist or is non-empty (ENOTEMPTY / EEXIST).
+      // We NEVER delete files here: this function is only called when writeOwnerMarker
+      // failed, so this process never successfully stamped an owner marker.
+      // Calling rmdir is atomic and will safely fail without removing anything if
+      // another process's files (or marker) are present.
     }
   }
 
@@ -249,6 +248,29 @@ export function createRecoveryStoreLock(
 
     try {
       raw = await fileSystem.readFile(ownerFilePath);
+    } catch {
+      return null;
+    }
+
+    try {
+      return parseRecoveryStoreOwnerInfo(JSON.parse(raw));
+    } catch {
+      return null;
+    }
+  }
+
+  /** Read + parse `owner.json` from an archived directory, or `null`. */
+  async function readArchivedOwnerInfo(
+    archivedDirPath: string
+  ): Promise<RecoveryStoreOwnerInfo | null> {
+    const archivedOwnerFilePath = path.join(
+      archivedDirPath,
+      recoveryStoreLockOwnerFileName
+    );
+    let raw: string;
+
+    try {
+      raw = await fileSystem.readFile(archivedOwnerFilePath);
     } catch {
       return null;
     }
@@ -290,7 +312,15 @@ export function createRecoveryStoreLock(
           return { outcome: "unavailable" };
         }
 
+        const confirmed = await readOwnerInfo();
+        if (!confirmed || confirmed.instanceRunId !== owner.instanceRunId) {
+          held = false;
+          currentOwner = null;
+          return { outcome: "unavailable" };
+        }
+
         held = true;
+        currentOwner = owner;
         return { outcome: "acquired" };
       }
 
@@ -356,6 +386,32 @@ export function createRecoveryStoreLock(
       };
     }
 
+    // 6.5 Post-archive verification:
+    // Verify that the directory we just moved was indeed the stale lock
+    // belonging to firstOwner. If another contender won the race and
+    // established a new directory in the TOCTOU gap, our rename moved THEIR
+    // directory, not the dead owner's. In that case, we MUST NOT proceed to
+    // mkdir/reacquire. We do NOT attempt to restore it via rename (which on
+    // POSIX would dangerously overwrite any newly created empty directory
+    // from a third contender). Instead, we clean up our archive directory
+    // if empty and cleanly abort with unavailable.
+    const archivedOwner = await readArchivedOwnerInfo(archivedLockDirPath);
+    if (
+      !archivedOwner ||
+      archivedOwner.instanceRunId !== firstOwner.instanceRunId ||
+      archivedOwner.createdAt !== firstOwner.createdAt
+    ) {
+      try {
+        await fileSystem.rmdir(archivedLockDirPath);
+      } catch {
+        // ignore
+      }
+      return {
+        outcome: "unavailable",
+        staleTakeover: staleTakeoverInfo("archiveFailed", firstOwner)
+      };
+    }
+
     // 7. Re-acquire — a single `mkdir`. A concurrent instance may have won
     // the fresh directory; if so we lose. No re-entry into reclamation.
     try {
@@ -389,6 +445,7 @@ export function createRecoveryStoreLock(
 
     if (!confirmed || confirmed.instanceRunId !== owner.instanceRunId) {
       held = false;
+      currentOwner = null;
       return {
         outcome: "unavailable",
         staleTakeover: staleTakeoverInfo(
@@ -400,6 +457,7 @@ export function createRecoveryStoreLock(
     }
 
     held = true;
+    currentOwner = owner;
     return {
       outcome: "acquired",
       staleTakeover: staleTakeoverInfo(
@@ -441,7 +499,15 @@ export function createRecoveryStoreLock(
       return { outcome: "unavailable" };
     }
 
+    const confirmed = await readOwnerInfo();
+    if (!confirmed || confirmed.instanceRunId !== owner.instanceRunId) {
+      held = false;
+      currentOwner = null;
+      return { outcome: "unavailable" };
+    }
+
     held = true;
+    currentOwner = owner;
     return { outcome: "acquired" };
   }
 
@@ -451,11 +517,18 @@ export function createRecoveryStoreLock(
     }
 
     held = false;
+    const releasingOwner = currentOwner;
+    currentOwner = null;
 
-    try {
-      await fileSystem.rm(ownerFilePath, { force: true });
-    } catch {
-      // Best effort — the directory removal below is what matters.
+    if (releasingOwner) {
+      try {
+        const info = await readOwnerInfo();
+        if (info && info.instanceRunId === releasingOwner.instanceRunId) {
+          await fileSystem.rm(ownerFilePath, { force: true });
+        }
+      } catch {
+        // Best effort — the directory removal below is what matters.
+      }
     }
 
     try {

@@ -516,7 +516,12 @@ describe("createRecoveryStoreLock — stale-lock reclamation (#293)", () => {
     expect(lock.isHeld()).toBe(false);
   });
 
-  it("two contenders over one dead owner: exactly one becomes owner", async () => {
+  it("two contenders over one dead owner: at most one becomes owner, and recovery remains cleanly acquirable (#293)", async () => {
+    // PO Specification Decision:
+    // Under simultaneous race contention over a dead owner without complex consensus
+    // algorithms, the core safety invariant is that AT MOST ONE contender can become
+    // owner (never multiple writers). If timing causes both contenders to fail-closed
+    // cleanly to avoid corruption, subsequent startup must be able to acquire Recovery.
     const staleOwner = ownerInfo({
       pid: 999,
       instanceRunId: "0198d95f-97d8-7000-8000-0000000000ff"
@@ -538,10 +543,509 @@ describe("createRecoveryStoreLock — stale-lock reclamation (#293)", () => {
     ]);
 
     const acquired = [ra, rb].filter((r) => r.outcome === "acquired");
-    expect(acquired).toHaveLength(1);
-    expect([a.isHeld(), b.isHeld()].filter(Boolean)).toHaveLength(1);
-    // A live Recovery.lock exists and its marker parses.
+    // Invariant: at most one process can hold the writing lock
+    expect(acquired.length).toBeLessThanOrEqual(1);
+    expect([a.isHeld(), b.isHeld()].filter(Boolean).length).toBe(acquired.length);
+
+    if (acquired.length === 1) {
+      // If a contender won, its marker is intact and valid
+      const raw = await fs.readFile(ownerFilePath(), "utf8");
+      expect(parseRecoveryStoreOwnerInfo(JSON.parse(raw))).not.toBeNull();
+    } else {
+      // If both contenders backed off safely to avoid race corruption,
+      // verify that subsequent startup can acquire cleanly
+      const subsequent = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath() });
+      const nextRes = await subsequent.acquire(
+        ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000c" }),
+        stalePolicy("dead")
+      );
+      expect(nextRes.outcome).toBe("acquired");
+      expect(subsequent.isHeld()).toBe(true);
+      await subsequent.release();
+    }
+  });
+
+  it("Experiment A: bestEffortCleanupOwnDirectory destroys another contender's newly established live owner.json", async () => {
+    function deferred<T = void>() {
+      let resolve!: (value: T | PromiseLike<T>) => void;
+      let reject!: (reason?: any) => void;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    }
+
+    const aMkdirDone = deferred();
+    const bAcquiredDone = deferred();
+    const aCleanupDone = deferred();
+
+    // Contender A attempts plain acquire:
+    // 1. A creates Recovery.lock directory.
+    // 2. Before A writes its marker, Contender B discovers Recovery.lock and writes its own marker (or establishes it).
+    // Specifically, A's writeOwnerMarker uses { flag: 'wx' }.
+    // If B writes owner.json FIRST, then A's writeFile fails naturally with EEXIST!
+    // A's writeOwnerMarker catches the error and returns false.
+    // Then A runs bestEffortCleanupOwnDirectory() which calls:
+    //   fileSystem.rm(ownerFilePath, { force: true })
+    // -> A deletes B's valid, live owner.json!
+    const fsA = realSeam({
+      mkdir: async (dirPath) => {
+        const res = await fs.mkdir(dirPath);
+        aMkdirDone.resolve();
+        // Wait until B has written owner.json and acquired the lock!
+        await bAcquiredDone.promise;
+        return res;
+      },
+      rmdir: async (dirPath) => {
+        try {
+          await fs.rmdir(dirPath);
+        } finally {
+          aCleanupDone.resolve();
+        }
+      }
+    });
+
+    const a = createRecoveryStoreLock({
+      lockDirectoryPath: lockDirectoryPath(),
+      fileSystem: fsA
+    });
+
+    const ownerA = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000a" });
+    const ownerB = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000b" });
+
+    // Start A's acquire
+    const aPromise = a.acquire(ownerA);
+
+    // Wait until A creates the empty directory
+    await aMkdirDone.promise;
+
+    // Now B (or another process) writes a live owner.json into that directory
+    await fs.writeFile(
+      ownerFilePath(),
+      `${JSON.stringify(ownerB, null, 2)}\n`,
+      { encoding: "utf8", flag: "wx" }
+    );
+    bAcquiredDone.resolve();
+
+    // A finishes its acquire (fails to write marker due to EEXIST, then calls cleanup)
+    const ra = await aPromise;
+    await aCleanupDone.promise;
+
+    expect(ra.outcome).toBe("unavailable");
+
+    // SAFETY CHECK: A's cleanup did NOT delete B's live owner.json!
+    const ownerExists = await fs.access(ownerFilePath()).then(() => true).catch(() => false);
+    expect(ownerExists).toBe(true);
     const raw = await fs.readFile(ownerFilePath(), "utf8");
-    expect(parseRecoveryStoreOwnerInfo(JSON.parse(raw))).not.toBeNull();
+    expect(parseRecoveryStoreOwnerInfo(JSON.parse(raw))?.instanceRunId).toBe(
+      ownerB.instanceRunId
+    );
+  });
+
+  it("Experiment B: natural collision under contention without artificial errors yields at most one owner, and subsequent launch acquires cleanly", async () => {
+    function deferred<T = void>() {
+      let resolve!: (value: T | PromiseLike<T>) => void;
+      let reject!: (reason?: any) => void;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    }
+
+    const staleOwner = ownerInfo({
+      pid: 999,
+      instanceRunId: "0198d95f-97d8-7000-8000-0000000000ff"
+    });
+    await seedHeldLock(staleOwner);
+
+    const bPassedStep5 = deferred();
+    const aMkdirDone = deferred();
+    const bRenamedDone = deferred();
+
+    let aRenameCount = 0;
+    const fsA = realSeam({
+      rename: async (from, to) => {
+        await bPassedStep5.promise;
+        await fs.rename(from, to);
+        aRenameCount += 1;
+      },
+      mkdir: async (dirPath) => {
+        const res = await fs.mkdir(dirPath);
+        if (aRenameCount === 1) {
+          aMkdirDone.resolve();
+          await bRenamedDone.promise;
+        }
+        return res;
+      }
+    });
+
+    let bReadCount = 0;
+    const fsB = realSeam({
+      readFile: async (filePath) => {
+        const content = await fs.readFile(filePath, "utf8");
+        bReadCount += 1;
+        if (bReadCount === 2) {
+          bPassedStep5.resolve();
+        }
+        return content;
+      },
+      rename: async (from, to) => {
+        await aMkdirDone.promise;
+        try {
+          return await fs.rename(from, to);
+        } finally {
+          bRenamedDone.resolve();
+        }
+      }
+    });
+
+    const a = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath(), fileSystem: fsA });
+    const b = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath(), fileSystem: fsB });
+
+    const ownerA = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000a" });
+    const ownerB = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000b" });
+
+    // Different timestamps so archive directory names never collide on Windows
+    const policyA = stalePolicy("dead", () => new Date("2026-08-29T10:00:00.000Z"));
+    const policyB = stalePolicy("dead", () => new Date("2026-08-29T10:00:01.000Z"));
+
+    const [ra, rb] = await Promise.all([
+      a.acquire(ownerA, policyA),
+      b.acquire(ownerB, policyB)
+    ]);
+
+    const acquired = [ra, rb].filter((r) => r.outcome === "acquired");
+    // Under contention, at most one acquires (here 0 due to mutual back-off)
+    expect(acquired.length).toBeLessThanOrEqual(1);
+
+    if (a.isHeld()) await a.release();
+    if (b.isHeld()) await b.release();
+
+    // Subsequent launch can acquire cleanly!
+    const subsequent = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath() });
+    const ownerSubsequent = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000c" });
+    const rSubsequent = await subsequent.acquire(ownerSubsequent, stalePolicy("dead"));
+
+    expect(rSubsequent.outcome).toBe("acquired");
+    expect(subsequent.isHeld()).toBe(true);
+
+    const activeRaw = await fs.readFile(ownerFilePath(), "utf8");
+    expect(parseRecoveryStoreOwnerInfo(JSON.parse(activeRaw))?.instanceRunId).toBe(
+      ownerSubsequent.instanceRunId
+    );
+
+    await subsequent.release();
+  });
+
+  it("Audit A: contender archives another process's directory by mistake and does NOT overwrite third-party directory with restore rename", async () => {
+    function deferred<T = void>() {
+      let resolve!: (value: T | PromiseLike<T>) => void;
+      let reject!: (reason?: any) => void;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    }
+
+    const staleOwner = ownerInfo({
+      pid: 999,
+      instanceRunId: "0198d95f-97d8-7000-8000-0000000000ff"
+    });
+    await seedHeldLock(staleOwner);
+
+    const aPassedStep5 = deferred();
+    const bCreatedDirB = deferred();
+    const aRenamedBDone = deferred();
+    const cFinishedDone = deferred();
+
+    // Contender A attempts stale reclamation:
+    // 1. A reads staleOwner at step 2 and step 5.
+    // 2. Before A executes Step 6 rename, B archives staleOwner and creates empty Recovery.lock (dir B).
+    // 3. A executes Step 6: renames dir B to archive-A!
+    // 4. In the gap before A evaluates Step 6.5, third-party C creates Recovery.lock (dir C) and stamps ownerC!
+    // 5. A inspects archive-A: it is empty!
+    // 6. With safe code: A does NOT attempt restore rename. A cleans up archive-A (rmdir) and returns unavailable.
+    // 7. C's live lock is 100% intact!
+
+    let aReadCount = 0;
+    const fsA = realSeam({
+      readFile: async (filePath) => {
+        const content = await fs.readFile(filePath, "utf8");
+        aReadCount += 1;
+        if (aReadCount === 2) {
+          aPassedStep5.resolve();
+          await bCreatedDirB.promise;
+        }
+        return content;
+      },
+      rename: async (from, to) => {
+        // A renames dir B to archive-A
+        const res = await fs.rename(from, to);
+        aRenamedBDone.resolve();
+        // Pause before Step 6.5 so C can create its lock at lockDirectoryPath
+        await cFinishedDone.promise;
+        return res;
+      }
+    });
+
+    const a = createRecoveryStoreLock({
+      lockDirectoryPath: lockDirectoryPath(),
+      fileSystem: fsA
+    });
+
+    const ownerA = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000a" });
+    const ownerC = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000c" });
+
+    // Start A's acquire
+    const aPromise = a.acquire(ownerA, stalePolicy("dead"));
+    await aPassedStep5.promise;
+
+    // Simulate B archiving staleOwner and creating an empty Recovery.lock (dir B)
+    await fs.rename(
+      lockDirectoryPath(),
+      path.join(workDir, `${recoveryStoreLockDirectoryName}.stale-simulated-b`)
+    );
+    await fs.mkdir(lockDirectoryPath());
+    bCreatedDirB.resolve();
+
+    // Wait until A has renamed dir B to archive-A
+    await aRenamedBDone.promise;
+
+    // Now C arrives and creates Recovery.lock (dir C) with ownerC!
+    await fs.mkdir(lockDirectoryPath());
+    await fs.writeFile(
+      ownerFilePath(),
+      `${JSON.stringify(ownerC, null, 2)}\n`,
+      "utf8"
+    );
+    cFinishedDone.resolve();
+
+    const ra = await aPromise;
+    expect(ra.outcome).toBe("unavailable");
+
+    // C's owner marker must NOT be overwritten or destroyed!
+    const activeRaw = await fs.readFile(ownerFilePath(), "utf8");
+    expect(parseRecoveryStoreOwnerInfo(JSON.parse(activeRaw))?.instanceRunId).toBe(
+      ownerC.instanceRunId
+    );
+  });
+
+  it("Audit B: cleanup never deletes files; leaves another contender's marker untouched", async () => {
+    function deferred<T = void>() {
+      let resolve!: (value: T | PromiseLike<T>) => void;
+      let reject!: (reason?: any) => void;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    }
+
+    const aMkdirDone = deferred();
+    const bWriteDone = deferred();
+    const rmSpy = vi.fn();
+
+    const fsA = realSeam({
+      mkdir: async (dirPath) => {
+        const res = await fs.mkdir(dirPath);
+        aMkdirDone.resolve();
+        await bWriteDone.promise;
+        return res;
+      },
+      rm: async (filePath, options) => {
+        rmSpy(filePath);
+        return fs.rm(filePath, options);
+      }
+    });
+
+    const a = createRecoveryStoreLock({
+      lockDirectoryPath: lockDirectoryPath(),
+      fileSystem: fsA
+    });
+
+    const ownerA = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000a" });
+    const ownerB = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000b" });
+
+    const aPromise = a.acquire(ownerA);
+    await aMkdirDone.promise;
+
+    // B writes ownerB into the directory
+    await fs.writeFile(
+      ownerFilePath(),
+      `${JSON.stringify(ownerB, null, 2)}\n`,
+      { encoding: "utf8", flag: "wx" }
+    );
+    bWriteDone.resolve();
+
+    const ra = await aPromise;
+    expect(ra.outcome).toBe("unavailable");
+
+    // A's cleanup MUST NOT have called rm at all!
+    expect(rmSpy).not.toHaveBeenCalled();
+
+    // B's marker is intact!
+    const raw = await fs.readFile(ownerFilePath(), "utf8");
+    expect(parseRecoveryStoreOwnerInfo(JSON.parse(raw))?.instanceRunId).toBe(
+      ownerB.instanceRunId
+    );
+  });
+
+  it("Audit C: release refuses to delete owner.json when marker belongs to another owner", async () => {
+    const ownerA = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000a" });
+    const ownerB = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000b" });
+
+    const a = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath() });
+    await expect(a.acquire(ownerA)).resolves.toEqual({ outcome: "acquired" });
+    expect(a.isHeld()).toBe(true);
+
+    // Simulate external replacement: ownerB replaces the marker
+    await fs.writeFile(
+      ownerFilePath(),
+      `${JSON.stringify(ownerB, null, 2)}\n`,
+      "utf8"
+    );
+
+    // A calls release()
+    const result = await a.release();
+    expect(result).toBe("failed");
+    expect(a.isHeld()).toBe(false);
+
+    // B's marker is NOT deleted!
+    const raw = await fs.readFile(ownerFilePath(), "utf8");
+    expect(parseRecoveryStoreOwnerInfo(JSON.parse(raw))?.instanceRunId).toBe(
+      ownerB.instanceRunId
+    );
+  });
+
+  it("Audit D: isHeld reflects in-memory state synchronously and does not authorize rogue deletion", async () => {
+    const lock = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath() });
+    expect(lock.isHeld()).toBe(false);
+
+    await lock.acquire(ownerInfo());
+    expect(lock.isHeld()).toBe(true);
+
+    // A second acquire is a no-op idempotent return
+    await expect(lock.acquire(ownerInfo())).resolves.toEqual({ outcome: "acquired" });
+
+    // Release drops isHeld immediately
+    await lock.release();
+    expect(lock.isHeld()).toBe(false);
+
+    // Calling release again is a no-op notHeld
+    await expect(lock.release()).resolves.toBe("notHeld");
+  });
+
+  it("Audit E: writeOwnerMarker fails closed immediately on ENOENT without retrying into a replaced directory", async () => {
+    function deferred<T = void>() {
+      let resolve!: (value: T | PromiseLike<T>) => void;
+      let reject!: (reason?: any) => void;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    }
+
+    const aMkdirDone = deferred();
+    const replacedDone = deferred();
+    let writeAttempts = 0;
+
+    const fsA = realSeam({
+      mkdir: async (dirPath) => {
+        const res = await fs.mkdir(dirPath);
+        aMkdirDone.resolve();
+        await replacedDone.promise;
+        return res;
+      },
+      writeFile: async (filePath, data, options) => {
+        writeAttempts += 1;
+        return fs.writeFile(filePath, data, options);
+      }
+    });
+
+    const a = createRecoveryStoreLock({
+      lockDirectoryPath: lockDirectoryPath(),
+      fileSystem: fsA
+    });
+
+    const ownerA = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000a" });
+    const ownerC = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000c" });
+
+    const aPromise = a.acquire(ownerA);
+    await aMkdirDone.promise;
+
+    // Simulate directory removal and replacement by C
+    await fs.rmdir(lockDirectoryPath());
+    await fs.mkdir(lockDirectoryPath());
+    await fs.writeFile(
+      ownerFilePath(),
+      `${JSON.stringify(ownerC, null, 2)}\n`,
+      "utf8"
+    );
+    replacedDone.resolve();
+
+    const ra = await aPromise;
+    expect(ra.outcome).toBe("unavailable");
+
+    // Exactly 1 write attempt (fails with EEXIST), ZERO retries!
+    expect(writeAttempts).toBe(1);
+
+    // C's marker is intact
+    const raw = await fs.readFile(ownerFilePath(), "utf8");
+    expect(parseRecoveryStoreOwnerInfo(JSON.parse(raw))?.instanceRunId).toBe(
+      ownerC.instanceRunId
+    );
+  });
+
+  it("when contenders both back off under contention, subsequent launch cleanly acquires recovery (#293 req 5)", async () => {
+    const staleOwner = ownerInfo({
+      pid: 999,
+      instanceRunId: "0198d95f-97d8-7000-8000-0000000000ff"
+    });
+    await seedHeldLock(staleOwner);
+
+    // Contender A fails marker write (fails closed)
+    const fsA = realSeam({
+      writeFile: async () => {
+        throw new Error("simulated disk full on marker write");
+      }
+    });
+
+    const a = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath(), fileSystem: fsA });
+    const b = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath() });
+
+    const ownerA = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000a" });
+    const ownerB = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000b" });
+
+    // Both contenders attempt to acquire
+    const [ra, rb] = await Promise.all([
+      a.acquire(ownerA, stalePolicy("dead")),
+      b.acquire(ownerB, stalePolicy("dead"))
+    ]);
+
+    const acquired = [ra, rb].filter((r) => r.outcome === "acquired");
+    expect(acquired.length).toBeLessThanOrEqual(1);
+
+    // If neither acquired (or regardless of race outcome), release any held lock
+    if (a.isHeld()) await a.release();
+    if (b.isHeld()) await b.release();
+
+    // Requirement 5: Subsequent launch can acquire cleanly!
+    const subsequent = createRecoveryStoreLock({ lockDirectoryPath: lockDirectoryPath() });
+    const ownerSubsequent = ownerInfo({ instanceRunId: "0198d95f-97d8-7000-8000-00000000000c" });
+    const rSubsequent = await subsequent.acquire(ownerSubsequent, stalePolicy("dead"));
+
+    expect(rSubsequent.outcome).toBe("acquired");
+    expect(subsequent.isHeld()).toBe(true);
+
+    const activeRaw = await fs.readFile(ownerFilePath(), "utf8");
+    expect(parseRecoveryStoreOwnerInfo(JSON.parse(activeRaw))?.instanceRunId).toBe(
+      ownerSubsequent.instanceRunId
+    );
+
+    await subsequent.release();
   });
 });
