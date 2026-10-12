@@ -36,6 +36,7 @@ import type {
   ExportTxtUtf8Result,
   RecentProjectDocumentItem
 } from "../shared/api";
+import { APP_INFO_EXTERNAL_LINKS } from "../shared/api";
 import type { ProjectDocumentPathRelocation } from "../shared/projectMove";
 import { normalizeMarkdownTextForStorage } from "../shared/markdownTextNormalization";
 import { sanitizedFileIoErrorReasonFromMessage } from "../shared/sanitizedFileIoErrorMessage";
@@ -3437,9 +3438,13 @@ export function App(): JSX.Element {
   // #548: Preview availability is no longer gated by document extension or
   // renderer choice. The toggle controls only pane visibility; the renderer
   // dropdown controls how the current text-like document is interpreted.
+  // #795: Builtin markdown documents except plain-text LICENSE also support preview.
   const isPreviewEligible =
     !isEditorAreaSpecialTabActive &&
-    (activeMarkdownDocument !== null || isGlossaryDescriptionEditorActive);
+    (activeMarkdownDocument !== null ||
+      isGlossaryDescriptionEditorActive ||
+      (currentEditor?.kind === "builtinMarkdown" &&
+        currentEditor.builtinId !== "license"));
   const canSave =
     (!isEditorAreaSpecialTabActive &&
       currentEditor?.kind === "markdown" &&
@@ -3813,8 +3818,9 @@ export function App(): JSX.Element {
       (await confirmDialog({
         title: translate("dialog.externalLink.title"),
         message: {
-          kind: "plainText",
-          text: translate("dialog.externalLink.message", { url })
+          kind: "plainTextWithUrlRow",
+          beforeText: translate("dialog.externalLink.message"),
+          url
         },
         icon: {
           kind: "externalLink",
@@ -4782,7 +4788,17 @@ export function App(): JSX.Element {
         // Built-in documents are titled in the display language (their
         // identity is the built-in id, never the title).
         tab.id.kind === "builtinMarkdown"
-          ? { ...tab, title: translate("markdownCheatSheet.tabTitle") }
+          ? {
+              ...tab,
+              title:
+                tab.id.builtinId === "markdownCheatSheet"
+                  ? translate("markdownCheatSheet.tabTitle")
+                  : tab.id.builtinId === "license"
+                    ? "LICENSE"
+                    : tab.id.builtinId === "thirdPartyLicenses"
+                      ? "THIRD_PARTY_LICENSES.md"
+                      : "THIRD_PARTY_NOTICES.md"
+            }
           : tab
       ),
     [openDocumentsState, translate]
@@ -6882,25 +6898,72 @@ export function App(): JSX.Element {
     });
   }
 
-  function openAboutRepository(): void {
-    void window.pergamum.appInfo
-      .openRepository()
-      .catch(reportAboutExternalLinkFailure);
+  async function openAboutRepository(): Promise<void> {
+    const url = APP_INFO_EXTERNAL_LINKS.repository;
+    const confirmed =
+      (await confirmDialog({
+        title: translate("dialog.externalLink.title"),
+        message: {
+          kind: "plainTextWithUrlRow",
+          beforeText: translate("dialog.externalLink.message"),
+          url
+        },
+        icon: {
+          kind: "externalLink",
+          tooltip: translate("dialog.icon.externalLink")
+        },
+        clipboardText: null,
+        confirmLabel: translate("common.open"),
+        cancelLabel: translate("common.cancel")
+      })) === "confirm";
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await window.pergamum.appInfo.openExternalUrl(url);
+    } catch (error) {
+      reportAboutExternalLinkFailure(error);
+    }
   }
 
   function reportLegalDocumentOpenFailure(): void {
     setStatus({ key: "status.legalDocumentOpenFailed" });
   }
 
-  function openAboutLegalDocument(id: LegalDocumentId): void {
-    void window.pergamum.appInfo
-      .openLegalDocument(id)
-      .then((opened) => {
-        if (!opened) {
-          reportLegalDocumentOpenFailure();
-        }
-      })
-      .catch(reportLegalDocumentOpenFailure);
+  async function openAboutLegalDocument(id: LegalDocumentId): Promise<void> {
+    try {
+      const content = await window.pergamum.appInfo.readLegalDocumentContent(id);
+
+      if (content === null) {
+        reportLegalDocumentOpenFailure();
+        return;
+      }
+
+      projectActivationLifetimeRef.current.markExplicitEditorActivation();
+      applyEditor(
+        createBuiltinMarkdownEditorId(id),
+        createBuiltinMarkdownCurrentEditor(id, content)
+      );
+
+      if (
+        (id === "thirdPartyLicenses" || id === "thirdPartyNotices") &&
+        !layout.markdownEditorPreview.visible
+      ) {
+        setLayout((current) => ({
+          ...current,
+          markdownEditorPreview: {
+            ...current.markdownEditorPreview,
+            visible: true
+          }
+        }));
+      }
+
+      closeAboutDialog();
+    } catch {
+      reportLegalDocumentOpenFailure();
+    }
   }
 
   function canCloseEditorNow(editorId?: EditorId): boolean {
@@ -13967,8 +14030,13 @@ export function App(): JSX.Element {
         onOpenEmphasisDialog={handleOpenEmphasisDialogFromToolbar}
         canTogglePreview={isPreviewEligible}
         isPreviewVisible={
-          layout.markdownEditorPreview.visible ||
           activeDocument?.editor.kind === "builtinMarkdown"
+            ? activeDocument.editor.builtinId === "license"
+              ? false
+              : activeDocument.editor.builtinId === "markdownCheatSheet"
+                ? true
+                : layout.markdownEditorPreview.visible
+            : layout.markdownEditorPreview.visible
         }
         onTogglePreview={handleTogglePreviewVisible}
         selectedPreviewRenderer={requestedPreviewRenderer}
@@ -14333,10 +14401,11 @@ export function App(): JSX.Element {
                         }
                         builtinMarkdownText={
                           activeDocument.editor.kind === "builtinMarkdown"
-                            ? builtinMarkdownSource(
-                                activeDocument.editor.builtinId,
-                                displayLanguage
-                              )
+                            ? (activeDocument.editor.text ??
+                                builtinMarkdownSource(
+                                  activeDocument.editor.builtinId,
+                                  displayLanguage
+                                ))
                             : undefined
                         }
                         themeKind={

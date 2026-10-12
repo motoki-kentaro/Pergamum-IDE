@@ -346,7 +346,7 @@ export const enTranslations = {
   "dialog.manualOpen.title": "Open Manual",
   "dialog.manualOpen.message": "Open the following manual URL in your browser?",
   "dialog.externalLink.title": "Open External Site",
-  "dialog.externalLink.message": "An external site will be opened.\n\nURL: {url}",
+  "dialog.externalLink.message": "An external site will be opened.",
   "dialog.icon.externalLink": "External link",
   "dialog.icon.error": "Error",
   "dialog.icon.info": "Information",

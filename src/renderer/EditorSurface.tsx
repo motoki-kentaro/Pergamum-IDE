@@ -983,7 +983,15 @@ function TextEditorSurface({
           onPendingSelectionApplied={onPendingMarkdownSelectionApplied}
           ratio={markdownEditorPreviewRatio}
           onChangeRatio={onChangeMarkdownEditorPreviewRatio}
-          previewVisible={previewVisible || isBuiltinMarkdown}
+          previewVisible={
+            editor.kind === "builtinMarkdown"
+              ? editor.builtinId === "license"
+                ? false
+                : editor.builtinId === "markdownCheatSheet"
+                  ? true
+                  : previewVisible
+              : previewVisible
+          }
           documentOpenId={documentOpenId}
           onDocumentOpenPreviewRenderStarted={
             onDocumentOpenPreviewRenderStarted

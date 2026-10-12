@@ -119,26 +119,24 @@ describe("handlePreviewLinkClick", () => {
 describe("external link confirmation dialog wiring", () => {
   it("has ja / en copy and reuses the common Cancel / Open labels", () => {
     expect(t("ja", "dialog.externalLink.title")).toBe("外部サイトを開く");
-    expect(t("ja", "dialog.externalLink.message", { url: "https://example.com/" })).toBe(
-      "外部サイトを開きます。\n\nURL: https://example.com/"
-    );
+    expect(t("ja", "dialog.externalLink.message")).toBe("外部サイトを開きます。");
     expect(t("ja", "common.cancel")).toBe("キャンセル");
     expect(t("ja", "common.open")).toBe("開く");
     expect(t("en", "dialog.externalLink.title")).toBe("Open External Site");
-    expect(t("en", "dialog.externalLink.message", { url: "https://example.com/" })).toBe(
-      "An external site will be opened.\n\nURL: https://example.com/"
+    expect(t("en", "dialog.externalLink.message")).toBe(
+      "An external site will be opened."
     );
     expect(t("en", "common.cancel")).toBe("Cancel");
     expect(t("en", "common.open")).toBe("Open");
   });
 
-  it("uses the external-link icon and a plain-text message in App", () => {
+  it("uses the external-link icon and plainTextWithUrlRow message in App", () => {
     const app = readFileSync("src/renderer/App.tsx", "utf8");
     const block = app.slice(app.indexOf("previewExternalLinkDepsRef.current = {"));
     const code = block.slice(0, block.indexOf("useEffect(() => {"));
 
     expect(code).toContain('kind: "externalLink"');
-    expect(code).toContain('kind: "plainText"');
+    expect(code).toContain('kind: "plainTextWithUrlRow"');
     expect(code).toContain('translate("common.open")');
     expect(code).not.toContain('kind: "warning"');
     expect(code).not.toContain('kind: "error"');

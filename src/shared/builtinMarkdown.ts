@@ -6,7 +6,12 @@ import type { Language } from "./i18n";
  * Markdown Editor / Preview, read-only, and are identified by `BuiltinMarkdownId`
  * — never by a locale-dependent title.
  */
-export const builtinMarkdownIds = ["markdownCheatSheet"] as const;
+export const builtinMarkdownIds = [
+  "markdownCheatSheet",
+  "license",
+  "thirdPartyLicenses",
+  "thirdPartyNotices"
+] as const;
 
 export type BuiltinMarkdownId = (typeof builtinMarkdownIds)[number];
 
@@ -138,7 +143,7 @@ const markdownCheatSheetEn: readonly string[] = [
 ];
 
 const builtinMarkdownSources: Readonly<
-  Record<BuiltinMarkdownId, Readonly<Record<Language, readonly string[]>>>
+  Partial<Record<BuiltinMarkdownId, Readonly<Record<Language, readonly string[]>>>>
 > = {
   markdownCheatSheet: { ja: markdownCheatSheetJa, en: markdownCheatSheetEn }
 };
@@ -148,5 +153,7 @@ export function builtinMarkdownSource(
   id: BuiltinMarkdownId,
   language: Language
 ): string {
-  return builtinMarkdownSources[id][language].join("\n");
+  const entry = builtinMarkdownSources[id];
+
+  return entry ? entry[language].join("\n") : "";
 }

@@ -34,6 +34,7 @@ import {
   registerAppInfoIpc,
   LEGAL_DOCUMENT_FILE_NAMES,
   openLegalDocument,
+  readLegalDocumentContent,
   resolveLegalDocumentPath,
   type AppInfoMetadataProvider,
   type ExternalLinkOpener,
@@ -280,6 +281,31 @@ describe("legal documents (#627)", () => {
     expect(legalDocumentOpener.openPath.mock.calls).toEqual([
       [path.join(process.cwd(), "THIRD_PARTY_LICENSES.md")]
     ]);
+  });
+
+  it("reads legal document content as utf8 string and routes through IPC", async () => {
+    const development = { isPackaged: false, resourcesPath: "unused", appPath: process.cwd() };
+
+    const content = readLegalDocumentContent("license", development);
+    expect(content).not.toBeNull();
+    expect(typeof content).toBe("string");
+    expect(content).toContain("Pergamum");
+
+    expect(readLegalDocumentContent("invalid-id", development)).toBeNull();
+    const missing = { ...development, appPath: path.join(os.tmpdir(), "pergamum-no-such-dir") };
+    expect(readLegalDocumentContent("license", missing)).toBeNull();
+
+    registerAppInfoIpc({
+      runtimeMetadataProvider,
+      externalLinkOpener: { openExternal: vi.fn(() => Promise.resolve()) },
+      legalDocumentLocation: () => development
+    });
+
+    const ipcResult = await ipcHandler(APP_INFO_CHANNELS.readLegalDocumentContent)({}, "license");
+    expect(ipcResult).toBe(content);
+
+    const evilResult = await ipcHandler(APP_INFO_CHANNELS.readLegalDocumentContent)({}, "C:\\evil.exe");
+    expect(evilResult).toBeNull();
   });
 });
 
