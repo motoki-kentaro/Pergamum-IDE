@@ -1727,4 +1727,69 @@ describe("ExportConfirmationDialog (#523)", () => {
     const enCountCell = container.querySelector("[data-export-candidate-file-path='First/01.md'] td.exportConfirmationDialogCharacterCount")?.textContent;
     expect(enCountCell).toBe("1,112,440 chars");
   });
+
+  it("styles the D&D handle with cursor: grab when draggable and grabbing on active (#807)", () => {
+    const css = readFileSync("src/renderer/styles.css", "utf8");
+
+    // Unified class: uses .exportConfirmationDialogHandle, not an orphaned separate class
+    expect(css).toMatch(
+      /\.exportConfirmationDialogHandle\[draggable="true"\]\s*\{[^}]*cursor:\s*grab;/
+    );
+    expect(css).toMatch(
+      /\.exportConfirmationDialogHandle\[draggable="true"\]:active\s*\{[^}]*cursor:\s*grabbing;/
+    );
+    expect(css).toMatch(
+      /\.exportConfirmationDialogHandle\s*\{[^}]*cursor:\s*default;/
+    );
+    expect(css).not.toContain(".exportConfirmationDialogDragHandle");
+
+    // Drag cursor is never applied to the whole row or name cell
+    expect(css).not.toMatch(
+      /\.exportConfirmationDialogRow\b[^{}]*\{[^}]*cursor:\s*grab/
+    );
+    expect(css).not.toMatch(
+      /\.exportConfirmationDialogNameCell\b[^{}]*\{[^}]*cursor:\s*grab/
+    );
+  });
+
+  it("toggles drag handle draggable attribute between Step 1 and Step 3 (#807)", async () => {
+    await mountDialog();
+
+    // Step 1: draggable is true on both file and folder handles
+    const fileHandle = fileDragHandle("First/01.md");
+    const folderHandle = folderDragHandle("First");
+    expect(fileHandle.getAttribute("draggable")).toBe("true");
+    expect(fileHandle.classList.contains("exportConfirmationDialogHandle")).toBe(true);
+    expect(folderHandle.getAttribute("draggable")).toBe("true");
+    expect(folderHandle.classList.contains("exportConfirmationDialogHandle")).toBe(true);
+
+    // Chevron and include switch are intact and separate elements
+    expect(folderRow("First").querySelector(".exportConfirmationDialogChevronIcon")).not.toBeNull();
+    expect(includeToggle("First/01.md").disabled).toBe(false);
+
+    // Navigate to Step 2 then Step 3
+    navigateToStep2();
+    navigateToStep3();
+
+    // Step 3: draggable is false (reordering disabled)
+    expect(fileDragHandle("First/01.md").getAttribute("draggable")).toBe("false");
+    expect(folderDragHandle("First").getAttribute("draggable")).toBe("false");
+    expect(includeToggle("First/01.md").disabled).toBe(true);
+
+    // Return to Step 2
+    act(() => {
+      buttonByText(translate("export.wizard.backToOutputFormat")).click();
+    });
+
+    // Return to Step 1
+    act(() => {
+      buttonByText(translate("export.wizard.backToSourceInterpretation")).click();
+    });
+
+    // Step 1: draggable is restored to true
+    expect(fileDragHandle("First/01.md").getAttribute("draggable")).toBe("true");
+    expect(folderDragHandle("First").getAttribute("draggable")).toBe("true");
+    expect(includeToggle("First/01.md").disabled).toBe(false);
+  });
 });
+

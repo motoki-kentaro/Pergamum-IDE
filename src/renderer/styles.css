@@ -13177,23 +13177,24 @@ body > .mermaidTooltip {
 .exportConfirmationDialogHandle {
   color: var(--workspace-sidebar-muted-foreground);
   line-height: 1;
-}
-
-.exportConfirmationDialogDragHandle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   inline-size: 100%;
   min-block-size: 24px;
   border-radius: 4px;
+  cursor: default;
+}
+
+.exportConfirmationDialogHandle[draggable="true"] {
   cursor: grab;
 }
 
-.exportConfirmationDialogDragHandle:active {
+.exportConfirmationDialogHandle[draggable="true"]:active {
   cursor: grabbing;
 }
 
-.exportConfirmationDialogDragHandle:focus-visible {
+.exportConfirmationDialogHandle:focus-visible {
   outline: 2px solid var(--app-dialog-focus-ring);
   outline-offset: 2px;
 }
