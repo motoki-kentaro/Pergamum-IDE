@@ -110,6 +110,13 @@ exports[`application menu accelerators come from the catalog (#642) > darwin: me
         "type": "separator",
       },
       {
+        "id": "assist.export.openDialog",
+        "label": "Export...",
+      },
+      {
+        "type": "separator",
+      },
+      {
         "id": "project.settings.open",
         "label": "Project Settings...",
       },
@@ -413,6 +420,13 @@ exports[`application menu accelerators come from the catalog (#642) > linux: men
         "type": "separator",
       },
       {
+        "id": "assist.export.openDialog",
+        "label": "Export...",
+      },
+      {
+        "type": "separator",
+      },
+      {
         "id": "project.settings.open",
         "label": "Project Settings...",
       },
@@ -691,6 +705,13 @@ exports[`application menu accelerators come from the catalog (#642) > win32: men
         "accelerator": "F12",
         "label": "Save As (F12)",
         "visible": false,
+      },
+      {
+        "type": "separator",
+      },
+      {
+        "id": "assist.export.openDialog",
+        "label": "Export...",
       },
       {
         "type": "separator",

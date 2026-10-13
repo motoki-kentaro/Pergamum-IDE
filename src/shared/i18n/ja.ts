@@ -1442,6 +1442,7 @@ export const jaTranslations = {
   "menu.file": "ファイル",
   "menu.file.import": "インポート",
   "menu.file.import.bulkTextFiles": "テキストファイルをまとめてインポート...",
+  "menu.export": "エクスポート...",
   "menu.help": "ヘルプ",
   "menu.showResumeHub": "作業再開画面を表示",
   "menu.usageTour": "使い方ツアー",

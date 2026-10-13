@@ -166,6 +166,7 @@ export const applicationMenuCommandIds = [
   editorCommandIds.saveDocument,
   editorCommandIds.saveAll,
   editorCommandIds.saveAs,
+  assistCommandIds.openExportDialog,
   editorCommandIds.close,
   commandPaletteCommandIds.open,
   assistCommandIds.showLineEndingDistribution,

@@ -1447,6 +1447,7 @@ export const enTranslations = {
   "menu.file": "File",
   "menu.file.import": "Import",
   "menu.file.import.bulkTextFiles": "Bulk Import Text Files...",
+  "menu.export": "Export...",
   "menu.help": "Help",
   "menu.showResumeHub": "Show Resume Hub",
   "menu.usageTour": "Usage Tour",

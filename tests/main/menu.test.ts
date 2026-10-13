@@ -111,6 +111,7 @@ describe("application menu", () => {
       editorCommandIds.saveAll,
       editorCommandIds.saveAs,
       editorCommandIds.saveAs,
+      assistCommandIds.openExportDialog,
       projectSettingsCommandIds.open,
       workspaceCommandIds.openKeyboardShortcuts,
       workspaceCommandIds.openApplicationSettings,
@@ -131,6 +132,7 @@ describe("application menu", () => {
       editorCommandIds.saveDocument,
       editorCommandIds.saveAll,
       editorCommandIds.saveAs,
+      assistCommandIds.openExportDialog,
       editorCommandIds.close,
       projectSettingsCommandIds.open,
       workspaceCommandIds.openApplicationSettings
@@ -138,6 +140,44 @@ describe("application menu", () => {
       expect(applicationMenuCommandIds).toContain(commandId);
     }
     expect(applicationMenuCommandIds).toContain(commandPaletteCommandIds.open);
+  });
+
+  it("adds the Export command under File (#803)", () => {
+    const fileItems = fileMenuItems("win32");
+    const exportItem = fileItemByLabel(fileItems, "Export...");
+
+    expect(exportItem.id).toBe(assistCommandIds.openExportDialog);
+    expect(exportItem.accelerator).toBeUndefined();
+  });
+
+  it("localizes the File > Export command in Japanese (#803)", () => {
+    const fileItems = submenuItems(
+      findTopLevelMenu(
+        buildApplicationMenu("ja", emptyMenuOptions(), "win32"),
+        "ファイル"
+      )
+    );
+
+    expect(
+      fileItems.some(
+        (item) =>
+          item.id === assistCommandIds.openExportDialog &&
+          item.label === "エクスポート..."
+      )
+    ).toBe(true);
+  });
+
+  it("sends the Export command from the File menu item (#803)", () => {
+    const { window, send } = menuWindowMock();
+    const fileItems = fileMenuItems("win32", { getMainWindow: () => window });
+    const exportItem = fileItemByLabel(fileItems, "Export...");
+
+    exportItem.click?.(undefined as never, undefined as never, undefined as never);
+
+    expect(send).toHaveBeenCalledWith(
+      APPLICATION_MENU_CHANNELS.command,
+      assistCommandIds.openExportDialog
+    );
   });
 
   it("adds the Bulk Text Import command under File > Import", () => {

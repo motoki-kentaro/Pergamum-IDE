@@ -305,6 +305,11 @@ describe("explicit-target dialog commands (#684)", () => {
     const { registry, calls } = setup();
 
     expect(
+      registry.isEnabledForContext(assistCommandIds.openExportDialog, {
+        "project.isOpen": false
+      } as never)
+    ).toBe(false);
+    expect(
       registry.isEnabledForContext(assistCommandIds.openExportDialog, context)
     ).toBe(true);
     await registry.execute(
