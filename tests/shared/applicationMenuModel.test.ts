@@ -121,6 +121,8 @@ describe("canonical application menu model (#662)", () => {
         `command:${editorCommandIds.saveAll}`,
         `command:${editorCommandIds.saveAs}`,
         "---",
+        `command:${assistCommandIds.openExportDialog}`,
+        "---",
         `command:${projectSettingsCommandIds.open}`,
         `command:${workspaceCommandIds.openKeyboardShortcuts}`,
         `command:${workspaceCommandIds.openApplicationSettings}`,
@@ -152,6 +154,22 @@ describe("canonical application menu model (#662)", () => {
       expect(outline(imports?.items ?? [])).toEqual([
         `command:${applicationCommandIds.openBulkTextImportDialog}`
       ]);
+    });
+
+    it("File > Export is placed after Save As in its own separator section without native accelerator (#803)", () => {
+      for (const platform of ["win32", "linux", "darwin"] as const) {
+        const file = topLevel(platform, "menu.file");
+        const exportItem = file.items.find(
+          (item) =>
+            item.type === "command" &&
+            item.commandId === assistCommandIds.openExportDialog
+        );
+        expect(exportItem).toBeDefined();
+        if (exportItem?.type === "command") {
+          expect(exportItem.label).toEqual({ key: "menu.export" });
+          expect(exportItem.nativeAccelerator).toBeUndefined();
+        }
+      }
     });
   });
 

@@ -9,10 +9,12 @@ import {
 import {
   applicationCommandIds,
   applicationMenuCommandIds,
+  assistCommandIds,
   commandPaletteCommandIds,
   editorCommandIds,
   workspaceCommandIds
 } from "../../src/shared/commandIds";
+import { registerAssistCommands } from "../../src/renderer/assistCommands";
 import {
   CommandRegistry,
   defineCommandId
@@ -511,6 +513,45 @@ describe("Renderer menu enablement (#664)", () => {
     expect(state("Select All")).toMatchObject({ disabled: false });
     expect(state("Cut")).toMatchObject({ disabled: true });
     expect(state("Paste")).toMatchObject({ disabled: true });
+  });
+
+  it("File > Export is disabled without an open project and enabled when open (#803)", () => {
+    const registry = new CommandRegistry();
+    registerAssistCommands(
+      registry,
+      {
+        showLineEndingDistribution: () => undefined,
+        insertParagraphIndent: () => undefined,
+        removeParagraphIndent: () => undefined,
+        openExportDialog: () => undefined
+      },
+      {
+        showLineEndingDistribution: "",
+        showLineEndingDistributionDescription: "",
+        insertParagraphIndent: "",
+        insertParagraphIndentDescription: "",
+        removeParagraphIndent: "",
+        removeParagraphIndentDescription: "",
+        openExportDialog: "Export...",
+        openExportDialogDescription: ""
+      }
+    );
+
+    expect(
+      isApplicationMenuCommandDisabled(
+        registry,
+        { "project.isOpen": false } as never,
+        assistCommandIds.openExportDialog
+      )
+    ).toBe(true);
+
+    expect(
+      isApplicationMenuCommandDisabled(
+        registry,
+        { "project.isOpen": true } as never,
+        assistCommandIds.openExportDialog
+      )
+    ).toBe(false);
   });
 });
 

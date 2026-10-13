@@ -300,6 +300,8 @@ const fileMenu: ApplicationMenuTopLevelItem = submenu("menu.file", [
     nativeKeyAlias: true
   }),
   separator,
+  command(assistCommandIds.openExportDialog, "menu.export"),
+  separator,
   command(projectSettingsCommandIds.open, "menu.projectSettings"),
   // #646: the read-only Keyboard Shortcuts screen, right before Application
   // Settings. A menu entry only: it carries no native accelerator.
