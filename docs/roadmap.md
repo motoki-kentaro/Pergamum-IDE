@@ -10,9 +10,9 @@ Pergamum は、小説を書く人のための open-source IDE である。作者
 
 ## 現在の開発状況
 
-Pergamum は現在、Windows 向けの [BETA / Pre-release](https://github.com/motoki-kentaro/Pergamum-IDE/releases/tag/v0.90.2) として公開している。NSIS インストーラーを提供しており、macOS / Linux 向けの公式ビルドは配布していない。
+Pergamum は現在、Windows 向けの [BETA / Pre-release](https://github.com/Pergamum-IDE/Pergamum-IDE/releases) として公開している。NSIS インストーラーを提供しており、macOS / Linux 向けの公式ビルドは配布していない。
 
-最新の公開バージョンと配布物は [GitHub Releases](https://github.com/motoki-kentaro/Pergamum-IDE/releases) を参照する。
+最新の公開バージョンと配布物は [GitHub Releases](https://github.com/Pergamum-IDE/Pergamum-IDE/releases) を参照する。
 
 小説 IDE としての主要な執筆・参照・出力機能と、BETA 版を配布する基盤が成立した段階である。今後も実利用を通じて保守と品質改善を続ける。
 
@@ -48,7 +48,7 @@ Phase 番号は過去の開発経緯を示す補助情報として残す。機�
 - 文書を開いていない zero-tab / Welcome 状態。
 - 設定可能な不可視文字表示。
 
-不可視文字表示は、かつて保留していたが、[PR #282](https://github.com/motoki-kentaro/Pergamum-IDE/pull/282) で CodeMirror の独立した描画レイヤーを使う方式として実装された。
+不可視文字表示は、かつて保留していたが、[PR #282](https://github.com/Pergamum-IDE/Pergamum-IDE/pull/282) で CodeMirror の独立した描画レイヤーを使う方式として実装された。
 
 ### Session と Document Recovery（Phase 6）
 
@@ -65,7 +65,7 @@ settings / session / recovery は別の責務として扱う。これらの到�
 - copy / cut / paste と、内部 D&D による Move / Copy / Cancel の選択。
 - 移動に伴う Recovery のパス更新。
 
-内部 D&D と copy の経緯は [PR #363](https://github.com/motoki-kentaro/Pergamum-IDE/pull/363) を参照する。ファイル操作は Renderer から直接 filesystem を操作せず、Preload / Main Process の API を通す。
+内部 D&D と copy の経緯は [PR #363](https://github.com/Pergamum-IDE/Pergamum-IDE/pull/363) を参照する。ファイル操作は Renderer から直接 filesystem を操作せず、Preload / Main Process の API を通す。
 
 旧ロードマップにあった「watcher → debounce → re-scan」による外部変更検知は、今回実装を確認できていないため、完了項目には含めない。
 
@@ -111,7 +111,7 @@ PDF 出力には縦書きも含むが、フォントやレイアウトは環境�
 
 過去の機能候補一覧やバージョン別計画は、この文書から整理した。一覧から除外したことは、機能の中止・却下を意味しない。過去の提案や判断は、関連 Issue と文書の Git 履歴を参照する。
 
-例えば、外部ファイルの D&D Import は [Issue #339](https://github.com/motoki-kentaro/Pergamum-IDE/issues/339) で Deferred とされている。内部 D&D の完成をもって外部 Import も完成したとは扱わず、再開は個別の判断による。
+例えば、外部ファイルの D&D Import は [Issue #339](https://github.com/Pergamum-IDE/Pergamum-IDE/issues/339) で Deferred とされている。内部 D&D の完成をもって外部 Import も完成したとは扱わず、再開は個別の判断による。
 
 ### v1.0.0 の考え方
 
@@ -121,7 +121,7 @@ v1.0.0 の検討では、大型新機能の追加を必須とせず、安定性�
 
 ## フィードバックと貢献
 
-不具合報告や改善提案は [GitHub Issues](https://github.com/motoki-kentaro/Pergamum-IDE/issues) を通じて受け付け、今後の優先順位付けに活用する。
+不具合報告や改善提案は [GitHub Issues](https://github.com/Pergamum-IDE/Pergamum-IDE/issues) を通じて受け付け、今後の優先順位付けに活用する。
 
 提案があることと、実装が決定していることは区別する。実利用での必要性、本文とデータの安全性、保守性を踏まえて検討し、着手する範囲は個別 Issue で定める。
 

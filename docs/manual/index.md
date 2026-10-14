@@ -24,11 +24,11 @@ Pergamum（ペルガモン）は、小説を書く人のためのオープンソ
 
 長い物語を書くために必要な道具を、ひとつのプロジェクトにまとめます。
 
-**[Windows版をダウンロード](https://github.com/Pergamum-IDE/Pergamum-IDE/releases)**  
+**[Windows版をダウンロード](https://github.com/Pergamum-IDE/Pergamum-IDE/releases)**\
 [日本語マニュアル](./ja/) · [GitHub](https://github.com/Pergamum-IDE/Pergamum-IDE)
 
 **無料・オープンソース（MIT License）**
-v0.90.2 BETA / Windows版公開中
+BETA / Windows版公開中
 
 ---
 
@@ -126,20 +126,20 @@ Pergamumは、作者の代わりに小説を書くためのAI執筆ツールで�
 
 ---
 
-# Pergamum v0.90.2 BETA
+# Pergamum BETA
 
-小説IDEとしての中核機能がひととおり揃い、v0.90.2 BETAを最初の公開リリースとして提供しています。
+小説IDEとしての中核機能がひととおり揃い、BETA版を提供しています。最新の公開バージョンと配布物はGitHub Releasesで確認できます。
 
 現在、Windows向けインストーラーを公開しています。  
 （署名がないため実行時に警告が出る場合があります）
 
-**[Pergamumをダウンロード](https://github.com/Pergamum-IDE/Pergamum-IDE/releases/latest)**
+**[Pergamumをダウンロード](https://github.com/Pergamum-IDE/Pergamum-IDE/releases)**
 
 [はじめての使い方を見る](./ja/)  
-[ソースコードを見る](https://github.com/Pergamum-IDE/Pergamum-IDE)  
+[ソースコードを見る](https://github.com/Pergamum-IDE/Pergamum-IDE)\
 [不具合・要望を送る](https://tally.so/r/vGQ06X)  
 [不具合・要望を送る@GitHub](https://github.com/Pergamum-IDE/Pergamum-IDE/issues)
-> v0.90.2はBETA版です。1.0まではプロジェクトデータの互換性に破壊的変更が入る可能性があります。重要な作品は、作品フォルダ全体のバックアップをおすすめします。
+> PergamumはBETA版です。1.0まではプロジェクトデータの互換性に破壊的変更が入る可能性があります。重要な作品は、作品フォルダ全体のバックアップをおすすめします。
 
 ---
 
