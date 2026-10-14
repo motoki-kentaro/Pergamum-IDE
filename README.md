@@ -6,7 +6,7 @@
 
 <p align="center"><strong>IDE for novelists</strong></p>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/motoki-kentaro/Pergamum-IDE?include_prereleases&sort=date)](https://github.com/motoki-kentaro/Pergamum-IDE/releases) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
+[![CI](https://img.shields.io/github/actions/workflow/status/Pergamum-IDE/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/Pergamum-IDE/Pergamum-IDE/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Pergamum-IDE/Pergamum-IDE?include_prereleases&sort=date)](https://github.com/Pergamum-IDE/Pergamum-IDE/releases) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
 
 [日本語](./README.md) | [English](./README.en.md)
 
@@ -95,7 +95,7 @@ Windows 向けには、**NSIS インストーラー**を提供しています。
 
 インストーラーから Pergamum を導入でき、`.pergamum` ファイルを Pergamum で開くためのファイル関連付けにも対応しています。
 
-**[Pergamum BETA版をダウンロード](https://github.com/motoki-kentaro/Pergamum-IDE/releases)**
+**[Pergamum BETA版をダウンロード](https://github.com/Pergamum-IDE/Pergamum-IDE/releases)**
 
 ### macOS / Linux
 
@@ -108,7 +108,7 @@ Windows 以外の環境で Pergamum を利用する場合は、お手数です�
 開発およびソースコードからの実行には **Node.js 24**（`>=24 <25`）を使用します。
 
 ```bash
-git clone https://github.com/motoki-kentaro/Pergamum-IDE.git
+git clone https://github.com/Pergamum-IDE/Pergamum-IDE.git
 cd Pergamum-IDE
 npm ci
 npm run dev
@@ -134,7 +134,7 @@ npm run build:installer
 
 ## フィードバック・追加要望
 
-Pergamum は、機能を積み上げる段階から、**実際に使ったフィードバックを集める段階**に入りました。BETA を試して感じた不具合、使いにくい点、「こんな機能があったら」を [GitHub Issues](https://github.com/motoki-kentaro/Pergamum-IDE/issues) にお寄せください。
+Pergamum は、機能を積み上げる段階から、**実際に使ったフィードバックを集める段階**に入りました。BETA を試して感じた不具合、使いにくい点、「こんな機能があったら」を [GitHub Issues](https://github.com/Pergamum-IDE/Pergamum-IDE/issues) にお寄せください。
 
 不具合の報告には、利用バージョン・OS・再現手順・期待した動作があると調査しやすくなります。追加要望では、執筆のどんな場面で困っているかを教えてください。非公開の原稿を添付する必要はありません。
 
@@ -144,7 +144,7 @@ Pergamum は、機能を積み上げる段階から、**実際に使ったフィ
 - [User Manual（English）](https://pergamum-ide.github.io/en/) — 英語版は現在準備中の placeholder です。
 - [Roadmap](./docs/roadmap.md) — 今後の方向性と検討事項。実装範囲は個々の Issues で管理します。
 - [ADR](./docs/adr/README.md) — 設計上の判断とその理由。
-- [GitHub Issues](https://github.com/motoki-kentaro/Pergamum-IDE/issues) — 不具合・要望・開発項目。
+- [GitHub Issues](https://github.com/Pergamum-IDE/Pergamum-IDE/issues) — 不具合・要望・開発項目。
 
 ## 現在の制限
 

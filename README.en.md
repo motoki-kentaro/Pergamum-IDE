@@ -6,7 +6,7 @@
 
 <p align="center"><strong>IDE for novelists</strong></p>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/motoki-kentaro/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/motoki-kentaro/Pergamum-IDE/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/motoki-kentaro/Pergamum-IDE?include_prereleases&sort=date)](https://github.com/motoki-kentaro/Pergamum-IDE/releases) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
+[![CI](https://img.shields.io/github/actions/workflow/status/Pergamum-IDE/Pergamum-IDE/ci.yml?branch=main&label=CI)](https://github.com/Pergamum-IDE/Pergamum-IDE/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Pergamum-IDE/Pergamum-IDE?include_prereleases&sort=date)](https://github.com/Pergamum-IDE/Pergamum-IDE/releases) [![License MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE) [![Electron 44](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)](./package.json) [![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](./package.json) [![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](./package.json)
 
 [日本語](./README.md) | [English](./README.en.md)
 
@@ -95,7 +95,7 @@ For Windows, Pergamum provides an **NSIS installer**. **No PC administrator priv
 
 The installer can be used to install Pergamum and also supports file association for `.pergamum` project files.
 
-**[Download Pergamum BETA from GitHub Releases](https://github.com/motoki-kentaro/Pergamum-IDE/releases)**
+**[Download Pergamum BETA from GitHub Releases](https://github.com/Pergamum-IDE/Pergamum-IDE/releases)**
 
 ### macOS / Linux
 
@@ -108,7 +108,7 @@ If you want to use Pergamum on a non-Windows platform, please build it from sour
 Development and source builds require **Node.js 24** (`>=24 <25`).
 
 ```bash
-git clone https://github.com/motoki-kentaro/Pergamum-IDE.git
+git clone https://github.com/Pergamum-IDE/Pergamum-IDE.git
 cd Pergamum-IDE
 npm ci
 npm run dev
@@ -134,7 +134,7 @@ The generated installer is written to `dist-installer/`.
 
 ## Feedback and feature requests
 
-Pergamum is moving from building out features to **gathering feedback from actual use**. If you try the BETA, please share bugs, usability problems, and ideas for new features through [GitHub Issues](https://github.com/motoki-kentaro/Pergamum-IDE/issues).
+Pergamum is moving from building out features to **gathering feedback from actual use**. If you try the BETA, please share bugs, usability problems, and ideas for new features through [GitHub Issues](https://github.com/Pergamum-IDE/Pergamum-IDE/issues).
 
 For bug reports, the application version, OS, steps to reproduce, and expected behavior help with investigation. For feature requests, tell us which part of your writing workflow needs help. You do not need to attach private manuscripts.
 
@@ -144,7 +144,7 @@ For bug reports, the application version, OS, steps to reproduce, and expected b
 - [User Manual (Japanese)](https://pergamum-ide.github.io/ja/) — From your first manuscript to representative features.
 - [Roadmap](./docs/roadmap.md) — Future direction and ideas under consideration. Individual Issues define implementation scope.
 - [ADR](./docs/adr/README.md) — Design decisions and their rationale.
-- [GitHub Issues](https://github.com/motoki-kentaro/Pergamum-IDE/issues) — Bugs, requests, and development work.
+- [GitHub Issues](https://github.com/Pergamum-IDE/Pergamum-IDE/issues) — Bugs, requests, and development work.
 
 ## Current limitations
 
