@@ -8822,11 +8822,21 @@ body > .mermaidTooltip {
   display: none !important;
 }
 
-/* #564: Mermaid diagram blocks — Markdown horizontal preview only. No theme
-   settings in this issue; this is layout/scoping only. */
+/* #813: KaTeX math inherits preview foreground */
+.preview .katex {
+  color: inherit;
+}
+
+/* #564: Mermaid diagram blocks — Markdown horizontal preview only (#813 plate styling). */
 .preview .markdownMermaidBlock {
   display: block;
-  margin: 12px 0;
+  margin: 16px 0;
+  padding: 16px;
+  background-color: #ffffff;
+  color: #1f2328;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .preview .markdownMermaidDiagram {

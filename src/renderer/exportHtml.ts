@@ -35,6 +35,7 @@ import {
   standaloneCommentContent
 } from "./preview/markdownComment";
 import { markdownTableExportCss } from "./preview/markdownTableCss";
+import { markdownMermaidExportCss } from "./preview/markdownMermaidRendering";
 import { renderMarkdownStaticExport } from "./export/markdownStaticExportRenderer";
 import { codeHighlightExportCss } from "./preview/codeHighlight";
 import type {
@@ -727,6 +728,7 @@ export async function generateCombinedHtml(
         markdownPageBreakExportCss,
         markdownTableExportCss,
         markdownCalloutExportCss,
+        markdownMermaidExportCss,
         ...(assembly.bodyNotation === "markdown" ? [codeHighlightExportCss] : []),
         ...(assembly.bodyNotation === "markdown" && combinedUsesMath && aggregatedKatexCss
           ? [aggregatedKatexCss]
@@ -752,6 +754,7 @@ export async function generateCombinedHtml(
         markdownPageBreakExportCss,
         markdownTableExportCss,
         markdownCalloutExportCss,
+        markdownMermaidExportCss,
         ...(assembly.bodyNotation === "markdown" ? [codeHighlightExportCss] : []),
         ...(assembly.bodyNotation === "markdown" && combinedUsesMath && aggregatedKatexCss
           ? [aggregatedKatexCss]
