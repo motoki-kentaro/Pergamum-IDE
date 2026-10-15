@@ -11,6 +11,7 @@ import {
 } from "../preview/markdownComment";
 import { markdownTableExportCss } from "../preview/markdownTableCss";
 import {
+  markdownMermaidExportCss,
   renderMermaidDiagramsToStaticHtml,
   type MermaidPreviewMessages,
   type MermaidRenderFn
@@ -113,6 +114,7 @@ export async function renderMarkdownStaticExport(
     markdownPageBreakExportCss,
     markdownTableExportCss,
     markdownCalloutExportCss,
+    markdownMermaidExportCss,
     codeHighlightExportCss,
     usesMath && katexCss ? katexCss : ""
   ]

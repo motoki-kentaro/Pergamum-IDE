@@ -436,3 +436,47 @@ describe("Renderer CSP policy and KaTeX large delimiters (#749)", () => {
     expect(countMatches(html, /class="katex-block"/g)).toBe(2);
   });
 });
+
+describe("KaTeX color theme synchronization (#813)", () => {
+  const stylesCss = readFileSync("src/renderer/styles.css", "utf8");
+
+  it("styles.css explicitly specifies color: inherit for .preview .katex", () => {
+    expect(stylesCss).toMatch(/\.preview\s+\.katex\s*\{\s*color:\s*inherit;/);
+  });
+
+  it("inherits preview foreground color in both light and dark themes", async () => {
+    const { Window } = await import("happy-dom");
+    const formulas = "$x^2$ and $\\frac{a}{b}$ and $\\sqrt{c}$";
+    const renderedHtml = renderMarkdownPreview(formulas);
+
+    const testThemes = [
+      { className: "theme-pergamum-light", expectedFg: "#17212b" },
+      { className: "theme-night-dark", expectedFg: "#d7dde5" },
+      { className: "theme-ginza-night", expectedFg: "#f4f6fa" }
+    ];
+
+    for (const { className, expectedFg } of testThemes) {
+      const window = new Window();
+      const document = window.document;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = className;
+      wrapper.innerHTML = `<style>${stylesCss}\n${katexCss}</style><div class="preview">${renderedHtml}</div>`;
+      document.body.appendChild(wrapper);
+
+      const previewEl = wrapper.querySelector(".preview");
+      expect(previewEl).not.toBeNull();
+      expect(window.getComputedStyle(previewEl!).color).toBe(expectedFg);
+
+      const katexEl = wrapper.querySelector(".katex");
+      expect(katexEl).not.toBeNull();
+      expect(window.getComputedStyle(katexEl!).color).toBe(expectedFg);
+
+      // Verify sqrt SVG path has fill: currentColor
+      const svgEl = wrapper.querySelector(".katex svg");
+      if (svgEl) {
+        expect(window.getComputedStyle(svgEl).fill).toBe("currentColor");
+      }
+    }
+  });
+});

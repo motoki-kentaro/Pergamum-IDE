@@ -247,3 +247,34 @@ export function renderMermaidDiagramsInContainer(
       });
   });
 }
+
+/**
+ * #813: Standalone Mermaid diagram plate CSS for exported HTML / PDF
+ * (the app preview's equivalent lives in styles.css under `.preview .markdownMermaidBlock`).
+ * Renders the Mermaid diagram block as an independent figure with a light canvas plate,
+ * border, border-radius, and comfortable padding.
+ */
+export const markdownMermaidExportCss = [
+  `    .markdownMermaidBlock {`,
+  `      display: block;`,
+  `      margin: 16px 0;`,
+  `      padding: 16px;`,
+  `      background-color: #ffffff;`,
+  `      color: #1f2328;`,
+  `      border: 1px solid #d0d7de;`,
+  `      border-radius: 6px;`,
+  `      box-sizing: border-box;`,
+  `      break-inside: avoid;`,
+  `      page-break-inside: avoid;`,
+  `    }`,
+  `    .markdownMermaidDiagram {`,
+  `      display: flex;`,
+  `      justify-content: center;`,
+  `      overflow-x: auto;`,
+  `    }`,
+  `    .markdownMermaidDiagram svg {`,
+  `      max-inline-size: 100%;`,
+  `      height: auto;`,
+  `    }`
+].join("\n");
+
